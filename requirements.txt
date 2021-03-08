@@ -1,0 +1,6 @@
+pandas
+matplotlib
+pyside2
+pyupbit
+websocket-client
+pyinstaller
