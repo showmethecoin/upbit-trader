@@ -532,3 +532,5 @@ if __name__ == '__main__':
 
     # User upbit connection
     static.upbit = pyupbit.Upbit(config.KEY["ACCESS"], config.KEY["SECRET"])
+
+    print(pyupbit.get_tickers())

@@ -12,6 +12,13 @@ PROGRAM = {
     "HEIGHT": 200,
 }
 
+DB = {
+    "IP": "codejune.iptime.org",
+    "PORT": 27017,
+    "ID": "root",
+    "PASSWORD": "qwe123"
+}
+
 FEES = 0.005 # Upbit official fees
 FIAT = "KRW" # KRW/BRC/ETH/USDT
 

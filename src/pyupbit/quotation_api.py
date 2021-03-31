@@ -97,12 +97,19 @@ def get_ohlcv(ticker="KRW-BTC", interval="day", count=200, to=None):
         to = to.strftime("%Y-%m-%d %H:%M:%S")
 
         contents = _call_public_api(url, market=ticker, count=count, to=to)[0]
-        dt_list = [datetime.datetime.strptime(x['candle_date_time_kst'], "%Y-%m-%dT%H:%M:%S") for x in contents]
-        df = pd.DataFrame(contents, columns=['opening_price', 'high_price', 'low_price', 'trade_price',
-                                             'candle_acc_trade_volume'],
-                          index=dt_list)
+        # TODO 몽고DB에 데이터 넣기 실험 진행중
+        # dt_list = [datetime.datetime.strptime(x['candle_date_time_kst'], "%Y-%m-%dT%H:%M:%S") for x in contents]
+        # df = pd.DataFrame(contents, columns=['opening_price', 'high_price', 'low_price', 'trade_price',
+        #                                      'candle_acc_trade_volume'],
+        #                   index=dt_list)
+        
+        # dt_list = [datetime.datetime.strptime(x['candle_date_time_kst'], "%Y-%m-%dT%H:%M:%S") for x in contents]
+        df = pd.DataFrame(contents, columns=['candle_date_time_kst', 'opening_price', 'high_price', 'low_price', 'trade_price',
+                                             'candle_acc_trade_volume'])
+        # df['candle_date_time_kst'] = [datetime.datetime.strptime(x['candle_date_time_kst'], "%Y-%m-%dT%H:%M:%S") for x in contents]
+
         df = df.rename(
-            columns={"opening_price": "open", "high_price": "high", "low_price": "low", "trade_price": "close",
+            columns={"candle_date_time_kst": "time", "opening_price": "open", "high_price": "high", "low_price": "low", "trade_price": "close",
                      "candle_acc_trade_volume": "volume"})
         return df.sort_index()
     except Exception as x:
