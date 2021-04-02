@@ -140,3 +140,4 @@ cython_debug/
 src/__pycache__
 *.log
 *.bak
+.DS_Store

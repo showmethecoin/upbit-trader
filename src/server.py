@@ -18,4 +18,4 @@ if __name__ == '__main__':
             else:
                 db.insert_item_one(data=i, db_name='history', collection_name='KRW_BTC')
             
-        time.sleep(5)
+        time.sleep(1)

@@ -16,3 +16,6 @@ six
 urllib3
 websockets
 zope.interface
+pymongo
+websocket-client
+websocket
