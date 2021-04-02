@@ -9,6 +9,7 @@ import platform
 import pyupbit
 # User defined modules
 import config
+from static import log
 import static
 from component import Coin, Chart
 
@@ -190,9 +191,12 @@ def print_holding_list() -> None:
 
             print_program_title()
             print('\t│ Code  Count                 Avg Buy         Purchase        Avaluate        Loss            Yield')
-            for item in static.upbit.get_balances()[0]:
+            for item in static.upbit.get_balances():
                 currency = item["currency"]
                 balance = float(item["balance"])
+                if currency == 'XYM':
+                    continue
+                
                 if currency == 'KRW':
                     print(f'\t│ {currency:<5} {math.floor(balance):<21}')
                     total_purchase += balance
@@ -216,8 +220,8 @@ def print_holding_list() -> None:
             time.sleep(5)
         except KeyboardInterrupt as e:
             break
-        except Exception as e:
-            break
+        # except Exception as e:
+        #     break
 
 
 def prompt_main() -> None:
