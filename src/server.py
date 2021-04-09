@@ -19,3 +19,8 @@ if __name__ == '__main__':
                 db.insert_item_one(data=i, db_name='history', collection_name='KRW_BTC')
             
         time.sleep(1)
+
+        """for i in static.chart.codes:
+            static.chart.coins[i].candle_result = False
+        asyncio.run(static.chart.get_candles(0))
+        asyncio.run(static.chart.get_candles(1))"""

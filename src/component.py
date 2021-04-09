@@ -72,6 +72,7 @@ class Coin:
         }
         # Sync thread status
         self.sync_status = False
+        self.candle_result = True
 
     def _sync_thread(self) -> None:
         while self.sync_status:
@@ -403,6 +404,13 @@ class Coin:
             return self.orderbook['obu']
         return self.orderbook['obu'][_index]
 
+    async def get_candle(self):
+        try:
+            self.df, self.lc = pyupbit.get_ohlcv(self.code, interval = "minute1", count = 2)
+            self.candle_result = True
+        except:
+            self.candle_resut = False
+
 
 class Chart:
     def __init__(self) -> None:
@@ -516,6 +524,28 @@ class Chart:
     def get_coin(self, _code: str) -> Coin:
         return self.coins[_code]
 
+    async def get_candles(self, num):
+        await self.coins['KRW-BTC'].get_candle()
+        secLimit = self.coins['KRW-BTC'].lc['sec']
+
+        a = []
+        for i in self.codes:
+            #print(self.coins[i].candle_result)
+            if self.coins[i].candle_result == False:
+                if (len(a) >= secLimit):
+                    await asyncio.wait(a)
+                    if (num > 0):
+                        await asyncio.sleep(0.5)
+                    else:
+                        await asyncio.sleep(0.1)
+                    a.clear()
+
+                a.append(self.coins[i].get_candle())
+        
+        if (len(a) > 0):
+            await asyncio.wait(a)
+            await asyncio.sleep(0.5)
+            a.clear()
 
 class Account:
     def __init__(self, _access_key, _secret_key) -> None:
