@@ -30,9 +30,9 @@ class DBHandler:
         """
         return True if self.client[db_name][collection_name].insert_one(data).inserted_id else False
 
-    def insert_item_many(self, data=None, db_name=None, collection_name=None):
+    def insert_item_many(self, data=None, db_name=None, collection_name=None, ordered=False):
         result = self.client[db_name][collection_name].insert_many(
-            data).inserted_ids
+            documents=data, ordered=ordered).inserted_ids
         return result
 
     def find_item_one(self, condition=None, db_name=None, collection_name=None):

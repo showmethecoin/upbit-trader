@@ -1,4 +1,4 @@
-# 내부 요구 모듈
+
 pandas==1.2.2
 numpy==1.20.0
 matplotlib==3.3.3
@@ -6,7 +6,10 @@ pymongo==3.11.2
 schedule==0.6.0
 websocket-client==0.57.0
 
-# pyupbit 요구 모듈
+aioschedule
+asyncmongo
+aiohttp
+
 certifi==2020.12.5
 cffi==1.14.4
 chardet==4.0.0
