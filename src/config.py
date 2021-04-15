@@ -19,6 +19,12 @@ DB = {
     "PASSWORD": "qwe123"
 }
 
+SERVER = {
+    "EXTERNAL_TIMEOUT": 60,
+    "INTERNAL_TIMEOUT": 1,
+    "REQUEST_LIMIT": 9,
+}
+
 FEES = 0.005 # Upbit official fees
 FIAT = "KRW" # KRW/BRC/ETH/USDT
 
