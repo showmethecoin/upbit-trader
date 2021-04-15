@@ -1,8 +1,10 @@
 import pandas as pd
+import numpy as np
 import pyupbit
 import datetime
 import time
 import pymongo
+import talib
 from pymongo import MongoClient
 from pymongo.cursor import CursorType
 #db 연결
@@ -132,8 +134,8 @@ while True:
         print(coin," 종목 테스트")
         #20개 캔들봉을 받아와서 dictionary list로 변경. 마지막 데이터는 변동중이므로 저장하지 않음
         items_df = pyupbit.get_ohlcv(ticker=coin, interval="minute1", count=78)
-        items_df=items_df.reset_index()
-        items_df=items_df.rename({'index':'time'},axis='columns')
+        items_df = items_df.reset_index()
+        items_df = items_df.rename({'index':'time'},axis='columns')
         #19개의 캔들봉 데이터를 중복검사 후에 저장
         tmp = [items_df.loc[i,:].to_dict() for i in range(len(items_df)-1)]
         items=[]
@@ -147,20 +149,37 @@ while True:
             print(i['time']," 추가 완료")
         if items:
             client['younghoon_test'][coin].insert_many(items).inserted_ids #insert_item_many 함수로 대체
-        print('시간 : ',items_df.loc[77,'time'])
-        print('전환선 : ',get_high_low_avg(items_df,77,9))
-        print('기준선 : ',get_high_low_avg(items_df,77,26))
-        print('후행스팬 : ',get_lagging_span(items_df,26))
-        print('선행스팬1 : ',get_leading_span_1(items_df,26))
-        print('선행스팬2 : ',get_leading_span_2(items_df,26,52))
+        #일목균형표에 필요한 정보 구하기
+        conversion_line = get_high_low_avg(items_df,77,9)
+        base_line = get_high_low_avg(items_df,77,26)
+        lag_span = get_lagging_span(items_df,26)
+        lead_span_1 = get_leading_span_1(items_df,26)
+        lead_span_2 = get_leading_span_2(items_df,26,52)
+
+        #현 시점에서 단순 5분,10분,20분 평균값 구하기
+        SMA_5 = get_avg(items_df,5)
+        SMA_10 = get_avg(items_df,10)
+        SMA_20 = get_avg(items_df,20)
+        tmp_avg_5 = talib.SMA(np.asarray(items_df['close']),5)
+        tmp_avg_10 = talib.SMA(np.asarray(items_df['close']),10)
+        tmp_avg_20 = talib.SMA(np.asarray(items_df['close']),20)
         
-        #현 시점에서 5분,10분,20분 평균값 구하기
-        avg_5 = get_avg(items_df,5)
-        avg_10 = get_avg(items_df,10)
-        avg_20 = get_avg(items_df,20)
-        print('5분평균 : ',avg_5)
-        print('10분평균 : ',avg_10)
-        print('20분평균 : ',avg_20)
+        #볼린저 밴드 값 받기
+        upper,middle,lower = talib.BBANDS(np.asarray(items_df['close']), timeperiod=20, nbdevup=2, nbdevdn=2, matype=0)
+
+        print('시간 : ',items_df.loc[77,'time'])
+        print('전환선 : ',conversion_line)
+        print('기준선 : ',base_line)
+        print('후행스팬 : ',lag_span)
+        print('선행스팬1 : ',lead_span_1)
+        print('선행스팬2 : ',lead_span_2)
+        print('5분평균 : ',SMA_5,tmp_avg_5[-1])
+        print('10분평균 : ',SMA_10,tmp_avg_10[-1])
+        print('20분평균 : ',SMA_20,tmp_avg_20[-1])
+        print(upper)
+        print(middle)
+        print(lower)
+        
         #골든크로스 검사
         # if avg_5 > avg_10 and avg_5 > avg_20:
         #     lag_span = get_lagging_span(items_df,min=26)
