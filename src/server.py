@@ -13,6 +13,26 @@ import config
 from db import DBHandler
 
 
+class AsyncCounter:
+    def __init__(self, start=0, end=-1, interval=1, interval_timer=1):
+        self.start = start
+        self.end = end
+        self.interval = interval
+        self.interval_timer = interval_timer
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        if self.start < self.end:
+            await asyncio.sleep(self.interval_timer)
+            r = self.start
+            self.start += self.interval
+            return r
+        else:
+            raise StopAsyncIteration
+
+
 class DataManager:
     def __init__(self,
                  db_handler: DBHandler = None,
@@ -32,7 +52,7 @@ class DataManager:
         self.internal_timeout = internal_timeout
         self.request_limit = request_limit
         self.thread_status = False
-        self.codes = pyupbit.get_tickers(fiat=config.FIAT)
+        self.codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT))
 
     def start(self):
         print('DataManager sync start')
@@ -46,7 +66,7 @@ class DataManager:
         self.thread.join()
         return True
 
-    def _get_saver_list(self):
+    async def _get_saver_list(self):
         return [asyncio.ensure_future(self._candle_saver(code)) for code in self.codes]
 
     def _master_thread(self):
@@ -60,22 +80,24 @@ class DataManager:
             time.sleep(60 - datetime.datetime.now().second)
 
     async def _slave_thread(self):
-        self.saver_list = self._get_saver_list()
-        
-        await asyncio.wait(self.saver_list, timeout=self.internal_timeout)
-        # for x in range(0, len(self.saver_list), 10):
-            # await asyncio.wait(self.saver_list[x:x+10], timeout=self.internal_timeout)
-        
-        print('saving complete')
+        self.saver_list = await self._get_saver_list()
 
+        # async for i in AsyncCounter(start=0, end=len(self.saver_list), interval=10, interval_timer=3):
+        for i in range(0, len(self.saver_list), 10):
+            await asyncio.wait(self.saver_list[i:i+10], timeout=3)
+            print('요청끝')
+
+        print('saving complete')
 
     async def _candle_saver(self, code: str = None):
         try:
             # TODO pyupbit의 async 기반 포팅이 필요할듯
-            candle_df = pyupbit.get_ohlcv(
-            ticker=code, interval="minute1", count=200)
-            candle_df['_id'] = [time.mktime(datetime.datetime.strptime(x, "%Y-%m-%dT%H:%M:%S").timetuple()) for x in candle_df['time']]
-            candle_list = [candle_df.loc[i, :].to_dict() for i in range(len(candle_df) - 1)]
+            candle_df = await pyupbit.get_ohlcv(
+                ticker=code, interval="minute1", count=1)
+            candle_df['_id'] = [time.mktime(datetime.datetime.strptime(
+                x, "%Y-%m-%dT%H:%M:%S").timetuple()) for x in candle_df['time']]
+            candle_list = [candle_df.loc[i, :].to_dict()
+                           for i in range(len(candle_df) - 1)]
             # TODO asyncmongo 로 기반 모듈 전환해야함
             if self.db_handler.insert_item_many(data=candle_list, db_name='candles', collection_name=f'{code}_minute_1', ordered=False):
                 self.request_status = True
