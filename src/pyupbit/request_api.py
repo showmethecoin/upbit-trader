@@ -44,7 +44,6 @@ async def _call_public_api(url, **kwargs):
             return contents, remaining_req_dict
 
     except Exception as x:
-        # print(remaining_req_dict)
         # print("It failed", x.__class__.__name__)
         return None
 
