@@ -5,6 +5,8 @@ import config
 
 chart = None
 upbit = None
+db = None
+data_manager = None
 
 ''' Logger Configuration'''
 log = logging.getLogger()

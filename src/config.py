@@ -19,6 +19,12 @@ DB = {
     "PASSWORD": "qwe123"
 }
 
+SERVER = {
+    "EXTERNAL_TIMEOUT": 60,
+    "INTERNAL_TIMEOUT": 1,
+    "REQUEST_LIMIT": 10,
+}
+
 FEES = 0.005 # Upbit official fees
 FIAT = "KRW" # KRW/BRC/ETH/USDT
 
@@ -27,5 +33,5 @@ LOG = {
     'PATH': './upbit-trader.log',
     'PRINT_FORMAT': '[%(asctime)s.%(msecs)03d: %(levelname).1s %(filename)s:%(lineno)s] %(message)s',
     'SAVE': True,
-    'PRINT': False,
+    'PRINT': True,
 }

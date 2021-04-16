@@ -1,13 +1,14 @@
 import re
-
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+import asyncio
+import aiohttp_retry
+import threading
 
 getframe_expr = 'sys._getframe({}).f_code.co_name'
+retry_option = aiohttp_retry.ExponentialRetry(factor=0.3, attempts=5, statuses=(500, 502, 504))
+# TODO 스레드풀로 구현
 
 
-def _parse_remaining_req(remaining_req):
+async def _parse_remaining_req(remaining_req):
     """
 
     :param remaining_req:
@@ -21,29 +22,8 @@ def _parse_remaining_req(remaining_req):
         return None, None, None
 
 
-def requests_retry_session(retries=5, backoff_factor=0.3, status_forcelist=(500, 502, 504), session=None):
-    """
-
-    :param retries:
-    :param backoff_factor:
-    :param status_forcelist:
-    :param session:
-    :return:
-    """
-    s = session or requests.Session()
-    retry = Retry(
-        total=retries,
-        read=retries,
-        connect=retries,
-        backoff_factor=backoff_factor,
-        status_forcelist=status_forcelist)
-    adapter = HTTPAdapter(max_retries=retry)
-    s.mount('http://', adapter)
-    s.mount('https://', adapter)
-    return s
-
-
-def _call_public_api(url, **kwargs):
+# asyncio로 비동기 + 스레드풀 구현
+async def _call_public_api(url, **kwargs):
     """
 
     :param url:
@@ -51,22 +31,25 @@ def _call_public_api(url, **kwargs):
     :return:
     """
     try:
-        resp = requests_retry_session().get(url, params=kwargs)
-        remaining_req_dict = {}
-        remaining_req = resp.headers.get('Remaining-Req')
-        if remaining_req is not None:
-            group, min, sec = _parse_remaining_req(remaining_req)
-            remaining_req_dict['group'] = group
-            remaining_req_dict['min'] = min
-            remaining_req_dict['sec'] = sec
-        contents = resp.json()
-        return contents, remaining_req_dict
+        async with aiohttp_retry.RetryClient(retry_options=retry_option) as session:
+            async with session.get(url, params=kwargs) as response:
+                remaining_req_dict = {}
+                remaining_req = response.headers.get('Remaining-Req')
+                if remaining_req is not None:
+                    group, min, sec = await _parse_remaining_req(remaining_req)
+                    remaining_req_dict['group'] = group
+                    remaining_req_dict['min'] = min
+                    remaining_req_dict['sec'] = sec
+                contents = await response.json()
+            return contents, remaining_req_dict
+
     except Exception as x:
-        print("It failed", x.__class__.__name__)
+        # print("It failed", x.__class__.__name__)
         return None
 
 
-def _send_post_request(url, headers=None, data=None):
+# asyncio로 비동기 + 스레드풀 구현
+async def _send_post_request(url, headers=None, data=None):
     """
 
     :param url:
@@ -75,23 +58,26 @@ def _send_post_request(url, headers=None, data=None):
     :return:
     """
     try:
-        resp = requests_retry_session().post(url, headers=headers, data=data)
-        remaining_req_dict = {}
-        remaining_req = resp.headers.get('Remaining-Req')
-        if remaining_req is not None:
-            group, min, sec = _parse_remaining_req(remaining_req)
-            remaining_req_dict['group'] = group
-            remaining_req_dict['min'] = min
-            remaining_req_dict['sec'] = sec
-        contents = resp.json()
-        return contents, remaining_req_dict
+        async with aiohttp_retry.RetryClient(retry_options=retry_option) as session:
+            async with session.post(url, headers=headers, data=data) as response:
+                remaining_req_dict = {}
+                remaining_req = response.headers.get('Remaining-Req')
+                if remaining_req is not None:
+                    group, min, sec = _parse_remaining_req(remaining_req)
+                    remaining_req_dict['group'] = group
+                    remaining_req_dict['min'] = min
+                    remaining_req_dict['sec'] = sec
+                contents = await response.json()
+            return contents, remaining_req_dict
+
     except Exception as x:
         print("send post request failed", x.__class__.__name__)
         print("caller: ", eval(getframe_expr.format(2)))
         return None
 
 
-def _send_get_request(url, headers=None, data=None):
+# asyncio로 비동기 + 스레드풀 구현
+async def _send_get_request(url, headers=None, data=None):
     """
 
     :param url:
@@ -99,23 +85,25 @@ def _send_get_request(url, headers=None, data=None):
     :return:
     """
     try:
-        resp = requests_retry_session().get(url, headers=headers, data=data)
-        remaining_req_dict = {}
-        remaining_req = resp.headers.get('Remaining-Req')
-        if remaining_req is not None:
-            group, min, sec = _parse_remaining_req(remaining_req)
-            remaining_req_dict['group'] = group
-            remaining_req_dict['min'] = min
-            remaining_req_dict['sec'] = sec
-        contents = resp.json()
-        return contents, remaining_req_dict
+        async with aiohttp_retry.RetryClient(retry_options=retry_option) as session:
+            async with session.get(url, headers=headers, data=data) as response:
+                remaining_req_dict = {}
+                remaining_req = response.headers.get('Remaining-Req')
+                if remaining_req is not None:
+                    group, min, sec = _parse_remaining_req(remaining_req)
+                    remaining_req_dict['group'] = group
+                    remaining_req_dict['min'] = min
+                    remaining_req_dict['sec'] = sec
+                contents = await response.json()
+            return contents, remaining_req_dict
     except Exception as x:
         print("send get request failed", x.__class__.__name__)
         print("caller: ", eval(getframe_expr.format(2)))
         return None
 
 
-def _send_delete_request(url, headers=None, data=None):
+# asyncio로 비동기 + 스레드풀 구현
+async def _send_delete_request(url, headers=None, data=None):
     """
 
     :param url:
@@ -124,16 +112,17 @@ def _send_delete_request(url, headers=None, data=None):
     :return:
     """
     try:
-        resp = requests_retry_session().delete(url, headers=headers, data=data)
-        remaining_req_dict = {}
-        remaining_req = resp.headers.get('Remaining-Req')
-        if remaining_req is not None:
-            group, min, sec = _parse_remaining_req(remaining_req)
-            remaining_req_dict['group'] = group
-            remaining_req_dict['min'] = min
-            remaining_req_dict['sec'] = sec
-        contents = resp.json()
-        return contents, remaining_req_dict
+        async with aiohttp_retry.RetryClient(retry_options=retry_option) as session:
+            async with session.delete(url, headers=headers, data=data) as response:
+                remaining_req_dict = {}
+                remaining_req = response.headers.get('Remaining-Req')
+                if remaining_req is not None:
+                    group, min, sec = _parse_remaining_req(remaining_req)
+                    remaining_req_dict['group'] = group
+                    remaining_req_dict['min'] = min
+                    remaining_req_dict['sec'] = sec
+                contents = await response.json()
+            return contents, remaining_req_dict
     except Exception as x:
         print("send delete request failed", x.__class__.__name__)
         print("caller: ", eval(getframe_expr.format(2)))

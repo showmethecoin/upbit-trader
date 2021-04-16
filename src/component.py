@@ -448,6 +448,7 @@ class Chart:
             _web_socket (WebSocketApp): Websocket
             _message ([type]): Json 메세지
         """
+        print(json.loads(_message.decode('utf-8')))
         asyncio.run(self._update(json.loads(_message.decode('utf-8'))))
 
     def _on_error(self, _web_socket: WebSocketApp, _message) -> None:
@@ -534,3 +535,6 @@ if __name__ == '__main__':
     static.upbit = pyupbit.Upbit(config.KEY["ACCESS"], config.KEY["SECRET"])
 
     print(pyupbit.get_tickers())
+    while(True):
+        import time
+        time.sleep(1)
