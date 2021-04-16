@@ -54,11 +54,12 @@ class DataManager:
         return [asyncio.ensure_future(self._candle_saver(code)) for code in codes]
 
     def _master_thread(self):
-        log.info(f'Candle sync sequence')
+        log.info(f'Candle sync sequence start')
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self._slave_thread())
         loop.close()
+        log.info(f'Candle sync sequence start')
 
     async def _slave_thread(self):
         self.request_counter = self.request_limit
