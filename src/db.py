@@ -75,21 +75,21 @@ if __name__ == '__main__':
                    id=config.DB['ID'], password=config.DB['PASSWORD'])
 
     # MongoDB에서 데이터 추출(내림차순)
-    data = db.find_item(condition=None, db_name='history', collection_name='KRW_BTC').sort('time', -1)
-    data_df = pd.DataFrame(list(data))
+    data = db.find_item(condition=None, db_name='candles', collection_name='KRW-ADA_minute_1').sort('time', -1)
 
+    data_df = pd.DataFrame(list(data))
     # Dataframe 인덱스 설정
     data_df['time'] = pd.to_datetime(data_df['time'])
     data_df = data_df.set_index('time', inplace=False)
 
     # Dataframe 리샘플링
-    RESAMPLING = '1W'
+    RESAMPLING = '1D'
     new_df = pd.DataFrame()
     new_df['open'] = data_df.open.resample(RESAMPLING).first()
     new_df['high'] = data_df.high.resample(RESAMPLING).max()
     new_df['low'] = data_df.low.resample(RESAMPLING).min()
     new_df['close'] = data_df.close.resample(RESAMPLING).last()
     new_df['volume'] = data_df.volume.resample(RESAMPLING).sum()
-
+    new_df = new_df.sort_index(ascending=True)
     print(new_df)
 

@@ -1,8 +1,5 @@
 import re
-
 import asyncio
-import aiohttp
-import requests
 import aiohttp_retry
 import threading
 
@@ -11,7 +8,7 @@ retry_option = aiohttp_retry.ExponentialRetry(factor=0.3, attempts=5, statuses=(
 # TODO 스레드풀로 구현
 
 
-def _parse_remaining_req(remaining_req):
+async def _parse_remaining_req(remaining_req):
     """
 
     :param remaining_req:
@@ -39,15 +36,15 @@ async def _call_public_api(url, **kwargs):
                 remaining_req_dict = {}
                 remaining_req = response.headers.get('Remaining-Req')
                 if remaining_req is not None:
-                    group, min, sec = _parse_remaining_req(remaining_req)
+                    group, min, sec = await _parse_remaining_req(remaining_req)
                     remaining_req_dict['group'] = group
                     remaining_req_dict['min'] = min
                     remaining_req_dict['sec'] = sec
                 contents = await response.json()
-                print(contents)
             return contents, remaining_req_dict
 
     except Exception as x:
+        # print(remaining_req_dict)
         # print("It failed", x.__class__.__name__)
         return None
 

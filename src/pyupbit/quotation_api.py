@@ -97,19 +97,25 @@ async def get_ohlcv(ticker="KRW-BTC", interval="day", count=200, to=None):
         to = to.strftime("%Y-%m-%d %H:%M:%S")
 
         contents = await _call_public_api(url, market=ticker, count=count, to=to)
-        contents = contents[0]
-        # TODO 몽고DB에 데이터 넣기 실험 진행중
-        # dt_list = [datetime.datetime.strptime(x['candle_date_time_kst'], "%Y-%m-%dT%H:%M:%S") for x in contents]
-        # df = pd.DataFrame(contents, columns=['opening_price', 'high_price', 'low_price', 'trade_price',
-        #                                      'candle_acc_trade_volume'],
-        #                   index=dt_list)
         
-        df = pd.DataFrame(contents, columns=['candle_date_time_kst', 'opening_price', 'high_price', 'low_price', 'trade_price',
-                                             'candle_acc_trade_volume'])
+        if contents == None:
+            return 
+        
+        contents = contents[0]  
+        df = pd.DataFrame(contents, 
+                          columns=['candle_date_time_kst', 
+                                   'opening_price', 
+                                   'high_price', 
+                                   'low_price', 
+                                   'trade_price',
+                                   'candle_acc_trade_volume'])
 
-        df = df.rename(
-            columns={"candle_date_time_kst": "time", "opening_price": "open", "high_price": "high", "low_price": "low", "trade_price": "close",
-                     "candle_acc_trade_volume": "volume"})
+        df = df.rename(columns={"candle_date_time_kst": "time", 
+                                "opening_price": "open", 
+                                "high_price": "high", 
+                                "low_price": "low", 
+                                "trade_price": "close",
+                                "candle_acc_trade_volume": "volume"})
         return df.sort_index(ascending=False)
     except Exception as x:
         print(x.__class__.__name__)
