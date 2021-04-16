@@ -33,5 +33,5 @@ LOG = {
     'PATH': './upbit-trader.log',
     'PRINT_FORMAT': '[%(asctime)s.%(msecs)03d: %(levelname).1s %(filename)s:%(lineno)s] %(message)s',
     'SAVE': True,
-    'PRINT': False,
+    'PRINT': True,
 }
