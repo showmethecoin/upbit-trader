@@ -22,7 +22,7 @@ DB = {
 SERVER = {
     "EXTERNAL_TIMEOUT": 60,
     "INTERNAL_TIMEOUT": 1,
-    "REQUEST_LIMIT": 8,
+    "REQUEST_LIMIT": 10,
 }
 
 FEES = 0.005 # Upbit official fees

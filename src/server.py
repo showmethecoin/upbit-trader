@@ -59,7 +59,6 @@ class DataManager:
         self.request_limit = request_limit
         self.thread_status = False
         self.codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT))
-        self.lock = threading.Lock()
 
         # self.scheduler = AsyncIOScheduler(event_loop=self.loop)
         self.scheduler = BackgroundScheduler()
@@ -73,11 +72,11 @@ class DataManager:
                                id="dm_master")
         self.scheduler.start()
 
-        self.thread = threading.Thread(
-            target=self._counter_thread, 
-            name='dm_counter', 
-            daemon=True)
-        self.thread.start()
+        # self.thread = threading.Thread(
+        #     target=self._counter_thread, 
+        #     name='dm_counter', 
+        #     daemon=True)
+        # self.thread.start()
 
     def stop(self):
         self.scheduler.shutdown()
@@ -85,8 +84,8 @@ class DataManager:
         self.thread.join()
         return True
 
-    async def _get_saver_list(self):
-        return [asyncio.ensure_future(self._candle_saver(code)) for code in self.codes]
+    async def _get_saver_list(self, codes):
+        return [asyncio.ensure_future(self._candle_saver(code)) for code in codes]
 
     def _master_thread(self):
         print('master thread on')
@@ -97,30 +96,47 @@ class DataManager:
         print('master_thread is terminated')
 
     async def _slave_thread(self):
-        self.saver_list = await self._get_saver_list()
+        self.request_counter = self.request_limit
+        self.saver_list = await self._get_saver_list(self.codes)
         overflow_list = []
-        for i in range(0, len(self.saver_list), self.request_limit):
-            result = list(filter(None, await asyncio.gather(*self.saver_list[i:i+self.request_limit], return_exceptions=False)))
-            overflow_list.extend(result)
- 
-        print('요청 초과된 새끼 딱대 시발', overflow_list, len(overflow_list))
+        self.lock = asyncio.Lock()
+        try:
+            for i in range(0, len(self.saver_list), self.request_limit):
+                result = list(filter(None, await asyncio.gather(*self.saver_list[i:i+self.request_limit], return_exceptions=False)))
+                overflow_list.extend(result)
+                print('초과된 요청', result, len(result))
 
+            while overflow_list:
+                print('남은 요청', overflow_list, len(overflow_list))
+                remain_saver = await self._get_saver_list(overflow_list)
+                remain_list = []
+                for i in range(0, len(remain_saver), self.request_limit):
+                    result = list(filter(None, await asyncio.gather(*remain_saver[i:i+self.request_limit], return_exceptions=False)))
+                    remain_list.extend(result)
+                    print('재시도중 초과 요청', result, len(result))
+                overflow_list = remain_list
+            print('끝')
+        except:
+            print(traceback.format_exc())
+            
+        
     async def _candle_saver(self, code: str = None):
         try:
             while True:
                 if self.request_counter > 0:
-                    self.lock.acquire()
-                    self.request_counter -= 1
-                    self.lock.release()
+                    async with self.lock:
+                        self.request_counter -= 1
                     candle_df = await pyupbit.get_ohlcv(ticker=code, 
                                                         interval="minute1", 
-                                                        count=2)
+                                                        count=200)
                     if isinstance(candle_df, type(None)):
                         return code
                     
                     break
                 else:
-                    await asyncio.sleep(0.1)
+                    async with self.lock:
+                        self.request_counter = self.request_limit
+                        await asyncio.sleep(0.5)
                     
             candle_df['_id'] = [time.mktime(datetime.datetime.strptime(x, "%Y-%m-%dT%H:%M:%S").timetuple()) for x in candle_df['time']]
             candle_list = [candle_df.loc[i, :].to_dict() for i in range(len(candle_df) - 1)]
@@ -134,18 +150,7 @@ class DataManager:
         except Exception as e:
             pass
             # print(traceback.format_exc())
-
-    def _counter_thread(self):
-        print('counter thread on')
-        while self.thread_status:
-            if self.request_counter <= 0:
-                self.lock.acquire()
-                self.request_counter = self.request_limit
-                time.sleep(self.internal_timeout)
-                self.lock.release()
-            else:
-                time.sleep(0.1)
-
+            
 
 if __name__ == '__main__':
 
