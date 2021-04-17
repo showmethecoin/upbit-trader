@@ -101,7 +101,7 @@ class DataManager:
                 else:
                     async with self.lock:
                         self.request_counter = self.request_limit
-                        await asyncio.sleep(0.5)
+                        await asyncio.sleep(self.internal_timeout)
 
             candle_df['_id'] = [time.mktime(datetime.datetime.strptime(
                 x, "%Y-%m-%dT%H:%M:%S").timetuple()) for x in candle_df['time']]
