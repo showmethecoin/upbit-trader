@@ -29,6 +29,8 @@ FEES = 0.005 # Upbit official fees
 FIAT = "KRW" # KRW/BRC/ETH/USDT
 
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+UPBIT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
+
 LOG = {
     'PATH': './upbit-trader.log',
     'PRINT_FORMAT': '[%(asctime)s.%(msecs)03d: %(levelname).1s %(filename)s:%(lineno)s] %(message)s',

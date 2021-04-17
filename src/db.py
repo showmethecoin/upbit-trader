@@ -83,7 +83,7 @@ if __name__ == '__main__':
     data_df = data_df.set_index('time', inplace=False)
 
     # Dataframe 리샘플링
-    RESAMPLING = '1D'
+    RESAMPLING = '5T'
     new_df = pd.DataFrame()
     new_df['open'] = data_df.open.resample(RESAMPLING).first()
     new_df['high'] = data_df.high.resample(RESAMPLING).max()
@@ -91,5 +91,6 @@ if __name__ == '__main__':
     new_df['close'] = data_df.close.resample(RESAMPLING).last()
     new_df['volume'] = data_df.volume.resample(RESAMPLING).sum()
     new_df = new_df.sort_index(ascending=True)
+
     print(new_df)
 
