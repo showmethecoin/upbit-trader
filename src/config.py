@@ -7,7 +7,7 @@ KEY = { # Issued [Upbit Web]-[My Page]-[OpenAPI Management]
 
 PROGRAM = {
     "NAME": "Upbit Automatic Trading Program",
-    "VERSION": "0.1",
+    "VERSION": "0.3",
     "WIDTH": 108, 
     "HEIGHT": 200,
 }

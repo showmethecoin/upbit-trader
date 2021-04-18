@@ -103,6 +103,7 @@ class DataManager:
                     candle_df = await pyupbit.get_ohlcv(ticker=code,
                                                         interval="minute1",
                                                         count=200)
+                    # TODO get_ohlcv에 to 옵션 줘서 추가할 데이터가 존재하지 않을경우 재시도 요청목록에 추가
                     break
                 else:
                     async with self._lock:
@@ -125,8 +126,8 @@ class DataManager:
                                              ordered=False)
             return
         except Exception as e:
-            # pass
-            print(traceback.format_exc())
+            pass
+            # print(traceback.format_exc())
 
 
 if __name__ == '__main__':
