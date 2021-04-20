@@ -7,6 +7,7 @@ import traceback
 from apscheduler.schedulers.background import BackgroundScheduler
 import pyupbit
 import pandas as pd
+import pymongo
 
 import config
 from db import DBHandler
@@ -65,7 +66,11 @@ class DataManager:
         log.info(f'Candle sync sequence complete')
 
     async def _get_sync_list(self, codes: list):
-        return [asyncio.create_task(self._request_and_save(code)) for code in codes]
+        try:
+            now = datetime.datetime.now().replace(second=0, microsecond=0).strftime(config.UPBIT_TIME_FORMAT)
+            return [asyncio.create_task(self._request_and_save(code, now)) for code in codes]
+        except:
+            print(traceback.format_exc())
 
     async def _one_minute_candle(self):
         """1분 캔들 데이터 동기화 서브 루프
@@ -83,10 +88,9 @@ class DataManager:
                     f'Limit overflow requests({len(overflow_requests)}): {overflow_requests}')
                 sync_list = await self._get_sync_list(overflow_requests)
         except:
-            # print(traceback.format_exc())
-            pass
+            print(traceback.format_exc())
 
-    async def _request_and_save(self, code: str = None) -> None or str:
+    async def _request_and_save(self, code: str = None, base_time: str = None) -> None or str:
         """캔들 데이터 REST 요청 및 DB 저장
 
         Args:
@@ -110,24 +114,28 @@ class DataManager:
                         self._request_counter = self._request_limit
                         await asyncio.sleep(self._internal_timeout)
 
-            # 요청 횟수 제한 초과시 재시도를 위한 코인 마켓 코드 반환
+            # 요청 횟수 제한 초과시 재시도 요청 목록에 포함시키기 위해 코인 마켓 코드 반환
             if isinstance(candle_df, type(None)):
                 return code
 
+            candle_df = candle_df[candle_df['time'] < base_time]
+
             candle_df['_id'] = [time.mktime(datetime.datetime.strptime(
                 x, config.UPBIT_TIME_FORMAT).timetuple()) for x in candle_df['time']]
-            candle_list = [candle_df.loc[i, :].to_dict()
-                           for i in range(len(candle_df) - 1)]
+                
+            candle_list = [candle_df.iloc[i].to_dict() for i in range(len(candle_df))]
+            print(candle_list[-1])
 
             # TODO asyncmongo 로 기반 모듈 전환해야함
             self._db_handler.insert_item_many(data=candle_list,
-                                             db_name='candles',
-                                             collection_name=f'{code}_minute_1',
-                                             ordered=False)
+                                              db_name='candles',
+                                              collection_name=f'{code}_minute_1',
+                                              ordered=False)
             return
-        except Exception as e:
+        except pymongo.errors.BulkWriteError:
             pass
-            # print(traceback.format_exc())
+        except:
+            print(traceback.format_exc())
 
 
 if __name__ == '__main__':
