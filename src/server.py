@@ -44,7 +44,7 @@ class DataManager:
         self._schedule_status = True
         self._scheduler.add_job(func=self._sync_loop,
                                 trigger='cron',
-                                second='25',
+                                second='0',
                                 id="data_manager_sync_loop")
         self._scheduler.start()
 

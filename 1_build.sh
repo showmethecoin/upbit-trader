@@ -4,5 +4,4 @@ DOCKER_ID="codejune"
 IMAGE_NAME="smtc-server"
 VERSION="v0.3"
 
-docker build -t $DOCKER_ID/$IMAGE_NAME:$VERSION . && \
-docker push $DOCKER_ID/$IMAGE_NAME:$VERSION
+docker build -t $DOCKER_ID/$IMAGE_NAME:$VERSION . && docker push $DOCKER_ID/$IMAGE_NAME:$VERSION
