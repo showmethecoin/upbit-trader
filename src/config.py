@@ -1,13 +1,16 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-KEY = { # Issued [Upbit Web]-[My Page]-[OpenAPI Management]
-    "ACCESS": "CwCxiKk6m71VvffVsArkwVUHsyofxuzQ4ZyPfjaZ", # Upbit API private access key
-    "SECRET": "GsVxewCvfPOzBYBqoixexRToajnJSghS9qMLoiA5" # Upbit API private secret key
+# Issued [Upbit Web]-[My Page]-[OpenAPI Management]
+KEY = {
+    # Upbit API private access key
+    "ACCESS": "CwCxiKk6m71VvffVsArkwVUHsyofxuzQ4ZyPfjaZ",
+    # Upbit API private secret key 
+    "SECRET": "GsVxewCvfPOzBYBqoixexRToajnJSghS9qMLoiA5" 
 }
 
 PROGRAM = {
     "NAME": "Upbit Automatic Trading Program",
-    "VERSION": "0.3",
+    "VERSION": "0.4",
     "WIDTH": 108, 
     "HEIGHT": 200,
 }
@@ -25,8 +28,10 @@ SERVER = {
     "REQUEST_LIMIT": 10,
 }
 
-FEES = 0.005 # Upbit official fees
-FIAT = "KRW" # KRW/BRC/ETH/USDT
+# Upbit official fees ratio
+FEES = 0.005 
+# KRW/BRC/ETH/USDT
+FIAT = "KRW" 
 
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 UPBIT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'

@@ -409,7 +409,7 @@ class Chart:
         """생성자
         """
         # Get coin code list
-        self.codes = pyupbit.get_tickers(fiat=config.FIAT)
+        self.codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT))
         # Upbit websocket json request body
         self.request = ('[{"ticket":"UNIQUE_TICKET"},'
                         '{"type":"ticker","codes":%s, "isOnlyRealtime":true},'
@@ -448,7 +448,7 @@ class Chart:
             _web_socket (WebSocketApp): Websocket
             _message ([type]): Json 메세지
         """
-        print(json.loads(_message.decode('utf-8')))
+        # print(json.loads(_message.decode('utf-8')))
         asyncio.run(self._update(json.loads(_message.decode('utf-8'))))
 
     def _on_error(self, _web_socket: WebSocketApp, _message) -> None:
