@@ -15,6 +15,21 @@ import static
 from static import log
 
 
+# class Queue:
+#     def __init__(self):
+#         self._items = deque()
+#         self._lock = Lock()
+
+#     # 생산자(producer)인 디지털 카메라는 새 이미지를 대기 아이템 리스트의 끝에 추가
+#     def put(self, item):
+#         with self._lock:
+#             self._items.append(item)
+
+#     # 소비자(consumer)인 처리 파이프라인의 첫 번쨰 단계에서는 대기 아이템 리스트의 앞쪽에서 이미지 추출
+#     def get(self):
+#         with self._lock:
+#             return self._items.popleft()
+
 class DataManager:
     def __init__(self,
                  db_handler: DBHandler = None,
@@ -125,11 +140,10 @@ class DataManager:
             candle_list = [candle_df.iloc[i].to_dict() for i in range(len(candle_df))]
             print(candle_list[-1])
 
-            # TODO asyncmongo 로 기반 모듈 전환해야함
-            self._db_handler.insert_item_many(data=candle_list,
-                                              db_name='candles',
-                                              collection_name=f'{code}_minute_1',
-                                              ordered=False)
+            await self._db_handler.insert_item_many(data=candle_list,
+                                                    db_name='candles',
+                                                    collection_name=f'{code}_minute_1',
+                                                    ordered=False)
             return
 
         # 요청 횟수 제한 초과시 재시도 요청 목록에 포함시키기 위해 코인 마켓 코드 반환

@@ -2,6 +2,6 @@
 
 DOCKER_ID="codejune"
 IMAGE_NAME="smtc-server"
-VERSION="v0.1"
+VERSION="v0.5"
 
-docker run --name $IMAGE_NAME -d $DOCKER_ID/$IMAGE_NAME:$VERSION -e TZ=Asia/Seoul
+docker run --name $IMAGE_NAME -d $DOCKER_ID/$IMAGE_NAME:$VERSION 

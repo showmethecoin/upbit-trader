@@ -6,3 +6,4 @@ deploy
 Dockerfile
 .git
 .log
+docker
