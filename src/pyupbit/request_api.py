@@ -1,4 +1,5 @@
 import re
+import json
 import asyncio
 import aiohttp_retry
 import threading
@@ -43,9 +44,11 @@ async def _call_public_api(url, **kwargs):
                 contents = await response.json()
             return contents, remaining_req_dict
 
-    except Exception as x:
-        # print("It failed", x.__class__.__name__)
+    # 요청 제한 횟수 초과시 발생하는 Json 디코딩 에러 처리
+    except json.JSONDecodeError:
         return None
+    except Exception as x:
+        print("It failed", x.__class__.__name__)
 
 
 # asyncio로 비동기 + 스레드풀 구현

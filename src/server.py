@@ -65,10 +65,9 @@ class DataManager:
         loop.close()
         log.info(f'Candle sync sequence complete')
 
-    async def _get_sync_list(self, codes: list):
+    async def _get_sync_list(self, codes: list, base_time: str = None):
         try:
-            now = datetime.datetime.now().replace(second=0, microsecond=0).strftime(config.UPBIT_TIME_FORMAT)
-            return [asyncio.create_task(self._request_and_save(code, now)) for code in codes]
+            return [asyncio.create_task(self._request_and_save(code, base_time)) for code in codes]
         except:
             print(traceback.format_exc())
 
@@ -78,7 +77,11 @@ class DataManager:
         try:
             self._lock = asyncio.Lock()
             self._request_counter = self._request_limit
-            sync_list = await self._get_sync_list(codes=self._codes)
+            base_time = datetime.datetime.now().replace(second=0, microsecond=0).strftime(config.UPBIT_TIME_FORMAT)
+            sync_list = await self._get_sync_list(codes=self._codes, base_time=base_time)
+
+            print('base_time:', base_time)
+
             while sync_list:
                 overflow_requests = []
                 for i in range(0, len(sync_list), self._request_limit):
@@ -86,7 +89,7 @@ class DataManager:
                     overflow_requests.extend(request_result)
                 log.info(
                     f'Limit overflow requests({len(overflow_requests)}): {overflow_requests}')
-                sync_list = await self._get_sync_list(overflow_requests)
+                sync_list = await self._get_sync_list(codes=overflow_requests, base_time=base_time)
         except:
             print(traceback.format_exc())
 
@@ -114,15 +117,11 @@ class DataManager:
                         self._request_counter = self._request_limit
                         await asyncio.sleep(self._internal_timeout)
 
-            # 요청 횟수 제한 초과시 재시도 요청 목록에 포함시키기 위해 코인 마켓 코드 반환
-            if isinstance(candle_df, type(None)):
-                return code
-
             candle_df = candle_df[candle_df['time'] < base_time]
 
             candle_df['_id'] = [time.mktime(datetime.datetime.strptime(
                 x, config.UPBIT_TIME_FORMAT).timetuple()) for x in candle_df['time']]
-                
+
             candle_list = [candle_df.iloc[i].to_dict() for i in range(len(candle_df))]
             print(candle_list[-1])
 
@@ -132,10 +131,16 @@ class DataManager:
                                               collection_name=f'{code}_minute_1',
                                               ordered=False)
             return
+
+        # 요청 횟수 제한 초과시 재시도 요청 목록에 포함시키기 위해 코인 마켓 코드 반환
+        except TypeError:
+            return code
+        # Mongo DB에 중복 데이터 저장 시도시 발생하는 에러 처리
         except pymongo.errors.BulkWriteError:
             pass
         except:
             print(traceback.format_exc())
+            return code
 
 
 if __name__ == '__main__':
