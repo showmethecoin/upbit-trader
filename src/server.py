@@ -92,10 +92,9 @@ class DataManager:
         try:
             self._lock = asyncio.Lock()
             self._request_counter = self._request_limit
-            base_time = datetime.datetime.now().replace(second=0, microsecond=0).strftime(config.UPBIT_TIME_FORMAT)
+            base_time = datetime.datetime.now().replace(second=0, 
+                                                        microsecond=0).strftime(config.UPBIT_TIME_FORMAT)
             sync_list = await self._get_sync_list(codes=self._codes, base_time=base_time)
-
-            print('base_time:', base_time)
 
             while sync_list:
                 overflow_requests = []
@@ -104,7 +103,8 @@ class DataManager:
                     overflow_requests.extend(request_result)
                 log.info(
                     f'Limit overflow requests({len(overflow_requests)}): {overflow_requests}')
-                sync_list = await self._get_sync_list(codes=overflow_requests, base_time=base_time)
+                sync_list = await self._get_sync_list(codes=overflow_requests, 
+                                                      base_time=base_time)
         except:
             print(traceback.format_exc())
 
@@ -124,8 +124,7 @@ class DataManager:
                         self._request_counter -= 1
                     candle_df = await pyupbit.get_ohlcv(ticker=code,
                                                         interval="minute1",
-                                                        count=200,
-                                                        to=base_time)
+                                                        count=200)
                     # TODO get_ohlcv에 to 옵션 줘서 추가할 데이터가 존재하지 않을경우 재시도 요청목록에 추가
                     break
                 else:
@@ -138,9 +137,12 @@ class DataManager:
             candle_df['_id'] = [time.mktime(datetime.datetime.strptime(
                 x, config.UPBIT_TIME_FORMAT).timetuple()) for x in candle_df['time']]
 
-            candle_list = [candle_df.iloc[i].to_dict() for i in range(len(candle_df))]
+            candle_list = [candle_df.iloc[i].to_dict()
+                           for i in range(len(candle_df))]
             # TODO 만약 캔들데이터가 비정상적(캔들 부족)인 경우 재요청을 위한 처리 필요
-            print(f'{code:<10} {candle_list[-1]}')
+            if datetime.datetime.strptime(candle_list[-1]['time'], config.UPBIT_TIME_FORMAT) < datetime.datetime.strptime(base_time, config.UPBIT_TIME_FORMAT) - datetime.timedelta(minutes=1):
+                log.warning(f'CandleTimeError\ncode    : {code}\nbase    : {base_time}\nresponse: {candle_list[-1]["time"]}')
+                return code
 
             await self._db_handler.insert_item_many(data=candle_list,
                                                     db_name='candles',

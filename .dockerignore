@@ -1,9 +1,14 @@
+# Directory
 .venv
+base
+src/__pycache__
+src/aiohttp_retry/__pycache__
+src/pyupbit/__pycache__
+
+# File
 *.sh
-proto
-deploy
+*.bat
 .dockerignore
 Dockerfile
 .git
 .log
-docker

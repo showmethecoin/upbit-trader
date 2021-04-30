@@ -95,7 +95,6 @@ async def get_ohlcv(ticker="KRW-BTC", interval="day", count=200, to=None):
             to = to.astimezone()
         to = to.astimezone(datetime.timezone.utc)
         to = to.strftime("%Y-%m-%d %H:%M:%S")
-
         contents = await _call_public_api(url, market=ticker, count=count, to=to)
         
         if contents == None:

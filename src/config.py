@@ -10,7 +10,7 @@ KEY = {
 
 PROGRAM = {
     "NAME": "Upbit Automatic Trading Program",
-    "VERSION": "0.4",
+    "VERSION": "0.5",
     "WIDTH": 108, 
     "HEIGHT": 200,
 }
