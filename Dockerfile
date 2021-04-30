@@ -5,7 +5,7 @@ FROM codejune/smtc-base:v0.1
 COPY . /upbit-trader
 
 # Set working directory
-WORKDIR /upbit-trader/src
+WORKDIR /upbit-trader
 
 # Pip version upgrade
 RUN /usr/local/bin/python -m pip install --upgrade pip \
@@ -13,4 +13,4 @@ RUN /usr/local/bin/python -m pip install --upgrade pip \
     && pip install --upgrade -r ../requirements.txt --no-cache-dir
     
 # Run command ex) python server.py
-CMD [ "python", "server.py" ]
+CMD [ "python", "src/server.py" ]

@@ -141,3 +141,4 @@ src/__pycache__
 *.log
 *.bak
 .DS_Store
+config.yaml

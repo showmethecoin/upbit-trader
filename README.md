@@ -25,14 +25,37 @@
 
 # Index
 - [Index](#index)
-  - [1. Rule](#1-rule)
+  - [1. Quick Start](#1-quick-start)
+    - [a. Configuration](#a-configuration)
+    - [b. Edit config](#b-edit-config)
+  - [2. Rule (PEP8)](#2-rule-pep8)
     - [a. 코드 레이아웃](#a-코드-레이아웃)
     - [b. 명명 규칙](#b-명명-규칙)
     - [c. 문장과 표현식](#c-문장과-표현식)
   - [Contributor](#contributor)
 
-## 1. Rule
-- [PEP8](http://pythonstudy.xyz/python/article/511-%ED%8C%8C%EC%9D%B4%EC%8D%AC-%EC%BD%94%EB%94%A9-%EC%8A%A4%ED%83%80%EC%9D%BC)
+## 1. Quick Start
+### a. Configuration
+```
+$ cp config.yaml.example config.yaml
+```
+### b. Edit config
+``` yaml
+# config.yaml.example 
+UPBIT:
+  ACCESS_KEY: INPUT_YOUR_UPBIT_ACCESS_KEY
+  SECRET_KEY: INPUT_YOUR_UPBIT_SCEREY_KEY
+MONGO: 
+  IP: MONOG_IP
+  PORT: MOGNO_PORT
+  ID: MONOG_ACCOUNT_ID
+  PASSWORD: MONOG_ACCOUNT_PASSWORD 
+LOG:
+  PATH: LOG_SAVE_PATH
+  SAVE: WHETHER_TO_SAVE_BOOLEAN
+  PRINT: WHETHER_TO_PRINT_BOOLEAN
+```
+## 2. Rule ([PEP8](http://pythonstudy.xyz/python/article/511-%ED%8C%8C%EC%9D%B4%EC%8D%AC-%EC%BD%94%EB%94%A9-%EC%8A%A4%ED%83%80%EC%9D%BC))
 ### a. 코드 레이아웃
 - 들여쓰기를 할 때 Tab 대신 공백(Space)을 사용한다.<br>특히 Python 3는 Tab과 공백을 혼용해서 사용하는 것을 허용하지 않는다<br>단 VSCode에서의 Tab은 공백 4개로 대체됨
 - 문법적으로 들여쓰기를 할 때는 4개의 공백을 사용한다

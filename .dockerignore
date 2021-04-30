@@ -12,3 +12,4 @@ src/pyupbit/__pycache__
 Dockerfile
 .git
 .log
+*.example

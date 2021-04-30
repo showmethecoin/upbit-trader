@@ -532,7 +532,7 @@ if __name__ == '__main__':
     static.chart.sync_start()
 
     # User upbit connection
-    static.upbit = pyupbit.Upbit(config.KEY["ACCESS"], config.KEY["SECRET"])
+    static.upbit = pyupbit.Upbit(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
 
     print(pyupbit.get_tickers())
     while(True):

@@ -171,10 +171,10 @@ if __name__ == '__main__':
     if py_ver > 37 and sys.platform.startswith('win'):
 	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-    static.db = DBHandler(ip=config.DB['IP'],
-                          port=config.DB['PORT'],
-                          id=config.DB['ID'],
-                          password=config.DB['PASSWORD'])
+    static.db = DBHandler(ip=config.MONGO['IP'],
+                          port=config.MONGO['PORT'],
+                          id=config.MONGO['ID'],
+                          password=config.MONGO['PASSWORD'])
     static.data_manager = DataManager(db_handler=static.db)
     static.data_manager.start()
     
