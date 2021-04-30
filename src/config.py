@@ -3,9 +3,9 @@
 # Issued [Upbit Web]-[My Page]-[OpenAPI Management]
 KEY = {
     # Upbit API private access key
-    "ACCESS": "CwCxiKk6m71VvffVsArkwVUHsyofxuzQ4ZyPfjaZ",
+    "ACCESS": "########################################",
     # Upbit API private secret key 
-    "SECRET": "GsVxewCvfPOzBYBqoixexRToajnJSghS9qMLoiA5" 
+    "SECRET": "########################################" 
 }
 
 PROGRAM = {

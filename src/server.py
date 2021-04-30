@@ -177,6 +177,6 @@ if __name__ == '__main__':
                           password=config.DB['PASSWORD'])
     static.data_manager = DataManager(db_handler=static.db)
     static.data_manager.start()
-
+    
     while True:
         time.sleep(1)
