@@ -3,18 +3,18 @@
  <h2 align="center">Upbit Automatic Trader</h2>
  <p align="center">Automatic trader program base on upbit openAPI wrapping by pyupbit package</p>
   <p align="center">
-    <a href="https://github.com/Codejune/upbit-trader/issues">
-      <img alt="Issues" src="https://img.shields.io/github/issues/codejune/trader?color=0088ff" />
+    <a href="https://github.com/showmethecoin/upbit-trader/issues">
+      <img alt="Issues" src="https://img.shields.io/github/issues/showmethecoin/upbit-trader?color=0088ff" />
     </a>
-    <a href="https://github.com/Codejune/upbit-trader/pulls">
-      <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/codejune/upbit-trader?color=0088ff" />
+    <a href="https://github.com/showmethecoin/upbit-trader/pulls">
+      <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/showmethecoin/upbit-trader?color=0088ff" />
     </a>
   </p>
 
   <p align="center">
-    <a href="https://github.com/Codejune/upbit-trader/issues/new/choose">Report Bug</a>
+    <a href="https://github.com/showmethecoin/upbit-trader/issues/new/choose">Report Bug</a>
     ·
-    <a href="https://github.com/Codejune/upbit-trader/issues/new/choose">Request Feature</a>
+    <a href="https://github.com/showmethecoin/upbit-trader/issues/new/choose">Request Feature</a>
   </p>
   <p align="center">
     <a href="https://docs.upbit.com/">Upbit Developer Center</a>
@@ -30,7 +30,7 @@ Total price|Individual price
 - [Index](#index)
   - [0. Environment](#0-environment)
   - [1. Quick Start](#1-quick-start)
-    - [a. Configuration](#a-configuration)
+    - [a. Copy config example to config](#a-copy-config-example-to-config)
     - [b. Edit config](#b-edit-config)
     - [c. Install python module](#c-install-python-module)
     - [d. Run code](#d-run-code)
@@ -47,7 +47,7 @@ Total price|Individual price
 - Dependencies
   - Python versions: 3.7-3.9
 ## 1. Quick Start
-### a. Configuration
+### a. Copy config example to config
 ```
 $ cp config.yaml.example config.yaml
 ```
