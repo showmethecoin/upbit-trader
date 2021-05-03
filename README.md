@@ -23,17 +23,29 @@
   </p>
 </p>
 
+Total price|Individual price
+:-------------------------:|:-------------------------:
+![total_price_screenshot](./assets/total_price.png)|![individual_price_screenshot](./assets/individual_price.png)
 # Index
 - [Index](#index)
+  - [0. Environment](#0-environment)
   - [1. Quick Start](#1-quick-start)
     - [a. Configuration](#a-configuration)
     - [b. Edit config](#b-edit-config)
+    - [c. Install python module](#c-install-python-module)
+    - [d. Run code](#d-run-code)
   - [2. Rule (PEP8)](#2-rule-pep8)
     - [a. 코드 레이아웃](#a-코드-레이아웃)
     - [b. 명명 규칙](#b-명명-규칙)
     - [c. 문장과 표현식](#c-문장과-표현식)
   - [Contributor](#contributor)
-
+## 0. Environment
+- Operating System
+  - Linux: x86 (32-bit), x86_64, ARMv7 (32-bit), ARMv8 (64-bit)
+  - Windows: x86, x86_64
+  - macOS: x86_64
+- Dependencies
+  - Python versions: 3.7-3.9
 ## 1. Quick Start
 ### a. Configuration
 ```
@@ -54,6 +66,14 @@ LOG:
   PATH: LOG_SAVE_PATH
   SAVE: WHETHER_TO_SAVE_BOOLEAN
   PRINT: WHETHER_TO_PRINT_BOOLEAN
+```
+### c. Install python module
+```
+$ pip install -r requirements.txt
+```
+### d. Run code
+```
+$ python src/main.py
 ```
 ## 2. Rule ([PEP8](http://pythonstudy.xyz/python/article/511-%ED%8C%8C%EC%9D%B4%EC%8D%AC-%EC%BD%94%EB%94%A9-%EC%8A%A4%ED%83%80%EC%9D%BC))
 ### a. 코드 레이아웃
