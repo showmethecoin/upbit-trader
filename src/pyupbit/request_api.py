@@ -5,7 +5,7 @@ import aiohttp_retry
 import threading
 
 getframe_expr = 'sys._getframe({}).f_code.co_name'
-retry_option = aiohttp_retry.ExponentialRetry(factor=0.3, attempts=5, statuses=(500, 502, 504))
+retry_option = aiohttp_retry.ExponentialRetry(factor=0.2, attempts=5, statuses=(500, 502, 504))
 # TODO 스레드풀로 구현
 
 
