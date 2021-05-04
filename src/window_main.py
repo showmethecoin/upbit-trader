@@ -1,5 +1,6 @@
 
 import sys
+import asyncio
 import platform
 from ui_main import Ui_MainWindow
 import ui_styles

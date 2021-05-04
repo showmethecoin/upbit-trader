@@ -1,6 +1,5 @@
 import sys
 import platform
-
 import pyupbit
 import ui_styles
 from ui_trade import Ui_Form
@@ -9,6 +8,8 @@ from PyQt5.QtCore import (QCoreApplication, QPropertyAnimation, QDate, QDateTime
 from PyQt5.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont, QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter, QPixmap, QRadialGradient)
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
+import static
+from component import Chart
 
 class TradeWidget(QWidget):
     def __init__(self, parent = None):
@@ -182,8 +183,9 @@ class TradeWidget(QWidget):
     
     # Set Price
     def set_price(self, ticker):
-        df = pyupbit.get_ohlcv(ticker, interval="minutes", count=1, to=None)
-        price = df['close']
+        if static.chart == None :
+            return
+        price = static.chart.coins[ticker].get_trade_price()
         self.all_reset()
         self.ui.buy_price_1.setValue(price)
         self.ui.buy_price_3.setValue(price)

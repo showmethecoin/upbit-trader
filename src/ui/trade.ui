@@ -2309,7 +2309,7 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #3b4045;</string>
+                       <string notr="true"/>
                       </property>
                       <property name="text">
                        <string>초기화</string>
@@ -2325,10 +2325,29 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #d80e35;</string>
+                       <string notr="true">QPushButton {	
+	background-color: #d80e35;
+}
+QPushButton:pressed {	
+	/*background-color: rgb(60, 60, 60);*/
+	background-color: #a20826;
+}
+/*
+QPushButton:pressed {	
+	background-color: rgb(85, 170, 255);
+	border: 2px solid rgb(85, 170, 255);
+	color: rgb(35, 35, 35);
+}
+*/</string>
                       </property>
                       <property name="text">
                        <string>매수</string>
+                      </property>
+                      <property name="checkable">
+                       <bool>false</bool>
+                      </property>
+                      <property name="autoDefault">
+                       <bool>false</bool>
                       </property>
                      </widget>
                     </item>
@@ -2637,7 +2656,7 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #3b4045;</string>
+                       <string notr="true"/>
                       </property>
                       <property name="text">
                        <string>초기화</string>
@@ -2653,7 +2672,19 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #d80e35;</string>
+                       <string notr="true">QPushButton {	
+	background-color: #d80e35;
+}
+QPushButton:pressed {	
+	background-color: #a20826;
+}
+/*
+QPushButton:pressed {	
+	background-color: rgb(85, 170, 255);
+	border: 2px solid rgb(85, 170, 255);
+	color: rgb(35, 35, 35);
+}
+*/</string>
                       </property>
                       <property name="text">
                        <string>매수</string>
@@ -3053,7 +3084,7 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #3b4045;</string>
+                       <string notr="true"/>
                       </property>
                       <property name="text">
                        <string>초기화</string>
@@ -3069,7 +3100,19 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #d80e35;</string>
+                       <string notr="true">QPushButton {	
+	background-color: #d80e35;
+}
+QPushButton:pressed {	
+	background-color: #a20826;
+}
+/*
+QPushButton:pressed {	
+	background-color: rgb(85, 170, 255);
+	border: 2px solid rgb(85, 170, 255);
+	color: rgb(35, 35, 35);
+}
+*/</string>
                       </property>
                       <property name="text">
                        <string>매수</string>
@@ -3166,7 +3209,7 @@ QDoubleSpinBo
              <item>
               <widget class="QStackedWidget" name="sell_stack">
                <property name="styleSheet">
-                <string notr="true"/>
+                <string notr="true">`</string>
                </property>
                <property name="currentIndex">
                 <number>0</number>
@@ -3537,7 +3580,7 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #3b4045;</string>
+                       <string notr="true"/>
                       </property>
                       <property name="text">
                        <string>초기화</string>
@@ -3553,7 +3596,20 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #115dcb;</string>
+                       <string notr="true">QPushButton {	
+	background-color:#115dcb;
+}
+QPushButton:pressed {	
+	/*background-color: rgb(60, 60, 60);*/
+	background-color: #124ca0;
+}
+/*
+QPushButton:pressed {	
+	background-color: rgb(85, 170, 255);
+	border: 2px solid rgb(85, 170, 255);
+	color: rgb(35, 35, 35);
+}
+*/</string>
                       </property>
                       <property name="text">
                        <string>매도</string>
@@ -3865,7 +3921,7 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #3b4045;</string>
+                       <string notr="true"/>
                       </property>
                       <property name="text">
                        <string>초기화</string>
@@ -3881,7 +3937,20 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #115dcb;</string>
+                       <string notr="true">QPushButton {	
+	background-color:#115dcb;
+}
+QPushButton:pressed {	
+	/*background-color: rgb(60, 60, 60);*/
+	background-color: #124ca0;
+}
+/*
+QPushButton:pressed {	
+	background-color: rgb(85, 170, 255);
+	border: 2px solid rgb(85, 170, 255);
+	color: rgb(35, 35, 35);
+}
+*/</string>
                       </property>
                       <property name="text">
                        <string>매도</string>
@@ -4287,7 +4356,7 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #3b4045;</string>
+                       <string notr="true"/>
                       </property>
                       <property name="text">
                        <string>초기화</string>
@@ -4303,7 +4372,20 @@ QDoubleSpinBo
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">background-color: #115dcb;</string>
+                       <string notr="true">QPushButton {	
+	background-color:#115dcb;
+}
+QPushButton:pressed {	
+	/*background-color: rgb(60, 60, 60);*/
+	background-color: #124ca0;
+}
+/*
+QPushButton:pressed {	
+	background-color: rgb(85, 170, 255);
+	border: 2px solid rgb(85, 170, 255);
+	color: rgb(35, 35, 35);
+}
+*/</string>
                       </property>
                       <property name="text">
                        <string>매도</string>

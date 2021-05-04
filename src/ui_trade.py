@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'transaction.ui'
+# Form implementation generated from reading ui file 'trade.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -2021,12 +2021,27 @@ class Ui_Form(object):
         self.horizontalLayout_17.setObjectName("horizontalLayout_17")
         self.buy_reset_1 = QtWidgets.QPushButton(self.horizontalFrame_11)
         self.buy_reset_1.setMinimumSize(QtCore.QSize(0, 30))
-        self.buy_reset_1.setStyleSheet("background-color: #3b4045;")
+        self.buy_reset_1.setStyleSheet("")
         self.buy_reset_1.setObjectName("buy_reset_1")
         self.horizontalLayout_17.addWidget(self.buy_reset_1)
         self.buy_buy_btn_1 = QtWidgets.QPushButton(self.horizontalFrame_11)
         self.buy_buy_btn_1.setMinimumSize(QtCore.QSize(0, 30))
-        self.buy_buy_btn_1.setStyleSheet("background-color: #d80e35;")
+        self.buy_buy_btn_1.setStyleSheet("QPushButton {    \n"
+"    background-color: #d80e35;\n"
+"}\n"
+"QPushButton:pressed {    \n"
+"    /*background-color: rgb(60, 60, 60);*/\n"
+"    background-color: #a20826;\n"
+"}\n"
+"/*\n"
+"QPushButton:pressed {    \n"
+"    background-color: rgb(85, 170, 255);\n"
+"    border: 2px solid rgb(85, 170, 255);\n"
+"    color: rgb(35, 35, 35);\n"
+"}\n"
+"*/")
+        self.buy_buy_btn_1.setCheckable(False)
+        self.buy_buy_btn_1.setAutoDefault(False)
         self.buy_buy_btn_1.setObjectName("buy_buy_btn_1")
         self.horizontalLayout_17.addWidget(self.buy_buy_btn_1)
         self.horizontalLayout_17.setStretch(0, 1)
@@ -2146,12 +2161,24 @@ class Ui_Form(object):
         self.horizontalLayout_20.setObjectName("horizontalLayout_20")
         self.buy_reset_2 = QtWidgets.QPushButton(self.horizontalFrame_13)
         self.buy_reset_2.setMinimumSize(QtCore.QSize(0, 30))
-        self.buy_reset_2.setStyleSheet("background-color: #3b4045;")
+        self.buy_reset_2.setStyleSheet("")
         self.buy_reset_2.setObjectName("buy_reset_2")
         self.horizontalLayout_20.addWidget(self.buy_reset_2)
         self.buy_buy_btn_2 = QtWidgets.QPushButton(self.horizontalFrame_13)
         self.buy_buy_btn_2.setMinimumSize(QtCore.QSize(0, 30))
-        self.buy_buy_btn_2.setStyleSheet("background-color: #d80e35;")
+        self.buy_buy_btn_2.setStyleSheet("QPushButton {    \n"
+"    background-color: #d80e35;\n"
+"}\n"
+"QPushButton:pressed {    \n"
+"    background-color: #a20826;\n"
+"}\n"
+"/*\n"
+"QPushButton:pressed {    \n"
+"    background-color: rgb(85, 170, 255);\n"
+"    border: 2px solid rgb(85, 170, 255);\n"
+"    color: rgb(35, 35, 35);\n"
+"}\n"
+"*/")
         self.buy_buy_btn_2.setObjectName("buy_buy_btn_2")
         self.horizontalLayout_20.addWidget(self.buy_buy_btn_2)
         self.horizontalLayout_20.setStretch(0, 1)
@@ -2318,12 +2345,24 @@ class Ui_Form(object):
         self.horizontalLayout_35.setObjectName("horizontalLayout_35")
         self.buy_reset_3 = QtWidgets.QPushButton(self.horizontalFrame_15)
         self.buy_reset_3.setMinimumSize(QtCore.QSize(0, 30))
-        self.buy_reset_3.setStyleSheet("background-color: #3b4045;")
+        self.buy_reset_3.setStyleSheet("")
         self.buy_reset_3.setObjectName("buy_reset_3")
         self.horizontalLayout_35.addWidget(self.buy_reset_3)
         self.buy_buy_btn_3 = QtWidgets.QPushButton(self.horizontalFrame_15)
         self.buy_buy_btn_3.setMinimumSize(QtCore.QSize(0, 30))
-        self.buy_buy_btn_3.setStyleSheet("background-color: #d80e35;")
+        self.buy_buy_btn_3.setStyleSheet("QPushButton {    \n"
+"    background-color: #d80e35;\n"
+"}\n"
+"QPushButton:pressed {    \n"
+"    background-color: #a20826;\n"
+"}\n"
+"/*\n"
+"QPushButton:pressed {    \n"
+"    background-color: rgb(85, 170, 255);\n"
+"    border: 2px solid rgb(85, 170, 255);\n"
+"    color: rgb(35, 35, 35);\n"
+"}\n"
+"*/")
         self.buy_buy_btn_3.setObjectName("buy_buy_btn_3")
         self.horizontalLayout_35.addWidget(self.buy_buy_btn_3)
         self.horizontalLayout_35.setStretch(0, 1)
@@ -2367,7 +2406,7 @@ class Ui_Form(object):
         self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.sell_stack = QtWidgets.QStackedWidget(self.verticalFrame_2)
-        self.sell_stack.setStyleSheet("")
+        self.sell_stack.setStyleSheet("`")
         self.sell_stack.setObjectName("sell_stack")
         self.page_2 = QtWidgets.QWidget()
         self.page_2.setObjectName("page_2")
@@ -2519,12 +2558,25 @@ class Ui_Form(object):
         self.horizontalLayout_24.setObjectName("horizontalLayout_24")
         self.sell_reset_1 = QtWidgets.QPushButton(self.horizontalFrame_17)
         self.sell_reset_1.setMinimumSize(QtCore.QSize(0, 30))
-        self.sell_reset_1.setStyleSheet("background-color: #3b4045;")
+        self.sell_reset_1.setStyleSheet("")
         self.sell_reset_1.setObjectName("sell_reset_1")
         self.horizontalLayout_24.addWidget(self.sell_reset_1)
         self.sell_sell_btn_1 = QtWidgets.QPushButton(self.horizontalFrame_17)
         self.sell_sell_btn_1.setMinimumSize(QtCore.QSize(0, 30))
-        self.sell_sell_btn_1.setStyleSheet("background-color: #115dcb;")
+        self.sell_sell_btn_1.setStyleSheet("QPushButton {    \n"
+"    background-color:#115dcb;\n"
+"}\n"
+"QPushButton:pressed {    \n"
+"    /*background-color: rgb(60, 60, 60);*/\n"
+"    background-color: #124ca0;\n"
+"}\n"
+"/*\n"
+"QPushButton:pressed {    \n"
+"    background-color: rgb(85, 170, 255);\n"
+"    border: 2px solid rgb(85, 170, 255);\n"
+"    color: rgb(35, 35, 35);\n"
+"}\n"
+"*/")
         self.sell_sell_btn_1.setObjectName("sell_sell_btn_1")
         self.horizontalLayout_24.addWidget(self.sell_sell_btn_1)
         self.horizontalLayout_24.setStretch(0, 1)
@@ -2644,12 +2696,25 @@ class Ui_Form(object):
         self.horizontalLayout_38.setObjectName("horizontalLayout_38")
         self.sell_reset_2 = QtWidgets.QPushButton(self.horizontalFrame_19)
         self.sell_reset_2.setMinimumSize(QtCore.QSize(0, 30))
-        self.sell_reset_2.setStyleSheet("background-color: #3b4045;")
+        self.sell_reset_2.setStyleSheet("")
         self.sell_reset_2.setObjectName("sell_reset_2")
         self.horizontalLayout_38.addWidget(self.sell_reset_2)
         self.sell_sell_btn_2 = QtWidgets.QPushButton(self.horizontalFrame_19)
         self.sell_sell_btn_2.setMinimumSize(QtCore.QSize(0, 30))
-        self.sell_sell_btn_2.setStyleSheet("background-color: #115dcb;")
+        self.sell_sell_btn_2.setStyleSheet("QPushButton {    \n"
+"    background-color:#115dcb;\n"
+"}\n"
+"QPushButton:pressed {    \n"
+"    /*background-color: rgb(60, 60, 60);*/\n"
+"    background-color: #124ca0;\n"
+"}\n"
+"/*\n"
+"QPushButton:pressed {    \n"
+"    background-color: rgb(85, 170, 255);\n"
+"    border: 2px solid rgb(85, 170, 255);\n"
+"    color: rgb(35, 35, 35);\n"
+"}\n"
+"*/")
         self.sell_sell_btn_2.setObjectName("sell_sell_btn_2")
         self.horizontalLayout_38.addWidget(self.sell_sell_btn_2)
         self.horizontalLayout_38.setStretch(0, 1)
@@ -2820,12 +2885,25 @@ class Ui_Form(object):
         self.horizontalLayout_43.setObjectName("horizontalLayout_43")
         self.sell_reset_3 = QtWidgets.QPushButton(self.horizontalFrame_21)
         self.sell_reset_3.setMinimumSize(QtCore.QSize(0, 30))
-        self.sell_reset_3.setStyleSheet("background-color: #3b4045;")
+        self.sell_reset_3.setStyleSheet("")
         self.sell_reset_3.setObjectName("sell_reset_3")
         self.horizontalLayout_43.addWidget(self.sell_reset_3)
         self.sell_sell_btn_3 = QtWidgets.QPushButton(self.horizontalFrame_21)
         self.sell_sell_btn_3.setMinimumSize(QtCore.QSize(0, 30))
-        self.sell_sell_btn_3.setStyleSheet("background-color: #115dcb;")
+        self.sell_sell_btn_3.setStyleSheet("QPushButton {    \n"
+"    background-color:#115dcb;\n"
+"}\n"
+"QPushButton:pressed {    \n"
+"    /*background-color: rgb(60, 60, 60);*/\n"
+"    background-color: #124ca0;\n"
+"}\n"
+"/*\n"
+"QPushButton:pressed {    \n"
+"    background-color: rgb(85, 170, 255);\n"
+"    border: 2px solid rgb(85, 170, 255);\n"
+"    color: rgb(35, 35, 35);\n"
+"}\n"
+"*/")
         self.sell_sell_btn_3.setObjectName("sell_sell_btn_3")
         self.horizontalLayout_43.addWidget(self.sell_sell_btn_3)
         self.horizontalLayout_43.setStretch(0, 1)

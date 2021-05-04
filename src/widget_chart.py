@@ -1,4 +1,5 @@
 import time
+import asyncio
 import sys, os, random
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
@@ -8,7 +9,7 @@ from matplotlib.figure import Figure
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import mpl_finance as mpf
-import json
+import asyncio
 import random
 from pyupbit.quotation_api import get_ohlcv
 import requests
@@ -58,10 +59,11 @@ class CandleChartWidget(QWidget):
     # animation function
     def animate(self, t):
         self.canvas.axes.clear()
-        self.get_chart()
+        asyncio.run(self.get_chart())
+        
     # chart update
-    def get_chart(self):
-        df = get_ohlcv(ticker=self.coin, interval="minutes1", count=self.count, to=None)
+    async def get_chart(self):
+        df = await get_ohlcv(ticker=self.coin, interval="minutes1", count=self.count, to=None)
         print(self.idx)
         self.idx+= 1
         mpl_finance.candlestick2_ohlc(self.canvas.axes, df['open'], df['high'], df['low'], df['close'], width=0.5, colorup='r', colordown='g')

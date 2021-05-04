@@ -1,6 +1,7 @@
 import sys
 import time
 import pyupbit
+import asyncio
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QTableWidgetItem, QProgressBar
@@ -17,7 +18,7 @@ class OrderbookWorker(QThread):
 
     def run(self):
         while self.alive:
-            data = pyupbit.get_orderbook("KRW-"+self.ticker)
+            data = asyncio.run(pyupbit.get_orderbook("KRW-"+self.ticker))
             time.sleep(0.2)
             if data != None:
                 self.dataSent.emit(data)

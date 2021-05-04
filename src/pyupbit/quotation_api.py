@@ -163,7 +163,7 @@ def get_current_price(ticker="KRW-BTC"):
         print(x.__class__.__name__)
 
 
-def get_orderbook(tickers="KRW-BTC"):
+async def get_orderbook(tickers="KRW-BTC"):
     '''
     호가 정보 조회
     :param tickers: 티커 목록을 문자열
@@ -171,7 +171,7 @@ def get_orderbook(tickers="KRW-BTC"):
     '''
     try:
         url = "https://api.upbit.com/v1/orderbook"
-        contents = _call_public_api(url, markets=tickers)[0]
+        contents = await _call_public_api(url, markets=tickers)[0]
         return contents
     except Exception as x:
         print(x.__class__.__name__)
