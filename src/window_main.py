@@ -3,8 +3,9 @@ import sys
 import asyncio
 import platform
 from ui_main import Ui_MainWindow
-import ui_styles
 from ui_trade import Ui_Form
+import static
+from component import Chart
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (QCoreApplication, QPropertyAnimation, QDate, QDateTime, QMetaObject, QObject, QPoint, QRect, QSize, QTime, QUrl, Qt, QEvent)
 from PyQt5.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont, QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter, QPixmap, QRadialGradient)
@@ -13,10 +14,12 @@ from PyQt5.QtWidgets import *
 class MainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
+        static.chart = Chart()
+        static.chart.sync_start()
         self.status = 0
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.resize(QSize(1400,900))
+        self.resize(QSize(1200,900))
         # Set Titlebar button Click Event
         self.ui.close_btn.clicked.connect(lambda: self.close())
         self.ui.minimize_btn.clicked.connect(lambda: self.showMinimized())

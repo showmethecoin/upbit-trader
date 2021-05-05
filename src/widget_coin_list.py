@@ -37,10 +37,10 @@ class ChartWorker(QThread):
         self.alive = False
 
 
-class ChartlistWidget(QWidget):
+class CoinlistWidget(QWidget):
     def __init__(self, parent = None):
-        static.chart = Chart()
-        static.chart.sync_start()
+        # static.chart = Chart()
+        # static.chart.sync_start()
         super().__init__(parent)
         uic.loadUi("src/ui/coin_list.ui", self)
 
@@ -111,14 +111,14 @@ class ChartlistWidget(QWidget):
     def chkItemClicked(self):
         if len(self.coin_list.selectedItems()) == 0:
             return
-        coin = self.coin_list.selectedItems()[0].text().split("-")[1]
+        coin = self.coin_list.selectedItems()[0].text()
         self.order.ow.close()
         self.order.ow.wait()
         self.order.ow = OrderbookWorker(coin)
         self.order.ow.dataSent.connect(self.order.updateData)
         self.order.ow.start()
-        self.chart.coin = 'KRW-' + coin
-        self.trade.set_price('KRW-' + coin)
+        self.chart.coin = coin
+        self.trade.set_price(coin)
     
 
 
@@ -126,6 +126,6 @@ if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
-    cw = ChartlistWidget()
+    cw = CoinlistWidget()
     cw.show()
     exit(app.exec_())

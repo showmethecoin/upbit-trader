@@ -2,10 +2,13 @@ import sys
 import time
 import pyupbit
 import asyncio
+from component import Chart
+import static
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QTableWidgetItem, QProgressBar
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QPropertyAnimation
+
 
 class OrderbookWorker(QThread):
     dataSent = pyqtSignal(list)
@@ -18,19 +21,24 @@ class OrderbookWorker(QThread):
 
     def run(self):
         while self.alive:
-            data = asyncio.run(pyupbit.get_orderbook("KRW-"+self.ticker))
-            time.sleep(0.2)
-            if data != None:
-                self.dataSent.emit(data)
+            #data = asyncio.run(pyupbit.get_orderbook("KRW-"+self.ticker))
+            time.sleep(0.5)
+            if static.chart != None:
+                coin = static.chart.coins[self.ticker]
+                data = coin.get_orderbook_units()
+                if len(data) != 0:
+                    self.dataSent.emit(data)
 
     def close(self):
         self.alive = False
 
 class OrderbookWidget(QWidget):
-    def __init__(self, parent=None, ticker="BTC"):
+    def __init__(self, parent=None, ticker="KRW-BTC"):
         super().__init__(parent)
         uic.loadUi("./src/ui/orderbook.ui", self)
         
+        # static.chart = Chart()
+        # static.chart.sync_start()
         #화면 수직,수평으로 늘릴 경우 칸에 맞게 변경됨
         #사용 가능한 공간을 채우기 위해 섹션의 크기를 자동으로 조정
         #참고 QHeaderView Class
@@ -94,7 +102,7 @@ class OrderbookWidget(QWidget):
 
     def updateData(self, data):
         #print(data[0]['orderbook_units'])
-        data = data[0]['orderbook_units']
+        #data = data[0]['orderbook_units']
         # 아래 코드에서 적용될 수 있게 data 형태를 바꿔줌
         data_dict = {}
 
@@ -103,8 +111,8 @@ class OrderbookWidget(QWidget):
         bids_tmp = []
 
         for i in range(10):
-            asks_tmp.append( { 'price' : data[i]['ask_price'], 'quantity' : round(data[i]['ask_size'], 3) } )
-            bids_tmp.append( { 'price' : data[i]['bid_price'], 'quantity' : round(data[i]['bid_size'], 3) } )
+            asks_tmp.append( { 'price' : data[i]['ap'], 'quantity' : round(data[i]['as'], 5) } )
+            bids_tmp.append( { 'price' : data[i]['bp'], 'quantity' : round(data[i]['bs'], 5) } )
         
         data_dict['asks'] = asks_tmp
         data_dict['bids'] = bids_tmp
@@ -131,7 +139,7 @@ class OrderbookWidget(QWidget):
             item_1 = self.tableAsks.item(i, 1)
             item_1.setText(f"{v['quantity']:,}")
             item_2 = self.tableAsks.cellWidget(i, 2)
-            item_2.setRange(0, asks_maxtradingValue)
+            item_2.setRange(0, int(asks_maxtradingValue))
             item_2.setFormat(f"{asks_tradingValues[i]:,}")
             self.asksAnim[i].setStartValue(asks_tradingValues[i])
             self.asksAnim[i].setEndValue(asks_tradingValues[i])
@@ -143,7 +151,7 @@ class OrderbookWidget(QWidget):
             item_1 = self.tableBids.item(i, 1)
             item_1.setText(f"{v['quantity']:,}")
             item_2 = self.tableBids.cellWidget(i, 2)
-            item_2.setRange(0, bids_maxtradingValue)
+            item_2.setRange(0, int(bids_maxtradingValue))
             item_2.setFormat(f"{bids_tradingValues[i]:,}")
             self.bidsAnim[i].setStartValue(bids_tradingValues[i])
             self.bidsAnim[i].setEndValue(bids_tradingValues[i])

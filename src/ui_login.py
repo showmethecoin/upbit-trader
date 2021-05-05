@@ -55,7 +55,7 @@ class Ui_Form(object):
         self.toplabel_icon.setMinimumSize(QtCore.QSize(0, 0))
         self.toplabel_icon.setMaximumSize(QtCore.QSize(30, 30))
         self.toplabel_icon.setSizeIncrement(QtCore.QSize(0, 0))
-        self.toplabel_icon.setStyleSheet("background-image: url(icons/16x16/cil-chart-line.png);\n"
+        self.toplabel_icon.setStyleSheet("background-image: url(./src/asset/icons/16x16/cil-chart-line.png);\n"
 "background-position: center;\n"
 "background-repeat: no-repeat;\n"
 "")
@@ -114,7 +114,7 @@ class Ui_Form(object):
 "}")
         self.minimize_btn.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icons/16x16/cil-window-minimize.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("./src/asset/icons/16x16/cil-window-minimize.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.minimize_btn.setIcon(icon)
         self.minimize_btn.setObjectName("minimize_btn")
         self.frame_btn_2.addWidget(self.minimize_btn)
@@ -137,7 +137,7 @@ class Ui_Form(object):
 "}")
         self.maximize_btn.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("icons/16x16/cil-window-maximize.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("./src/asset/icons/16x16/cil-window-maximize.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.maximize_btn.setIcon(icon1)
         self.maximize_btn.setObjectName("maximize_btn")
         self.frame_btn_2.addWidget(self.maximize_btn)
@@ -165,7 +165,7 @@ class Ui_Form(object):
 "}")
         self.close_btn.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("icons/16x16/cil-x.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap("./src/asset/icons/16x16/cil-x.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.close_btn.setIcon(icon2)
         self.close_btn.setIconSize(QtCore.QSize(20, 20))
         self.close_btn.setObjectName("close_btn")

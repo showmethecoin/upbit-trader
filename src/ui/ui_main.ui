@@ -1958,11 +1958,17 @@ QDoubleSpinBo
               <number>0</number>
              </property>
              <item>
-              <widget class="QFrame" name="toplabel_icon">
+              <widget class="QPushButton" name="pushButton">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
-                 <height>0</height>
+                 <width>30</width>
+                 <height>30</height>
                 </size>
                </property>
                <property name="maximumSize">
@@ -1971,23 +1977,12 @@ QDoubleSpinBo
                  <height>30</height>
                 </size>
                </property>
-               <property name="sizeIncrement">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
+               <property name="text">
+                <string/>
                </property>
-               <property name="styleSheet">
-                <string notr="true">background-image: url(icons/16x16/cil-chart-line.png);
-background-position: center;
-background-repeat: no-repeat;
-</string>
-               </property>
-               <property name="frameShape">
-                <enum>QFrame::StyledPanel</enum>
-               </property>
-               <property name="frameShadow">
-                <enum>QFrame::Raised</enum>
+               <property name="icon">
+                <iconset>
+                 <normaloff>../asset/icons/16x16/cil-chart-line.png</normaloff>../asset/icons/16x16/cil-chart-line.png</iconset>
                </property>
               </widget>
              </item>
@@ -2112,7 +2107,7 @@ QPushButton:pressed {
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>icons/16x16/cil-window-minimize.png</normaloff>icons/16x16/cil-window-minimize.png</iconset>
+                 <normaloff>../asset/icons/16x16/cil-window-minimize.png</normaloff>../asset/icons/16x16/cil-window-minimize.png</iconset>
                </property>
               </widget>
              </item>
@@ -2150,7 +2145,7 @@ QPushButton:pressed {
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>icons/16x16/cil-window-maximize.png</normaloff>icons/16x16/cil-window-maximize.png</iconset>
+                 <normaloff>../asset/icons/16x16/cil-window-maximize.png</normaloff>../asset/icons/16x16/cil-window-maximize.png</iconset>
                </property>
               </widget>
              </item>
@@ -2258,7 +2253,7 @@ QPushButton:pressed {
              <string notr="true"/>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="firstpage">
              <property name="font">
@@ -2775,7 +2770,7 @@ QHeaderView::section:vertical
                     <bool>false</bool>
                    </property>
                    <attribute name="horizontalHeaderVisible">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </attribute>
                    <attribute name="horizontalHeaderCascadingSectionResizes">
                     <bool>true</bool>
