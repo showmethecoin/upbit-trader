@@ -7,6 +7,7 @@ chart = None
 upbit = None
 db = None
 data_manager = None
+account = None
 
 ''' Logger Configuration'''
 log = logging.getLogger()

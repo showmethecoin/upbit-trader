@@ -522,10 +522,83 @@ class Account:
     def __init__(self, _access_key, _secret_key) -> None:
         self._access_key = _access_key
         self._secret_key = _secret_key
-        self._upbit = pyupbit.Upbit(_access_key, _secret_key)
+        #self._upbit = pyupbit.Upbit(_access_key, _secret_key)
+        self.cash = 0.0
+        self.total_purchase = 0.0
+        self.total_avaluate = 0.0
+        self.sync_status = False
+
+    def _sync_thread(self) -> None:
+        while self.sync_status:
+            try:
+                total_purchase = 0
+                total_avaluate = 0
+                for item in asyncio.run(static.upbit.get_balances()):
+                    currency = item["currency"]
+                    balance = float(item["balance"])
+
+                    if currency == 'KRW':
+                        self.cash = balance
+                        #total_purchase += balance
+                        #total_avaluate += balance
+                    else:
+                        purchase = round(balance * float(item["avg_buy_price"]), 0)
+                        avaluate = round(balance * static.chart.get_coin("%s-%s" %
+                                                                     (config.FIAT, currency)).get_trade_price(), 0)
+                        loss = avaluate - purchase
+                        total_purchase += purchase
+                        total_avaluate += avaluate
+                
+                self.total_purchase = total_purchase
+                self.total_avaluate = total_avaluate
+            except Exception as e:
+                print(e)
+
+    def sync_start(self) -> None:
+        """동기화 시작
+        """
+        self.sync_status = True
+        self.thread = Thread(target=self._sync_thread, daemon=True)
+        self.thread.start()
+
+    def sync_stop(self) -> None:
+        """동기화 중지
+        """
+        self.sync_status = False
+
+    def get_sync_status(self) -> bool:
+        """동기화 동작 상태 반환
+        """
+        return self.sync_status
+
+    def get_cash(self) -> float:
+        """총 보유 현금
+        """
+        return self.cash
+
+    def get_buy_price(self) -> float:
+        """총 구매 비용
+        """
+        return self.total_purchase
+
+    def get_trade_price(self) -> float:
+        """총 현재 가격
+        """
+        return self.total_avaluate
+    
+    def get_total_loss(self) -> float:
+        """총 손익 가격
+        """
+        return (self.total_avaluate - self.total_purchase)
 
 
 if __name__ == '__main__':
+
+    import sys
+    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
+    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+    if py_ver > 37 and sys.platform.startswith('win'):
+	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     # Upbit coin chart
     static.chart = Chart()
@@ -534,7 +607,10 @@ if __name__ == '__main__':
     # User upbit connection
     static.upbit = pyupbit.Upbit(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
 
-    print(pyupbit.get_tickers())
+    # Upbit account
+    static.account = Account(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
+    static.account.sync_start()
+
     while(True):
         import time
         time.sleep(1)

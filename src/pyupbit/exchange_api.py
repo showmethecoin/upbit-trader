@@ -54,7 +54,7 @@ class Upbit:
         return headers
 
     # region balance
-    def get_balances(self, contain_req=False):
+    async def get_balances(self, contain_req=False):
         """
         전체 계좌 조회
         :param contain_req: Remaining-Req 포함여부
@@ -64,7 +64,7 @@ class Upbit:
         try:
             url = "https://api.upbit.com/v1/accounts"
             headers = self._request_headers()
-            result = _send_get_request(url, headers=headers)
+            result = await _send_get_request(url, headers=headers)
             if contain_req:
                 return result
             else:
@@ -73,7 +73,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def get_balance(self, ticker="KRW", contain_req=False):
+    async def get_balance(self, ticker="KRW", contain_req=False):
         """
         특정 코인/원화의 잔고를 조회하는 메소드
         :param ticker: 화폐를 의미하는 영문 대문자 코드
@@ -87,7 +87,7 @@ class Upbit:
             if '-' in ticker:
                 ticker = ticker.split('-')[1]
 
-            balances, req = self.get_balances(contain_req=True)
+            balances, req = await self.get_balances(contain_req=True)
 
             # search the current currency
             balance = 0

@@ -14,7 +14,7 @@ chardet
 cryptography>=3.2.1
 DateTime>=4.3
 idna>=2.10
-jwt>=1.1.0
+pyjwt>=2.0.1
 pycparser>=2.20
 python-dateutil>=2.8.1
 pytz>=2020.5

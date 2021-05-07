@@ -66,7 +66,7 @@ async def _send_post_request(url, headers=None, data=None):
                 remaining_req_dict = {}
                 remaining_req = response.headers.get('Remaining-Req')
                 if remaining_req is not None:
-                    group, min, sec = _parse_remaining_req(remaining_req)
+                    group, min, sec = await _parse_remaining_req(remaining_req)
                     remaining_req_dict['group'] = group
                     remaining_req_dict['min'] = min
                     remaining_req_dict['sec'] = sec
@@ -93,7 +93,7 @@ async def _send_get_request(url, headers=None, data=None):
                 remaining_req_dict = {}
                 remaining_req = response.headers.get('Remaining-Req')
                 if remaining_req is not None:
-                    group, min, sec = _parse_remaining_req(remaining_req)
+                    group, min, sec = await _parse_remaining_req(remaining_req)
                     remaining_req_dict['group'] = group
                     remaining_req_dict['min'] = min
                     remaining_req_dict['sec'] = sec
@@ -120,7 +120,7 @@ async def _send_delete_request(url, headers=None, data=None):
                 remaining_req_dict = {}
                 remaining_req = response.headers.get('Remaining-Req')
                 if remaining_req is not None:
-                    group, min, sec = _parse_remaining_req(remaining_req)
+                    group, min, sec = await _parse_remaining_req(remaining_req)
                     remaining_req_dict['group'] = group
                     remaining_req_dict['min'] = min
                     remaining_req_dict['sec'] = sec
