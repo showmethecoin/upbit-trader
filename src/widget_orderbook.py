@@ -1,5 +1,6 @@
 import sys
 import time
+
 from component import Chart, Coin
 import static
 from PyQt5 import uic
@@ -16,11 +17,10 @@ class OrderbookWorker(QThread):
         self.size = 10
         self.ticker = ticker
         self.alive = True
-        time.sleep(1)
-
+       
     def run(self):
         while self.alive:
-            time.sleep(0.5)
+            time.sleep(0.3)
             if static.chart.coins[self.ticker] != None:
                 self.dataSent.emit(static.chart.coins[self.ticker])
 
@@ -48,7 +48,7 @@ class OrderbookWidget(QWidget):
         for i in range(self.tableBids.rowCount()):
             # 매도호가
             item_0 = QTableWidgetItem(str(""))
-            item_0.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            item_0.setTextAlignment(Qt.AlignVCenter)
             self.tableAsks.setItem(i, 0, item_0)
  
             item_1 = QProgressBar(self.tableAsks)
@@ -59,12 +59,12 @@ class OrderbookWidget(QWidget):
             """)
             self.tableAsks.setCellWidget(i, 1, item_1)
             anim = QPropertyAnimation(item_1, b"value")
-            anim.setDuration(200)
+            anim.setDuration(100)
             self.asksAnim.append(anim)
 
             # 매수호가
             item_0 = QTableWidgetItem(str(""))
-            item_0.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            item_0.setTextAlignment(Qt.AlignVCenter)
             self.tableBids.setItem(i, 0, item_0)
 
  
@@ -76,7 +76,7 @@ class OrderbookWidget(QWidget):
             """)
             self.tableBids.setCellWidget(i, 1, item_1)
             anim = QPropertyAnimation(item_1, b"value")
-            anim.setDuration(200)
+            anim.setDuration(100)
             self.bidsAnim.append(anim)
 
         self.ow = OrderbookWorker(self.ticker)
@@ -89,8 +89,9 @@ class OrderbookWidget(QWidget):
 
         #15개의 데이터를 10개로 자름
         data = data[0:10]
-        asks_size = coin.get_total_ask_size()
-        bids_size = coin.get_total_bid_size()
+        asks_size = coin.get_total_ask_size() * 0.01
+        bids_size = coin.get_total_bid_size() * 0.01
+        
         # asks테이블 값 설정
         for i ,v in enumerate(data[::-1]):
             item_0 = self.tableAsks.item(i, 0)
@@ -99,10 +100,10 @@ class OrderbookWidget(QWidget):
             item_1 = self.tableAsks.cellWidget(i, 1)
             # 범위가 int형으로 들어가기 때문에(값이 낮아서 전부 0으로 되는 문제)
             # 소수 3째자리 까지 표현하므로 범위값에 1000을 곱해서 범위를 지정해줌
-            item_1.setRange(0, asks_size*1000)
+            item_1.setRange(0, 100)
             item_1.setFormat(f"{round(v['as'],3):,}")
-            self.asksAnim[i].setStartValue(v['as']*1000)
-            self.asksAnim[i].setEndValue(v['as']*1000)
+            self.asksAnim[i].setStartValue(v['as']/asks_size)
+            self.asksAnim[i].setEndValue(v['as']/asks_size)
             self.asksAnim[i].start()
 
         # bids테이블 값 설정
@@ -111,10 +112,10 @@ class OrderbookWidget(QWidget):
             item_0.setText(f"{round(v['bp'],3):,}")
            
             item_1 = self.tableBids.cellWidget(i, 1)
-            item_1.setRange(0, bids_size*1000)
+            item_1.setRange(0, 100)
             item_1.setFormat(f"{round(v['bs'],3):,}")
-            self.bidsAnim[i].setStartValue(v['bs']*1000)
-            self.bidsAnim[i].setEndValue(v['bs']*1000)
+            self.bidsAnim[i].setStartValue(v['bs']/bids_size)
+            self.bidsAnim[i].setEndValue(v['bs']/bids_size)
             self.bidsAnim[i].start()
 
     def closeEvent(self, event):
