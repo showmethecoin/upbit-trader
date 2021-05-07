@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1090</width>
+    <width>1363</width>
     <height>720</height>
    </rect>
   </property>
@@ -1891,7 +1891,7 @@ QDoubleSpinBo
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>40</height>
+           <height>45</height>
           </size>
          </property>
          <property name="font">
@@ -2230,7 +2230,7 @@ QPushButton:pressed {
            <number>0</number>
           </property>
           <property name="topMargin">
-           <number>10</number>
+           <number>0</number>
           </property>
           <property name="rightMargin">
            <number>0</number>
@@ -2238,6 +2238,189 @@ QPushButton:pressed {
           <property name="bottomMargin">
            <number>0</number>
           </property>
+          <item>
+           <widget class="QFrame" name="frame_left_menu">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>65</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>70</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(40, 40, 40);	</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="home_btn">
+               <property name="minimumSize">
+                <size>
+                 <width>65</width>
+                 <height>65</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>65</width>
+                 <height>65</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QPushButton {	
+	border: none;
+	border-right: 5px solid rgb(85, 170, 255);
+	background-color: rgb(40, 40, 40);	
+}
+QPushButton:hover {
+	background-color: rgb(33, 37, 43);
+}
+QPushButton:pressed {	
+	background-color: rgb(85, 170, 255);
+}</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>../asset/icons/24x24/cil-home.png</normaloff>../asset/icons/24x24/cil-home.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="user_btn">
+               <property name="minimumSize">
+                <size>
+                 <width>65</width>
+                 <height>65</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>65</width>
+                 <height>65</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QPushButton {	
+	border: none;
+	background-color: rgb(40, 40, 40);	
+}
+QPushButton:hover {
+	background-color: rgb(33, 37, 43);
+}
+QPushButton:pressed {	
+	background-color: rgb(85, 170, 255);
+}</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>../asset/icons/24x24/cil-user.png</normaloff>../asset/icons/24x24/cil-user.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>40</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="frame">
+               <property name="layoutDirection">
+                <enum>Qt::LeftToRight</enum>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_3">
+                <item>
+                 <spacer name="verticalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>38</width>
+                    <height>455</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>60</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>20</pointsize>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color : rgb(85, 170, 255);
+border: 0px solid rgb(85, 170, 255);
+background-position: center;
+background: transparent;</string>
+                  </property>
+                  <property name="text">
+                   <string>₿</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
           <item>
            <widget class="QStackedWidget" name="qStackedWidget">
             <property name="font">
@@ -2270,7 +2453,7 @@ QPushButton:pressed {
                 <property name="frameShadow">
                  <enum>QFrame::Raised</enum>
                 </property>
-                <layout class="QVBoxLayout" name="verticalLayout_7" stretch="1,1">
+                <layout class="QVBoxLayout" name="verticalLayout_7" stretch="0,0">
                  <property name="leftMargin">
                   <number>0</number>
                  </property>
@@ -2327,7 +2510,7 @@ QPushButton:pressed {
                 <property name="frameShadow">
                  <enum>QFrame::Raised</enum>
                 </property>
-                <layout class="QVBoxLayout" name="verticalLayout_11" stretch="1,2">
+                <layout class="QVBoxLayout" name="verticalLayout_11" stretch="1,1">
                  <property name="spacing">
                   <number>0</number>
                  </property>

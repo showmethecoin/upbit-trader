@@ -78,7 +78,6 @@ class Coin:
             try:
                 information = static.chart.information
                 if information['cd'] == self.code:
-                    print(self.code, "find!")
                     self.information = static.chart.information
             except Exception as e:
                 print(self.code, e)
