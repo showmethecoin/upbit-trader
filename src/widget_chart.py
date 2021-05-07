@@ -1,23 +1,17 @@
 import time
-import asyncio
-import sys, os, random
+import sys
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
-import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-import asyncio
-import random
-from pyupbit.quotation_api import get_ohlcv
-import requests
-import pandas as pd
-import mplfinance
-from mplfinance.original_flavor import candlestick2_ohlc
-import datetime
-import pyupbit
 import matplotlib.ticker as ticker
+from mplfinance.original_flavor import candlestick2_ohlc
+import numpy as np
+import asyncio
+from pyupbit.quotation_api import get_ohlcv
+import pyupbit
 
 class MyMplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=12, height=8, dpi=100):
@@ -53,7 +47,6 @@ class CandleChartWidget(QWidget):
         vbox.addLayout(hbox)
         self.setLayout(vbox)
 
-        self.get_chart()
         self.ani = animation.FuncAnimation(self.canvas.fig, self.animate,interval=1000)
 
     # animation function

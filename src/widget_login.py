@@ -1,15 +1,14 @@
 import os
 import sys
-from PyQt5 import QtCore
 import jwt
 import uuid
 from urllib.parse import urlencode
 import requests
-import ui_styles
 # PyQt5
 from PyQt5.QtCore    import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui     import *
+import ui_styles
 from window_main import MainWindow
 from ui_login import Ui_Form
 class LoginWidget(QWidget):

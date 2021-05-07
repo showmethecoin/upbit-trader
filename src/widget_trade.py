@@ -1,14 +1,13 @@
 import sys
-import platform
-import pyupbit
-import ui_styles
-from ui_trade import Ui_Form
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import (QCoreApplication, QPropertyAnimation, QDate, QDateTime, QMetaObject, QObject, QPoint, QRect, QSize, QTime, QUrl, Qt, QEvent)
 from PyQt5.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont, QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter, QPixmap, QRadialGradient)
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
+import pyupbit
+import ui_styles
 import static
+from ui_trade import Ui_Form
 from component import Chart
 
 class TradeWidget(QWidget):

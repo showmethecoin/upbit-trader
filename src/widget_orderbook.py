@@ -1,6 +1,5 @@
 import sys
 import time
-
 from component import Chart, Coin
 import static
 from PyQt5 import uic
@@ -22,8 +21,8 @@ class OrderbookWorker(QThread):
     def run(self):
         while self.alive:
             time.sleep(0.5)
-            if static.chart.coins["KRW-"+self.ticker] != None:
-                self.dataSent.emit(static.chart.coins["KRW-"+self.ticker])
+            if static.chart.coins[self.ticker] != None:
+                self.dataSent.emit(static.chart.coins[self.ticker])
 
     def close(self):
         self.alive = False
