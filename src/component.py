@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 # System libraries
 import json
+import uuid
 import asyncio
+import multiprocessing
 from threading import Thread
 # Upbit API libraries
 import pyupbit
-from websocket import WebSocketApp
+import websockets
 # User defined modules
 import config
 import static
@@ -78,7 +80,6 @@ class Coin:
             try:
                 information = static.chart.information
                 if information['cd'] == self.code:
-                    print(self.code, "find!")
                     self.information = static.chart.information
             except Exception as e:
                 print(self.code, e)
@@ -404,30 +405,20 @@ class Coin:
         return self.orderbook['obu'][_index]
 
 
-class Chart:
+class Chart(multiprocessing.Process):
     def __init__(self) -> None:
         """생성자
         """
         # Get coin code list
         self.codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT))
         # Upbit websocket json request body
-        self.request = ('[{"ticket":"UNIQUE_TICKET"},'
+        self.request = ('[{"ticket":"%s"},'
                         '{"type":"ticker","codes":%s, "isOnlyRealtime":true},'
                         '{"type":"orderbook","codes":%s, "isOnlyRealtime":true},'
                         '{"format":"SIMPLE"}]'
-                        % (self.codes.__repr__().replace("\'", "\""),
+                        % (str(uuid.uuid4())[:6],
+                           self.codes.__repr__().replace("\'", "\""),
                            self.codes.__repr__().replace("\'", "\"")))
-        # Websocket client manager
-        self._web_socket = WebSocketApp(
-            url="wss://api.upbit.com/websocket/v1",
-            on_message=lambda _web_socket, _message:
-                self._on_message(_web_socket, _message),
-            on_error=lambda _web_socket, _message:
-                self._on_error(_web_socket, _message),
-            on_close=lambda _web_socket:
-                self._on_close(_web_socket),
-            on_open=lambda _web_socket:
-                self._on_open(_web_socket))
         # Upbit websocket json response body
         self.information = {
             'ty': 'ticker',
@@ -441,59 +432,33 @@ class Chart:
         # Sync thread status
         self.sync_status = False
 
-    def _on_message(self, _web_socket: WebSocketApp, _message) -> None:
-        """Websocket 메세지 수신
+        super().__init__()
 
-        Args:
-            _web_socket (WebSocketApp): Websocket
-            _message ([type]): Json 메세지
-        """
-        # print(json.loads(_message.decode('utf-8')))
-        asyncio.run(self._update(json.loads(_message.decode('utf-8'))))
+    async def __connect_socket(self):
+        uri = "wss://api.upbit.com/websocket/v1"
+        async with websockets.connect(uri, ping_interval=60) as websocket:
+            await websocket.send(self.request)
 
-    def _on_error(self, _web_socket: WebSocketApp, _message) -> None:
-        """Websocket 에러 수신
+            while self.sync_status:
+                response = await websocket.recv()
+                await self._update(json.loads(response.decode('utf8')))
 
-        Args:
-            _web_socket (WebSocketApp): Websocket
-            _message ([type]): Json 메세지
-        """
-        log.error(_message)
-
-    def _on_close(self, _web_socket: WebSocketApp) -> None:
-        """Websocket 연결 종료
-
-        Args:
-            _web_socket (WebSocketApp): Websocket
-        """
-        log.info('Websocket close')
-        self.sync_status = False
-
-    def _on_open(self, _web_socket: WebSocketApp) -> None:
-        """Websocket 연결 요청
-
-        Args:
-            _web_socket (WebSocketApp): Websocket
-        """
-        log.info('Websocket open')
-        self._web_socket.send(self.request)
-        
-    def _sync_thread(self) -> None:
-        self._web_socket.run_forever(ping_interval=40, ping_timeout=20)
+    def run(self):
+        self.__aloop = asyncio.get_event_loop()
+        self.__aloop.run_until_complete(self.__connect_socket())
 
     def sync_start(self) -> None:
         """동기화 시작
         """
         log.info('Websocket thread start')
         self.sync_status = True
-        self.thread = Thread(target=self._sync_thread, daemon=True)
-        self.thread.start()
+        self.start()
 
     def sync_stop(self) -> None:
         """동기화 중지
         """
-        self._web_socket.close()
         self.sync_status = False
+        super().terminate()
 
     def get_sync_status(self) -> bool:
         """동기화 동작 상태 반환
@@ -542,13 +507,14 @@ class Account:
                         #total_purchase += balance
                         #total_avaluate += balance
                     else:
-                        purchase = round(balance * float(item["avg_buy_price"]), 0)
+                        purchase = round(
+                            balance * float(item["avg_buy_price"]), 0)
                         avaluate = round(balance * static.chart.get_coin("%s-%s" %
-                                                                     (config.FIAT, currency)).get_trade_price(), 0)
+                                                                         (config.FIAT, currency)).get_trade_price(), 0)
                         loss = avaluate - purchase
                         total_purchase += purchase
                         total_avaluate += avaluate
-                
+
                 self.total_purchase = total_purchase
                 self.total_avaluate = total_avaluate
             except Exception as e:
@@ -585,7 +551,7 @@ class Account:
         """총 현재 가격
         """
         return self.total_avaluate
-    
+
     def get_total_loss(self) -> float:
         """총 손익 가격
         """
@@ -605,11 +571,12 @@ if __name__ == '__main__':
     static.chart.sync_start()
 
     # User upbit connection
-    static.upbit = pyupbit.Upbit(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
+    static.upbit = pyupbit.Upbit(
+        config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
 
-    # Upbit account
-    static.account = Account(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
-    static.account.sync_start()
+    # # Upbit account
+    # static.account = Account(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
+    # static.account.sync_start()
 
     while(True):
         import time
