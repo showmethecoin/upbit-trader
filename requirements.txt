@@ -9,8 +9,7 @@ motor==2.3.0
 websocket-client==0.57.0
 
 pyqt5==5.15.2
-mpl_finance==0.10.1
-pyside2
+mplfinance
 
 certifi==2020.12.5
 cffi==1.14.4

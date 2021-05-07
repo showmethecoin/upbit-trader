@@ -8,13 +8,13 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-import mpl_finance as mpf
 import asyncio
 import random
 from pyupbit.quotation_api import get_ohlcv
 import requests
 import pandas as pd
-import mpl_finance
+import mplfinance
+from mplfinance.original_flavor import candlestick2_ohlc
 import datetime
 import pyupbit
 import matplotlib.ticker as ticker
@@ -60,13 +60,15 @@ class CandleChartWidget(QWidget):
     def animate(self, t):
         self.canvas.axes.clear()
         asyncio.run(self.get_chart())
+
         
     # chart update
     async def get_chart(self):
-        df = await get_ohlcv(ticker=self.coin, interval="minutes1", count=self.count, to=None)
-        print(self.idx)
-        self.idx+= 1
-        mpl_finance.candlestick2_ohlc(self.canvas.axes, df['open'], df['high'], df['low'], df['close'], width=0.5, colorup='r', colordown='g')
+        
+            df = await get_ohlcv(ticker=self.coin, interval="minutes1", count=self.count, to=None)
+            print(self.idx)
+            self.idx+= 1
+            candlestick2_ohlc(self.canvas.axes, df['open'], df['high'], df['low'], df['close'], width=0.5, colorup='r', colordown='g')
 
 
     def on_expansion(self):

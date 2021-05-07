@@ -14,12 +14,10 @@ from PyQt5.QtWidgets import *
 class MainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
-        static.chart = Chart()
-        static.chart.sync_start()
         self.status = 0
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.resize(QSize(1200,900))
+        self.resize(QSize(1300,900))
         # Set Titlebar button Click Event
         self.ui.close_btn.clicked.connect(lambda: self.close())
         self.ui.minimize_btn.clicked.connect(lambda: self.showMinimized())
@@ -48,6 +46,16 @@ class MainWindow(QMainWindow):
         self.ui.toplabel_title.mouseMoveEvent = moveWindow
 
 if __name__ == "__main__":
+    
+
+    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
+    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+    if py_ver > 37 and sys.platform.startswith('win'):
+	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    static.chart = Chart()
+    static.chart.sync_start()
+
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()

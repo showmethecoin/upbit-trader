@@ -139,7 +139,7 @@ class OrderbookWidget(QWidget):
             item_1 = self.tableAsks.item(i, 1)
             item_1.setText(f"{v['quantity']:,}")
             item_2 = self.tableAsks.cellWidget(i, 2)
-            item_2.setRange(0, int(asks_maxtradingValue))
+            item_2.setRange(0, asks_maxtradingValue+1)
             item_2.setFormat(f"{asks_tradingValues[i]:,}")
             self.asksAnim[i].setStartValue(asks_tradingValues[i])
             self.asksAnim[i].setEndValue(asks_tradingValues[i])
@@ -151,7 +151,7 @@ class OrderbookWidget(QWidget):
             item_1 = self.tableBids.item(i, 1)
             item_1.setText(f"{v['quantity']:,}")
             item_2 = self.tableBids.cellWidget(i, 2)
-            item_2.setRange(0, int(bids_maxtradingValue))
+            item_2.setRange(0, bids_maxtradingValue+1)
             item_2.setFormat(f"{bids_tradingValues[i]:,}")
             self.bidsAnim[i].setStartValue(bids_tradingValues[i])
             self.bidsAnim[i].setEndValue(bids_tradingValues[i])
@@ -167,6 +167,8 @@ if __name__ == "__main__":
     import sys
     #from PyQt5.QtWidgets import QApplication
     from PySide2.QtWidgets import QApplication
+    static.chart = Chart()
+    static.chart.sync_start()
     app = QApplication(sys.argv)
     ow = OrderbookWidget()
     ow.show()
