@@ -1724,7 +1724,7 @@ QDoubleSpinBox::down-arrow:off
       <number>10</number>
      </property>
      <property name="columnCount">
-      <number>3</number>
+      <number>2</number>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>true</bool>
@@ -1756,11 +1756,6 @@ QDoubleSpinBox::down-arrow:off
      <column>
       <property name="text">
        <string>규모</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>총액</string>
       </property>
      </column>
     </widget>
@@ -1808,7 +1803,7 @@ QDoubleSpinBox::down-arrow:off
       <number>10</number>
      </property>
      <property name="columnCount">
-      <number>3</number>
+      <number>2</number>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>false</bool>
@@ -1832,7 +1827,6 @@ QDoubleSpinBox::down-arrow:off
      <row/>
      <row/>
      <row/>
-     <column/>
      <column/>
      <column/>
     </widget>
