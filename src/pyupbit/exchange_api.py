@@ -1,4 +1,5 @@
-import jwt          # PyJWT
+import jwt
+import re       # PyJWT
 import uuid
 import hashlib
 from urllib.parse import urlencode
@@ -48,7 +49,8 @@ class Upbit:
             payload['query_hash_alg'] = "SHA512"
 
         #jwt_token = jwt.encode(payload, self.secret, algorithm="HS256").decode('utf-8')
-        jwt_token = jwt.encode(payload, self.secret, algorithm="HS256")     # PyJWT >= 2.0
+        jwt_token = jwt.encode(payload, self.secret,
+                               algorithm="HS256")     # PyJWT >= 2.0
         authorization_token = 'Bearer {}'.format(jwt_token)
         headers = {"Authorization": authorization_token}
         return headers
@@ -348,7 +350,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def get_order(self, ticker, state='wait', kind='normal', contain_req=False):
+    def get_order(self, ticker_or_uuid, state='wait', kind='normal', contain_req=False):
         """
         주문 리스트 조회
         :param ticker: market
@@ -357,14 +359,47 @@ class Upbit:
         :param contain_req: Remaining-Req 포함여부
         :return:
         """
+        # TODO : states, identifiers 관련 기능 추가 필요
+        try:
+            p = re.compile(r"^\w+-\w+-\w+-\w+-\w+$")
+            # 정확히는 입력을 대문자로 변환 후 다음 정규식을 적용해야 함
+            # - r"^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$"
+            is_uuid = len(p.findall(ticker_or_uuid)) > 0
+            if is_uuid:
+                url = "https://api.upbit.com/v1/order"
+                data = {'uuid': ticker_or_uuid}
+                headers = self._request_headers(data)
+                result = _send_get_request(url, headers=headers, data=data)
+            else :
+
+                url = "https://api.upbit.com/v1/orders"
+                data = {'market': ticker_or_uuid,
+                        'state': state,
+                        'kind': kind,
+                        'order_by': 'desc'
+                        }
+                headers = self._request_headers(data)
+                result = _send_get_request(url, headers=headers, data=data)
+
+            if contain_req:
+                return result
+            else:
+                return result[0]
+        except Exception as x:
+            print(x.__class__.__name__)
+            return None
+
+    def get_individual_order(self, uuid, contain_req=False):
+        """
+        주문 리스트 조회
+        :param uuid: 주문 id
+        :param contain_req: Remaining-Req 포함여부
+        :return:
+        """
         # TODO : states, uuids, identifiers 관련 기능 추가 필요
         try:
-            url = "https://api.upbit.com/v1/orders"
-            data = {'market': ticker,
-                    'state': state,
-                    'kind': kind,
-                    'order_by': 'desc'
-                    }
+            url = "https://api.upbit.com/v1/order"
+            data = {'uuid': uuid}
             headers = self._request_headers(data)
             result = _send_get_request(url, headers=headers, data=data)
             if contain_req:
@@ -424,6 +459,27 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
+    def get_individual_withdraw_order(self, uuid: str, currency: str, contain_req=False):
+        """
+        현금 출금
+        :param uuid: 출금 UUID
+        :param txid: 출금 TXID
+        :param currency: Currency 코드
+        :param contain_req: Remaining-Req 포함여부
+        :return:
+        """
+        try:
+            url = "https://api.upbit.com/v1/withdraw"
+            data = {"uuid": uuid, "currency": currency}
+            headers = self._request_headers(data)
+            result = _send_get_request(url, headers=headers, data=data)
+            if contain_req:
+                return result
+            else:
+                return result[0]
+        except Exception as x:
+            print(x.__class__.__name__)
+            return None
 
 if __name__ == "__main__":
     import pprint

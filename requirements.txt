@@ -6,8 +6,8 @@ aiohttp>=3.7.3
 apscheduler>=3.6.3
 pymongo>=3.11.2
 motor>=2.3.0
-websocket-client>=0.57.0
 
+re
 certifi>=2020.12.5
 cffi>=1.14.4
 chardet
@@ -21,7 +21,7 @@ pytz>=2020.5
 requests>=2.25.1
 six>=1.15.0
 urllib3>=1.26.3
-websockets>=8.1
+websockets==8.1
 zope.interface>=5.2.0
 
 

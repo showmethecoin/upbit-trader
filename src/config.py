@@ -25,7 +25,7 @@ SERVER = {
 }
 # Read config file
 with open('./config.yaml', 'r') as file:
-    config = yaml.load(file)
+    config = yaml.safe_load(file)
 UPBIT = config['UPBIT']
 MONGO = config['MONGO']
 LOG = {

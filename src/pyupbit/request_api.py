@@ -23,7 +23,6 @@ async def _parse_remaining_req(remaining_req):
         return None, None, None
 
 
-# asyncio로 비동기 + 스레드풀 구현
 async def _call_public_api(url, **kwargs):
     """
 
