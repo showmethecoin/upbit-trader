@@ -21,12 +21,10 @@ class Coin:
         Args:
             _code (str): 코인 마켓 코드
         """
-        # Coin code
+        # Public
         self.code = code['market']
         self.korean_name = code['korean_name']
         self.english_name = code['english_name']
-        
-        # Ticker json message
         self.ticker = {
             'ty': 'ticker',
             'cd': '',
@@ -64,7 +62,6 @@ class Coin:
             'atv24h': 0,
             'st': 'SNAPSHOT'
         }
-        # Orderbook json message
         self.orderbook = {
             'ty': 'orderbook',
             'cd': '',
@@ -74,47 +71,21 @@ class Coin:
             'obu': [],
             'st': 'SNAPSHOT'
         }
-        # Sync thread status
-        self.sync_status = False
+        
 
-    def _sync_thread(self) -> None:
-        while self.sync_status:
-            try:
-                information = static.chart.information
-                if information['cd'] == self.code:
-                    self.information = static.chart.information
-            except Exception as e:
-                print(self.code, e)
-
-    def sync_start(self) -> None:
-        """동기화 시작
-        """
-        log.info(f'{self.code} sync thread start')
-        self.sync_status = True
-        self.thread = Thread(target=self._sync_thread, daemon=True)
-        self.thread.start()
-
-    def sync_stop(self) -> None:
-        """동기화 중지
-        """
-        log.info(f'{self.code} sync thread stop')
-        self.sync_status = False
-
-    def get_sync_status(self) -> bool:
-        """동기화 동작 상태 반환
-
-        Returns:
-            bool: 동기화 동작 유무
-        """
-        return self.sync_status
-
-    def get_code(self) -> str:
+    def get_code(self, fiat=True) -> str:
         """코인 마켓 코드 반환
 
+        Args:
+            fiat (bool, optional): 통화 포함 여부. Defaults to True.
+
         Returns:
-            str: 통화(KRW/BTC)-코드(XXX)
+            str: 통화(KRW/BTC)-코드(XXX) or 코드(XXX)
         """
-        return self.code
+        if fiat:
+            return self.code
+        else:
+            return self.code.split('-')[-1]
 
     def get_opening_price(self) -> float:
         """금일 코인 시작 가격(시가) 반환
