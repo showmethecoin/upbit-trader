@@ -6,12 +6,12 @@ import asyncio
 import threading
 import multiprocessing
 
-import aiopyupbit
 import websockets
 
 import config
 import static
 from static import log
+import aiopyupbit
 
 
 class Coin:
@@ -425,9 +425,8 @@ class WebsocketManager(multiprocessing.Process):
                         message = await websocket.recv()
                         self.__queue.put(json.loads(message.decode('utf8')))
                 except websockets.exceptions.ConnectionClosedError:
-                    log.warning(f'Websocket connection closed. It will try to connect again')
-                
-                
+                    log.warning(
+                        f'Websocket connection closed. It will try to connect again')
 
 
 class RealtimeManager:

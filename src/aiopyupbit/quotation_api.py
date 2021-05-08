@@ -219,7 +219,8 @@ if __name__ == "__main__":
     #print(df)
 
     # string Test
-    df = asyncio.run(get_ohlcv("KRW-BTC", interval="minute1", to="2018-08-25 12:00:00"))
+    df = asyncio.run(
+        get_ohlcv("KRW-BTC", interval="minute1", to="2018-08-25 12:00:00"))
     print(df)
 
     # time stamp Test

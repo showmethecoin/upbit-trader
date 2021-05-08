@@ -9,6 +9,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import uic
+
 from window_main import MainWindow
 import aiopyupbit
 import static
@@ -57,12 +58,11 @@ class LoginWidget(QWidget):
         self.toplabel_title.mouseMoveEvent = moveWindow
         self.toplabel_title.mouseDoubleClickEvent = dobleClickMaximizeRestore
 
-
     def close_btn_click(self):
         self.close()
         if static.chart != None:
             static.chart.stop()
-    
+
     # Maximize Control Function
     def maximize_restore(self):
         if self.status == 0:
@@ -73,15 +73,16 @@ class LoginWidget(QWidget):
             self.showNormal()
 
     # Change to Main
-    def change_page(self):   
-        static.upbit = aiopyupbit.Upbit(self.lineEdit_access.text(), self.lineEdit_secret.text())
+    def change_page(self):
+        static.upbit = aiopyupbit.Upbit(
+            self.lineEdit_access.text(), self.lineEdit_secret.text())
         result, message = asyncio.run(static.upbit.check_authentication())
         if result:
             if(self.checkBox_save_user.isChecked()):
                 self.edit_config()
             # User upbit connection
             static.upbit = aiopyupbit.Upbit(
-            self.lineEdit_access.text(), self.lineEdit_secret.text())
+                self.lineEdit_access.text(), self.lineEdit_secret.text())
             self.secondWindow = MainWindow()
             self.secondWindow.show()
             self.close()
@@ -107,11 +108,13 @@ class LoginWidget(QWidget):
         self.lineEdit_access.setText(self.config['UPBIT']['ACCESS_KEY'])
         self.lineEdit_secret.setText(self.config['UPBIT']['SECRET_KEY'])
 
+
 def gui_main():
     app = QApplication(sys.argv)
     GUI = LoginWidget()
     GUI.show()
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     import component
