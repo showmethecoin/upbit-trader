@@ -1,9 +1,7 @@
 # Directory
 .venv
 base
-src/__pycache__
-src/aiohttp_retry/__pycache__
-src/pyupbit/__pycache__
+**/__pycache__
 
 # File
 *.sh
