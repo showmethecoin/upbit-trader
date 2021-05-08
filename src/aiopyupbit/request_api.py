@@ -1,8 +1,8 @@
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 import re
 import json
-import asyncio
 import aiohttp_retry
-import threading
 
 getframe_expr = 'sys._getframe({}).f_code.co_name'
 retry_option = aiohttp_retry.ExponentialRetry(

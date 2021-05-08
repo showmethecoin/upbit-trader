@@ -1,8 +1,9 @@
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 # UPbit Quatation (시세 조회) API
 import datetime
 import pandas as pd
-import sys
-from .request_api import _call_public_api
+from request_api import _call_public_api
 
 
 async def get_tickers(fiat="ALL", contain_name=False, limit_info=False):
@@ -123,7 +124,7 @@ async def get_ohlcv(ticker="KRW-BTC", interval="day", count=200, to=None):
         return None
 
 
-def get_daily_ohlcv_from_base(ticker="KRW-BTC", base=0):
+async def get_daily_ohlcv_from_base(ticker="KRW-BTC", base=0):
     """
 
     :param ticker:
@@ -131,7 +132,7 @@ def get_daily_ohlcv_from_base(ticker="KRW-BTC", base=0):
     :return:
     """
     try:
-        df = get_ohlcv(ticker, interval="minute60")
+        df = await get_ohlcv(ticker, interval="minute60")
         df = df.resample('24H', base=base).agg(
             {'open': 'first', 'high': 'max', 'low': 'min', 'close': 'last', 'volume': 'sum'})
         return df
@@ -140,7 +141,7 @@ def get_daily_ohlcv_from_base(ticker="KRW-BTC", base=0):
         return None
 
 
-def get_current_price(ticker="KRW-BTC"):
+async def get_current_price(ticker="KRW-BTC"):
     """
     최종 체결 가격 조회 (현재가)
     :param ticker:
@@ -148,7 +149,7 @@ def get_current_price(ticker="KRW-BTC"):
     """
     try:
         url = "https://api.upbit.com/v1/ticker"
-        contents = _call_public_api(url, markets=ticker)[0]
+        contents = await _call_public_api(url, markets=ticker)[0]
         if not contents:
             return None
 
@@ -181,6 +182,7 @@ async def get_orderbook(tickers="KRW-BTC"):
 
 
 if __name__ == "__main__":
+    import asyncio
     #------------------------------------------------------
     # 모든 티커 목록 조회
     #all_tickers = get_tickers()
@@ -214,7 +216,7 @@ if __name__ == "__main__":
     #print(df)
 
     # string Test
-    df = get_ohlcv("KRW-BTC", interval="minute1", to="2018-08-25 12:00:00")
+    df = asyncio.run(get_ohlcv("KRW-BTC", interval="minute1", to="2018-08-25 12:00:00"))
     print(df)
 
     # time stamp Test

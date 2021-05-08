@@ -1,9 +1,11 @@
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 import jwt
 import re       # PyJWT
 import uuid
 import hashlib
 from urllib.parse import urlencode
-from aiopyupbit.request_api import _send_get_request, _send_post_request, _send_delete_request
+from request_api import _send_get_request, _send_post_request, _send_delete_request
 
 
 # 원화 마켓 주문 가격 단위
@@ -106,7 +108,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def get_balance_t(self, ticker='KRW', contain_req=False):
+    async def get_balance_t(self, ticker='KRW', contain_req=False):
         """
         특정 코인/원화의 잔고 조회(balance + locked)
         :param ticker: 화폐를 의미하는 영문 대문자 코드
@@ -119,7 +121,7 @@ class Upbit:
             if '-' in ticker:
                 ticker = ticker.split('-')[1]
 
-            balances, req = self.get_balances(contain_req=True)
+            balances, req = await self.get_balances(contain_req=True)
 
             balance = 0
             locked = 0
@@ -137,7 +139,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def get_avg_buy_price(self, ticker='KRW', contain_req=False):
+    async def get_avg_buy_price(self, ticker='KRW', contain_req=False):
         """
         특정 코인/원화의 매수평균가 조회
         :param ticker: 화폐를 의미하는 영문 대문자 코드
@@ -150,7 +152,7 @@ class Upbit:
             if '-' in ticker:
                 ticker = ticker.split('-')[1]
 
-            balances, req = self.get_balances(contain_req=True)
+            balances, req = await self.get_balances(contain_req=True)
 
             avg_buy_price = 0
             for x in balances:
@@ -166,7 +168,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def get_amount(self, ticker, contain_req=False):
+    async def get_amount(self, ticker, contain_req=False):
         """
         특정 코인/원화의 매수금액 조회
         :param ticker: 화폐를 의미하는 영문 대문자 코드 (ALL 입력시 총 매수금액 조회)
@@ -179,7 +181,7 @@ class Upbit:
             if '-' in ticker:
                 ticker = ticker.split('-')[1]
 
-            balances, req = self.get_balances(contain_req=True)
+            balances, req = await self.get_balances(contain_req=True)
 
             amount = 0
             for x in balances:
@@ -206,7 +208,7 @@ class Upbit:
     # endregion balance
 
     # region chance
-    def get_chance(self, ticker, contain_req=False):
+    async def get_chance(self, ticker, contain_req=False):
         """
         마켓별 주문 가능 정보를 확인.
         :param ticker:
@@ -218,7 +220,7 @@ class Upbit:
             url = "https://api.upbit.com/v1/orders/chance"
             data = {"market": ticker}
             headers = self._request_headers(data)
-            result = _send_get_request(url, headers=headers, data=data)
+            result = await _send_get_request(url, headers=headers, data=data)
             if contain_req:
                 return result
             else:
@@ -230,7 +232,7 @@ class Upbit:
     # endregion chance
 
     # region order
-    def buy_limit_order(self, ticker, price, volume, contain_req=False):
+    async def buy_limit_order(self, ticker, price, volume, contain_req=False):
         """
         지정가 매수
         :param ticker: 마켓 티커
@@ -247,7 +249,7 @@ class Upbit:
                     "price": str(price),
                     "ord_type": "limit"}
             headers = self._request_headers(data)
-            result = _send_post_request(url, headers=headers, data=data)
+            result = await _send_post_request(url, headers=headers, data=data)
             if contain_req:
                 return result
             else:
@@ -256,7 +258,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def buy_market_order(self, ticker, price, contain_req=False):
+    async def buy_market_order(self, ticker, price, contain_req=False):
         """
         시장가 매수
         :param ticker: ticker for cryptocurrency
@@ -271,7 +273,7 @@ class Upbit:
                     "price": str(price),
                     "ord_type": "price"}
             headers = self._request_headers(data)
-            result = _send_post_request(url, headers=headers, data=data)
+            result = await _send_post_request(url, headers=headers, data=data)
             if contain_req:
                 return result
             else:
@@ -280,7 +282,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def sell_market_order(self, ticker, volume, contain_req=False):
+    async def sell_market_order(self, ticker, volume, contain_req=False):
         """
         시장가 매도 메서드
         :param ticker: 가상화폐 티커
@@ -295,7 +297,7 @@ class Upbit:
                     "volume": str(volume),
                     "ord_type": "market"}
             headers = self._request_headers(data)
-            result = _send_post_request(url, headers=headers, data=data)
+            result = await _send_post_request(url, headers=headers, data=data)
             if contain_req:
                 return result
             else:
@@ -304,7 +306,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def sell_limit_order(self, ticker, price, volume, contain_req=False):
+    async def sell_limit_order(self, ticker, price, volume, contain_req=False):
         """
         지정가 매도
         :param ticker: 마켓 티커
@@ -321,7 +323,7 @@ class Upbit:
                     "price": str(price),
                     "ord_type": "limit"}
             headers = self._request_headers(data)
-            result = _send_post_request(url, headers=headers, data=data)
+            result = await _send_post_request(url, headers=headers, data=data)
             if contain_req:
                 return result
             else:
@@ -330,7 +332,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def cancel_order(self, uuid, contain_req=False):
+    async def cancel_order(self, uuid, contain_req=False):
         """
         주문 취소
         :param uuid: 주문 함수의 리턴 값중 uuid
@@ -341,7 +343,7 @@ class Upbit:
             url = "https://api.upbit.com/v1/order"
             data = {"uuid": uuid}
             headers = self._request_headers(data)
-            result = _send_delete_request(url, headers=headers, data=data)
+            result = await _send_delete_request(url, headers=headers, data=data)
             if contain_req:
                 return result
             else:
@@ -350,7 +352,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def get_order(self, ticker_or_uuid, state='wait', kind='normal', contain_req=False):
+    async def get_order(self, ticker_or_uuid, state='wait', kind='normal', contain_req=False):
         """
         주문 리스트 조회
         :param ticker: market
@@ -365,21 +367,19 @@ class Upbit:
             # 정확히는 입력을 대문자로 변환 후 다음 정규식을 적용해야 함
             # - r"^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$"
             is_uuid = len(p.findall(ticker_or_uuid)) > 0
+            url = "https://api.upbit.com/v1/orders"
+
             if is_uuid:
-                url = "https://api.upbit.com/v1/order"
                 data = {'uuid': ticker_or_uuid}
                 headers = self._request_headers(data)
-                result = _send_get_request(url, headers=headers, data=data)
             else:
-
-                url = "https://api.upbit.com/v1/orders"
                 data = {'market': ticker_or_uuid,
                         'state': state,
                         'kind': kind,
-                        'order_by': 'desc'
-                        }
+                        'order_by': 'desc'}
                 headers = self._request_headers(data)
-                result = _send_get_request(url, headers=headers, data=data)
+
+            result = await _send_get_request(url, headers=headers, data=data)
 
             if contain_req:
                 return result
@@ -389,7 +389,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def get_individual_order(self, uuid, contain_req=False):
+    async def get_individual_order(self, uuid, contain_req=False):
         """
         주문 리스트 조회
         :param uuid: 주문 id
@@ -401,7 +401,7 @@ class Upbit:
             url = "https://api.upbit.com/v1/order"
             data = {'uuid': uuid}
             headers = self._request_headers(data)
-            result = _send_get_request(url, headers=headers, data=data)
+            result = await _send_get_request(url, headers=headers, data=data)
             if contain_req:
                 return result
             else:
@@ -411,7 +411,7 @@ class Upbit:
             return None
     # endregion order
 
-    def withdraw_coin(self, currency, amount, address, secondary_address='None', transaction_type='default', contain_req=False):
+    async def withdraw_coin(self, currency, amount, address, secondary_address='None', transaction_type='default', contain_req=False):
         """
         코인 출금
         :param currency: Currency symbol
@@ -430,7 +430,7 @@ class Upbit:
                     "secondary_address": secondary_address,
                     "transaction_type": transaction_type}
             headers = self._request_headers(data)
-            result = _send_post_request(url, headers=headers, data=data)
+            result = await _send_post_request(url, headers=headers, data=data)
             if contain_req:
                 return result
             else:
@@ -439,7 +439,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def withdraw_cash(self, amount: str, contain_req=False):
+    async def withdraw_cash(self, amount: str, contain_req=False):
         """
         현금 출금
         :param amount: 출금 액수
@@ -450,7 +450,7 @@ class Upbit:
             url = "https://api.upbit.com/v1/withdraws/krw"
             data = {"amount": amount}
             headers = self._request_headers(data)
-            result = _send_post_request(url, headers=headers, data=data)
+            result = await _send_post_request(url, headers=headers, data=data)
             if contain_req:
                 return result
             else:
@@ -459,7 +459,7 @@ class Upbit:
             print(x.__class__.__name__)
             return None
 
-    def get_individual_withdraw_order(self, uuid: str, currency: str, contain_req=False):
+    async def get_individual_withdraw_order(self, uuid: str, currency: str, contain_req=False):
         """
         현금 출금
         :param uuid: 출금 UUID
@@ -472,7 +472,7 @@ class Upbit:
             url = "https://api.upbit.com/v1/withdraw"
             data = {"uuid": uuid, "currency": currency}
             headers = self._request_headers(data)
-            result = _send_get_request(url, headers=headers, data=data)
+            result = await _send_get_request(url, headers=headers, data=data)
             if contain_req:
                 return result
             else:
@@ -484,6 +484,8 @@ class Upbit:
 
 if __name__ == "__main__":
     import pprint
+    import asyncio
+
     with open("../upbit.txt") as f:
         lines = f.readlines()
         access = lines[0].strip()
@@ -496,14 +498,14 @@ if __name__ == "__main__":
     # Exchange API
     #-------------------------------------------------------------------------
     # 자산 - 전체 계좌 조회
-    balances = upbit.get_balances()
+    balances = asyncio.run(upbit.get_balances())
     pprint.pprint(balances)
 
     # 원화 잔고 조회
-    print(upbit.get_balance(ticker="KRW"))          # 보유 KRW
-    print(upbit.get_amount('ALL'))                  # 총매수금액
-    print(upbit.get_balance(ticker="KRW-BTC"))      # 비트코인 보유수량
-    print(upbit.get_balance(ticker="KRW-XRP"))      # 리플 보유수량
+    print(asyncio.run(upbit.get_balance(ticker="KRW")))          # 보유 KRW
+    print(asyncio.run(upbit.get_amount('ALL')))                  # 총매수금액
+    print(asyncio.run(upbit.get_balance(ticker="KRW-BTC")))      # 비트코인 보유수량
+    print(asyncio.run(upbit.get_balance(ticker="KRW-XRP")))      # 리플 보유수량
 
     #print(upbit.get_chance('KRW-HBAR'))
     #print(upbit.get_order('KRW-BTC'))
