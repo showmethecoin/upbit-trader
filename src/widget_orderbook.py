@@ -1,7 +1,7 @@
 import sys
 import time
 
-from component import Chart, Coin
+from component import RealtimeManager, Coin
 import static
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
@@ -126,8 +126,8 @@ if __name__ == "__main__":
     import sys
     #from PyQt5.QtWidgets import QApplication
     from PySide2.QtWidgets import QApplication
-    static.chart = Chart()
-    static.chart.sync_start()
+    static.chart = RealtimeManager()
+    static.chart.start()
     app = QApplication(sys.argv)
     ow = OrderbookWidget()
     ow.show()

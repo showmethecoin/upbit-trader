@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import *
 from ui_main import Ui_MainWindow
 from ui_trade import Ui_Form
 import static
-from component import Chart
+from component import RealtimeManager
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -66,8 +66,8 @@ if __name__ == "__main__":
     if py_ver > 37 and sys.platform.startswith('win'):
 	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-    static.chart = Chart()
-    static.chart.sync_start()
+    static.chart = RealtimeManager()
+    static.chart.start()
 
     app = QApplication(sys.argv)
     window = MainWindow()

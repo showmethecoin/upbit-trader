@@ -7,7 +7,6 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import static
 import pyupbit
-from component import Chart
 from widget_orderbook import OrderbookWorker
 class ChartWorker(QThread):
     dataSent = pyqtSignal(list)
@@ -39,8 +38,6 @@ class ChartWorker(QThread):
 
 class CoinlistWidget(QWidget):
     def __init__(self, parent = None):
-        # static.chart = Chart()
-        # static.chart.sync_start()
         super().__init__(parent)
         uic.loadUi("src/ui/coin_list.ui", self)
 
@@ -51,8 +48,8 @@ class CoinlistWidget(QWidget):
         self.coin_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.coin_list.horizontalHeader().setFixedHeight(40)
 
-        if not static.chart.sync_status:
-            static.chart.sync_start()
+        if not static.chart.alive:
+            static.chart.alive()
         
 
         self.coinlist = [ ]

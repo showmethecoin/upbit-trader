@@ -8,7 +8,6 @@ import pyupbit
 import ui_styles
 import static
 from ui_trade import Ui_Form
-from component import Chart
 
 class TradeWidget(QWidget):
     def __init__(self, parent = None):
