@@ -1,11 +1,8 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import os
 import sys
-import jwt
-import uuid
-import requests
 import yaml
+import asyncio
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import *
@@ -76,8 +73,10 @@ class LoginWidget(QWidget):
             self.showNormal()
 
     # Change to Main
-    def change_page(self):
-        if self.check_authentication():
+    def change_page(self):   
+        static.upbit = aiopyupbit.Upbit(self.lineEdit_access.text(), self.lineEdit_secret.text())
+        result, message = asyncio.run(static.upbit.check_authentication())
+        if result:
             if(self.checkBox_save_user.isChecked()):
                 self.edit_config()
             # User upbit connection
@@ -86,36 +85,13 @@ class LoginWidget(QWidget):
             self.secondWindow = MainWindow()
             self.secondWindow.show()
             self.close()
-
-    # Check Key
-    def check_authentication(self):
-        access_key = self.lineEdit_access.text()
-        secret_key = self.lineEdit_secret.text()
-        server_url = 'https://api.upbit.com'
-
-        payload = {
-            'access_key': access_key,
-            'nonce': str(uuid.uuid4()),
-        }
-
-        jwt_token = jwt.encode(payload, secret_key)
-        authorize_token = 'Bearer {}'.format(jwt_token)
-        headers = {"Authorization": authorize_token}
-
-        # Rest Request
-        res = requests.get(server_url + "/v1/accounts", headers=headers)
-
-        # Check Error
-        if res.text.find("error") != -1:
+        else:
             # show Error Message Box
             self.msg.setIcon(QMessageBox.Critical)
             self.msg.autoFillBackground()
             self.msg.setWindowTitle('Authentication error')
-            self.msg.setText('Error : ' + res.json()['error']['name'])
+            self.msg.setText(f'Error : {message}')
             self.msg.show()
-            return False
-        else:
-            return True
 
     # Edit Config File
     def edit_config(self):
@@ -138,7 +114,15 @@ def gui_main():
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
+    import component
+    import sys
+    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
+    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+    if py_ver > 37 and sys.platform.startswith('win'):
+	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     app = QApplication(sys.argv)
+    static.chart = component.RealtimeManager()
+    static.chart.start()
     GUI = LoginWidget()
     GUI.show()
     sys.exit(app.exec_())

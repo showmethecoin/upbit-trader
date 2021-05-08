@@ -1,11 +1,8 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys
-
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 import static
-import ui_styles
 
 
 class TradeWidget(QWidget):
@@ -209,6 +206,7 @@ class TradeWidget(QWidget):
 
 
 if __name__ == "__main__":
+    import sys
     app = QApplication(sys.argv)
     window = TradeWidget()
     window.show()

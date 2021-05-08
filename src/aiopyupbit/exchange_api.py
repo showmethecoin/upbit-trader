@@ -1,15 +1,14 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import jwt
-import re       # PyJWT
+import re
 import uuid
 import hashlib
+import jwt  # PYJWT
 from urllib.parse import urlencode
 if __name__ == "__main__" or __name__ == "aiopyupbit":
     from request_api import _send_get_request, _send_post_request, _send_delete_request
 else:
     from .request_api import _send_get_request, _send_post_request, _send_delete_request
-
 
 
 # 원화 마켓 주문 가격 단위
@@ -54,12 +53,22 @@ class Upbit:
             payload['query_hash'] = query_hash
             payload['query_hash_alg'] = "SHA512"
 
-        #jwt_token = jwt.encode(payload, self.secret, algorithm="HS256").decode('utf-8')
         jwt_token = jwt.encode(payload, self.secret,
                                algorithm="HS256")     # PyJWT >= 2.0
         authorization_token = 'Bearer {}'.format(jwt_token)
         headers = {"Authorization": authorization_token}
         return headers
+
+    async def check_authentication(self):
+        url = 'https://api.upbit.com/v1/accounts'
+        headers = self._request_headers()
+        result = await _send_get_request(url, headers=headers)
+        result = result[0]
+        # Check Error
+        if 'error' in result:
+            return False, result['error']['message']
+        else:
+            return True, None
 
     # region balance
     async def get_balances(self, contain_req=False):
