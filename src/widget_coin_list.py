@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 import time
 import asyncio
+
 from PyQt5 import uic
 from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem, QWidget, QApplication
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+
 import static
 import component
 from widget_orderbook import OrderbookWorker

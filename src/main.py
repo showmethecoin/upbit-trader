@@ -1,11 +1,7 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
-import os
-import time
 import asyncio
-
-import aiopyupbit
 
 import config
 import static
