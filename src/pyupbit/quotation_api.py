@@ -5,7 +5,7 @@ import sys
 from pyupbit.request_api import _call_public_api
 
 
-async def get_tickers(fiat="ALL", limit_info=False):
+async def get_tickers(fiat="ALL", contain_name=False, limit_info=False):
     """
     마켓 코드 조회 (업비트에서 거래 가능한 마켓 목록 조회)
     :param fiat: "ALL", "KRW", "BTC", "USDT"
@@ -25,13 +25,15 @@ async def get_tickers(fiat="ALL", limit_info=False):
 
         tickers = None
         if isinstance(contents, list):
-            markets = [x['market'] for x in contents]
 
             if fiat != "ALL":
-                tickers = [x for x in markets if x.startswith(fiat)]
+                tickers = [x for x in contents if x['market'].startswith(fiat)]
             else:
-                tickers = markets
-
+                tickers = contents
+            
+            if not contain_name:
+                tickers = [x['market'] for x in tickers]
+                
         if limit_info is False:
             return tickers
         else:

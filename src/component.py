@@ -15,14 +15,17 @@ from static import log
 
 
 class Coin:
-    def __init__(self, _code: str) -> None:
+    def __init__(self, code: dict) -> None:
         """생성자
 
         Args:
             _code (str): 코인 마켓 코드
         """
         # Coin code
-        self.code = _code
+        self.code = code['market']
+        self.korean_name = code['korean_name']
+        self.english_name = code['english_name']
+        
         # Ticker json message
         self.ticker = {
             'ty': 'ticker',
@@ -454,8 +457,8 @@ class RealtimeManager:
         """RealtimeManager 생성자
         """
         # Public
-        self.codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT))
-        self.coins = {code: Coin(code) for code in self.codes}
+        self.codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT, contain_name=False))
+        self.coins = {code['market']: Coin(code) for code in asyncio.run(pyupbit.get_tickers(fiat=config.FIAT, contain_name=True))}
         self.uri = "wss://api.upbit.com/websocket/v1"
         self.request = json.dumps([
             {"ticket": str(uuid.uuid4())[:6]},
