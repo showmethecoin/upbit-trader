@@ -1,37 +1,48 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-KEY = { # Issued [Upbit Web]-[My Page]-[OpenAPI Management]
-    "ACCESS": "CwCxiKk6m71VvffVsArkwVUHsyofxuzQ4ZyPfjaZ", # Upbit API private access key
-    "SECRET": "GsVxewCvfPOzBYBqoixexRToajnJSghS9qMLoiA5" # Upbit API private secret key
-}
+import yaml
 
+# Upbit official fees ratio
+FEES = 0.005
+# KRW/BRC/ETH/USDT
+FIAT = "KRW"
+# Base time format
+TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+# Upbit time format
+UPBIT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
+# Program base
 PROGRAM = {
     "NAME": "Upbit Automatic Trading Program",
-    "VERSION": "0.1",
-    "WIDTH": 108, 
+    "VERSION": 0.6,
+    "WIDTH": 108,
     "HEIGHT": 200,
 }
-
-DB = {
-    "IP": "codejune.iptime.org",
-    "PORT": 27017,
-    "ID": "root",
-    "PASSWORD": "qwe123"
-}
-
+# Rest API request
 SERVER = {
     "EXTERNAL_TIMEOUT": 60,
     "INTERNAL_TIMEOUT": 1,
     "REQUEST_LIMIT": 10,
+    "PING_INTERVAL": 60
 }
-
-FEES = 0.005 # Upbit official fees
-FIAT = "KRW" # KRW/BRC/ETH/USDT
-
-TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+# Read config file
+with open('./config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+UPBIT = config['UPBIT']
+MONGO = config['MONGO']
 LOG = {
-    'PATH': './upbit-trader.log',
+    'PATH': config['LOG']['PATH'],
     'PRINT_FORMAT': '[%(asctime)s.%(msecs)03d: %(levelname).1s %(filename)s:%(lineno)s] %(message)s',
-    'SAVE': True,
-    'PRINT': True,
+    'SAVE': config['LOG']['SAVE'],
+    'PRINT': config['LOG']['PRINT'],
 }
+
+if __name__ == '__main__':
+    print(f'FEES: {FEES}')
+    print(f'FIAT: {FIAT}')
+    print(f'TIME_FORMAT: {TIME_FORMAT}')
+    print(f'UPBIT_TIME_FORMAT: {UPBIT_TIME_FORMAT}')
+    print(f'PROGRAM: {PROGRAM}')
+    print(f'SERVER: {SERVER}')
+    print(f'UPBIT: {UPBIT}')
+    print(f'MOGNO: {MONGO}')
+    print(f'LOG: {LOG}')

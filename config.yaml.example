@@ -1,0 +1,13 @@
+# Upbit automatic trader config file 
+UPBIT:
+  ACCESS_KEY: INPUT_YOUR_UPBIT_ACCESS_KEY
+  SECRET_KEY: INPUT_YOUR_UPBIT_SCEREY_KEY
+MONGO: 
+  IP: 127.0.0.1
+  PORT: 27017
+  ID: root
+  PASSWORD: qwe123 
+LOG:
+  PATH: ./upbit-trader.log
+  SAVE: True
+  PRINT: True

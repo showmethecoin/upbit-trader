@@ -1,3 +1,5 @@
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 import pandas as pd
 from pymongo import MongoClient
 from pymongo import CursorType
@@ -17,56 +19,63 @@ class DBHandler:
         self.host = f'mongodb://{self.id}:{self.password}@{self.ip}:{self.port}'
         self.client = MongoClient(self.host)
 
-    def insert_item_one(self, data: dict = None, db_name: str = None, collection_name: str = None) -> bool:
+    async def insert_item_one(self, data: dict = None, db_name: str = None, collection_name: str = None) -> bool:
         """도큐멘트 1개 저장
 
         Args:
-            data (dict, optional): DB에 저장할 도큐멘트 데이터. Defaults to None.
+            data (dict, optional): DB에 저장할 도큐먼트 데이터 딕셔너리. Defaults to None.
             db_name (str, optional): DB 이름. Defaults to None.
             collection_name (str, optional): Collection 이름. Defaults to None.
 
         Returns:
             bool: [description]
         """
-        return True if self.client[db_name][collection_name].insert_one(data).inserted_id else False
+        return True if await self.client[db_name][collection_name].insert_one(data).inserted_id else False
 
-    def insert_item_many(self, data=None, db_name=None, collection_name=None, ordered=False):
-        result = self.client[db_name][collection_name].insert_many(
-            documents=data, ordered=ordered).inserted_ids
-        return result
+    async def insert_item_many(self, data: list = None, db_name: str = None, collection_name: str = None, ordered: bool = False) -> None:
+        """도큐먼트 N개 저장
 
-    def find_item_one(self, condition=None, db_name=None, collection_name=None):
-        result = self.client[db_name][collection_name].find_one(condition, {
-                                                                "_id": False})
-        return result
+        Args:
+            data (list, optional): DB에 저장할 도큐먼트 데이터 딕셔너리 리스트. Defaults to None.
+            db_name (str, optional): DB 이름. Defaults to None.
+            collection_name (str, optional): Collection 이름. Defaults to None.
+            ordered (bool, optional): 데이터 순서대로 삽입 여부(중복 처리 여부). Defaults to False.
 
-    def find_item(self, condition=None, db_name=None, collection_name=None):
-        result = self.client[db_name][collection_name].find(
-            condition, {"_id": False}, no_cursor_timeout=True, cursor_type=CursorType.EXHAUST)
-        return result
+        Returns:
+            None: [description]
+        """
+        return await self.client[db_name][collection_name].insert_many(documents=data, ordered=ordered).inserted_ids
 
-    def delete_item_one(self, condition=None, db_name=None, collection_name=None):
-        result = self.client[db_name][collection_name].delete_one(condition)
-        return result
+    async def find_item_one(self, condition: dict = None, db_name: str = None, collection_name: str = None) -> dict:
+        """도큐먼트 한개 추출
 
-    def delete_item_many(self, condition=None, db_name=None, collection_name=None):
-        result = self.client[db_name][collection_name].delete_many(condition)
-        return result
+        Args:
+            condition (dict, optional): 추출할 데이터 조건식. Defaults to None.
+            db_name (str, optional): DB 이름. Defaults to None.
+            collection_name (str, optional): Collection 이름. Defaults to None.
 
-    def update_item_one(self, condition=None, update_value=None, db_name=None, collection_name=None):
-        result = self.client[db_name][collection_name].update_one(
-            filter=condition, update=update_value)
-        return result
+        Returns:
+            dict: [description]
+        """
+        return await self.client[db_name][collection_name].find_one(condition, {"_id": False})
 
-    def update_item_many(self, condition=None, update_value=None, db_name=None, collection_name=None):
-        result = self.client[db_name][collection_name].update_many(
-            filter=condition, update=update_value)
-        return result
+    async def find_item(self, condition: dict = None, db_name: str = None, collection_name: str = None):
+        return await self.client[db_name][collection_name].find(condition, {"_id": False}, no_cursor_timeout=True, cursor_type=CursorType.EXHAUST)
 
-    def text_search(self, text=None, db_name=None, collection_name=None):
-        result = self.client[db_name][collection_name].find(
-            {"$text": {"$search": text}})
-        return result
+    async def delete_item_one(self, condition: dict = None, db_name: str = None, collection_name: str = None):
+        return await self.client[db_name][collection_name].delete_one(condition)
+
+    async def delete_item_many(self, condition: dict = None, db_name: str = None, collection_name: str = None):
+        return await self.client[db_name][collection_name].delete_many(condition)
+
+    async def update_item_one(self, condition: dict = None, update_value=None, db_name: str = None, collection_name: str = None):
+        return await self.client[db_name][collection_name].update_one(filter=condition, update=update_value)
+
+    async def update_item_many(self, condition: dict = None, update_value=None, db_name: str = None, collection_name: str = None):
+        return await self.client[db_name][collection_name].update_many(filter=condition, update=update_value)
+
+    async def text_search(self, text=None, db_name: str = None, collection_name: str = None):
+        return await self.client[db_name][collection_name].find({"$text": {"$search": text}})
 
 
 if __name__ == '__main__':
@@ -75,7 +84,8 @@ if __name__ == '__main__':
                    id=config.DB['ID'], password=config.DB['PASSWORD'])
 
     # MongoDB에서 데이터 추출(내림차순)
-    data = db.find_item(condition=None, db_name='candles', collection_name='KRW-ADA_minute_1').sort('time', -1)
+    data = db.find_item(condition=None, db_name='candles',
+                        collection_name='KRW-ADA_minute_1').sort('time', -1)
 
     data_df = pd.DataFrame(list(data))
     # Dataframe 인덱스 설정
@@ -83,7 +93,7 @@ if __name__ == '__main__':
     data_df = data_df.set_index('time', inplace=False)
 
     # Dataframe 리샘플링
-    RESAMPLING = '1D'
+    RESAMPLING = '5T'
     new_df = pd.DataFrame()
     new_df['open'] = data_df.open.resample(RESAMPLING).first()
     new_df['high'] = data_df.high.resample(RESAMPLING).max()
@@ -91,5 +101,5 @@ if __name__ == '__main__':
     new_df['close'] = data_df.close.resample(RESAMPLING).last()
     new_df['volume'] = data_df.volume.resample(RESAMPLING).sum()
     new_df = new_df.sort_index(ascending=True)
-    print(new_df)
 
+    print(new_df)

@@ -1,8 +1,13 @@
+# Directory
 .venv
+base
+**/__pycache__
+
+# File
 *.sh
-proto
-deploy
+*.bat
 .dockerignore
 Dockerfile
 .git
 .log
+*.example
