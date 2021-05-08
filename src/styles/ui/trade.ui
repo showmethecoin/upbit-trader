@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>337</width>
-    <height>386</height>
+    <width>385</width>
+    <height>383</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,14 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>300</width>
-    <height>300</height>
+    <width>385</width>
+    <height>383</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>385</width>
+    <height>383</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -2332,13 +2338,10 @@ QPushButton:pressed {
 	/*background-color: rgb(60, 60, 60);*/
 	background-color: #a20826;
 }
-/*
-QPushButton:pressed {	
-	background-color: rgb(85, 170, 255);
-	border: 2px solid rgb(85, 170, 255);
-	color: rgb(35, 35, 35);
+QPushButton:hover{
+	background-color: #aa0a29;
 }
-*/</string>
+</string>
                       </property>
                       <property name="text">
                        <string>매수</string>
@@ -2678,13 +2681,9 @@ QPushButton:pressed {
 QPushButton:pressed {	
 	background-color: #a20826;
 }
-/*
-QPushButton:pressed {	
-	background-color: rgb(85, 170, 255);
-	border: 2px solid rgb(85, 170, 255);
-	color: rgb(35, 35, 35);
-}
-*/</string>
+QPushButton:hover{
+	background-color: #aa0a29;
+}</string>
                       </property>
                       <property name="text">
                        <string>매수</string>
@@ -3106,13 +3105,9 @@ QPushButton:pressed {
 QPushButton:pressed {	
 	background-color: #a20826;
 }
-/*
-QPushButton:pressed {	
-	background-color: rgb(85, 170, 255);
-	border: 2px solid rgb(85, 170, 255);
-	color: rgb(35, 35, 35);
-}
-*/</string>
+QPushButton:hover{
+	background-color: #aa0a29;
+}</string>
                       </property>
                       <property name="text">
                        <string>매수</string>
@@ -3603,13 +3598,10 @@ QPushButton:pressed {
 	/*background-color: rgb(60, 60, 60);*/
 	background-color: #124ca0;
 }
-/*
-QPushButton:pressed {	
-	background-color: rgb(85, 170, 255);
-	border: 2px solid rgb(85, 170, 255);
-	color: rgb(35, 35, 35);
+QPushButton:hover{
+	background-color: #0e4799;
 }
-*/</string>
+</string>
                       </property>
                       <property name="text">
                        <string>매도</string>
@@ -3944,13 +3936,9 @@ QPushButton:pressed {
 	/*background-color: rgb(60, 60, 60);*/
 	background-color: #124ca0;
 }
-/*
-QPushButton:pressed {	
-	background-color: rgb(85, 170, 255);
-	border: 2px solid rgb(85, 170, 255);
-	color: rgb(35, 35, 35);
-}
-*/</string>
+QPushButton:hover{
+	background-color: #0e4799;
+}</string>
                       </property>
                       <property name="text">
                        <string>매도</string>
@@ -4379,13 +4367,9 @@ QPushButton:pressed {
 	/*background-color: rgb(60, 60, 60);*/
 	background-color: #124ca0;
 }
-/*
-QPushButton:pressed {	
-	background-color: rgb(85, 170, 255);
-	border: 2px solid rgb(85, 170, 255);
-	color: rgb(35, 35, 35);
-}
-*/</string>
+QPushButton:hover{
+	background-color: #0e4799;
+}</string>
                       </property>
                       <property name="text">
                        <string>매도</string>

@@ -33,7 +33,7 @@ class CandleChartWidget(QWidget):
         super().__init__(parent)
         self.idx = 0
         vbox = QVBoxLayout()
-        self.canvas = MyMplCanvas(self, width=5, height=3, dpi=100)
+        self.canvas = MyMplCanvas(self, width=6, height=3, dpi=100)
         self.count = 15
         self.coin = 'KRW-BTC'
         vbox.addWidget(self.canvas)
@@ -48,7 +48,7 @@ class CandleChartWidget(QWidget):
         self.setLayout(vbox)
 
         self.ani = animation.FuncAnimation(
-            self.canvas.fig, self.animate, interval=1000)
+            self.canvas.fig, self.animate, interval=500)
 
     # animation function
     def animate(self, t):

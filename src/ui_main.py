@@ -2148,6 +2148,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_11.setStretch(0, 1)
         self.verticalLayout_11.setStretch(1, 1)
         self.horizontalLayout_14.addWidget(self.frame_3)
+        self.horizontalLayout_14.setSpacing(0)
         self.qStackedWidget.addWidget(self.firstpage)
         self.secondpage = QtWidgets.QWidget()
         self.secondpage.setObjectName("secondpage")
