@@ -34,7 +34,7 @@ class Upbit:
         self.access = access
         self.secret = secret
 
-    def _request_headers(self, query=None):
+    async def _request_headers(self, query=None):
         payload = {
             "access_key": self.access,
             "nonce": str(uuid.uuid4())
@@ -63,7 +63,7 @@ class Upbit:
         """
         try:
             url = "https://api.upbit.com/v1/accounts"
-            headers = self._request_headers()
+            headers = await self._request_headers()
             result = await _send_get_request(url, headers=headers)
             if contain_req:
                 return result
