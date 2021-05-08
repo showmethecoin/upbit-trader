@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import uic
 from window_main import MainWindow
-import pyupbit
+import aiopyupbit
 import static
 
 
@@ -81,7 +81,7 @@ class LoginWidget(QWidget):
             if(self.checkBox_save_user.isChecked()):
                 self.edit_config()
             # User upbit connection
-            static.upbit = pyupbit.Upbit(
+            static.upbit = aiopyupbit.Upbit(
             self.lineEdit_access.text(), self.lineEdit_secret.text())
             self.secondWindow = MainWindow()
             self.secondWindow.show()
