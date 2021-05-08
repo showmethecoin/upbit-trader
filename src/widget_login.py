@@ -5,13 +5,16 @@ import sys
 import jwt
 import uuid
 import requests
+import yaml
 
+from PyQt5 import QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import uic
-
 from window_main import MainWindow
+import pyupbit
+import static
 
 
 class LoginWidget(QWidget):
@@ -22,9 +25,9 @@ class LoginWidget(QWidget):
         self.status = 0
         self.pushButton_connect.clicked.connect(self.change_page)
         self.msg = QMessageBox()
-        self.read_save()
+        self.read_config()
         # Set Titlebar button Click Event
-        self.close_btn.clicked.connect(lambda: self.close())
+        self.close_btn.clicked.connect(self.close_btn_click)
         self.minimize_btn.clicked.connect(lambda: self.showMinimized())
         self.maximize_btn.clicked.connect(lambda: self.maximize_restore())
         self.setWindowFlag(Qt.FramelessWindowHint)
@@ -57,6 +60,12 @@ class LoginWidget(QWidget):
         self.toplabel_title.mouseMoveEvent = moveWindow
         self.toplabel_title.mouseDoubleClickEvent = dobleClickMaximizeRestore
 
+
+    def close_btn_click(self):
+        self.close()
+        if static.chart != None:
+            static.chart.stop()
+    
     # Maximize Control Function
     def maximize_restore(self):
         if self.status == 0:
@@ -70,7 +79,10 @@ class LoginWidget(QWidget):
     def change_page(self):
         if self.check_authentication():
             if(self.checkBox_save_user.isChecked()):
-                self.set_save()
+                self.edit_config()
+            # User upbit connection
+            static.upbit = pyupbit.Upbit(
+            self.lineEdit_access.text(), self.lineEdit_secret.text())
             self.secondWindow = MainWindow()
             self.secondWindow.show()
             self.close()
@@ -105,25 +117,28 @@ class LoginWidget(QWidget):
         else:
             return True
 
-    # Make Save File
-    def set_save(self):
-        with open('.save.txt', 'w') as f:
-            f.write(self.lineEdit_access.text() + '\n')
-            f.write(self.lineEdit_secret.text())
+    # Edit Config File
+    def edit_config(self):
+        with open('./config.yaml', 'w') as file:
+            self.config['UPBIT']['ACCESS_KEY'] = self.lineEdit_access.text()
+            self.config['UPBIT']['SECRET_KEY'] = self.lineEdit_secret.text()
+            yaml.dump(self.config, file)
 
     # Read Save File
-    def read_save(self):
-        if os.path.isfile('.save.txt'):
-            with open('.save.txt', 'r') as f:
-                line = f.readline().strip('\n')
-                self.lineEdit_access.setText(line)
-                line = f.readline()
-                self.lineEdit_secret.setText(line)
+    def read_config(self):
+        with open('./config.yaml', 'r') as file:
+            self.config = yaml.safe_load(file)
+        self.lineEdit_access.setText(self.config['UPBIT']['ACCESS_KEY'])
+        self.lineEdit_secret.setText(self.config['UPBIT']['SECRET_KEY'])
 
+def gui_main():
+    app = QApplication(sys.argv)
+    GUI = LoginWidget()
+    GUI.show()
+    sys.exit(app.exec_())
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     GUI = LoginWidget()
     GUI.show()
-    #Page = SecondPage()
     sys.exit(app.exec_())
