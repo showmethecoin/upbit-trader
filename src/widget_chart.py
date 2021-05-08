@@ -10,7 +10,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from mplfinance.original_flavor import candlestick2_ohlc
 
-import pyupbit
+import aiopyupbit
 
 
 class MyMplCanvas(FigureCanvas):
@@ -59,7 +59,7 @@ class CandleChartWidget(QWidget):
     # chart update
 
     async def get_chart(self):
-        df = await pyupbit.get_ohlcv(ticker=self.coin, interval="minutes1", count=self.count, to=None)
+        df = await aiopyupbit.get_ohlcv(ticker=self.coin, interval="minutes1", count=self.count, to=None)
         candlestick2_ohlc(self.canvas.axes, df['open'], df['high'],
                           df['low'], df['close'], width=0.5, colorup='r', colordown='g')
 
@@ -73,12 +73,12 @@ class CandleChartWidget(QWidget):
 
 
 if __name__ == "__main__":
-    
+
     # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
     py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
     if py_ver > 37 and sys.platform.startswith('win'):
 	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-     
+
     qApp = QApplication(sys.argv)
     aw = CandleChartWidget()
 

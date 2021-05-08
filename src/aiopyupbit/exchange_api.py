@@ -3,7 +3,7 @@ import re       # PyJWT
 import uuid
 import hashlib
 from urllib.parse import urlencode
-from pyupbit.request_api import _send_get_request, _send_post_request, _send_delete_request
+from aiopyupbit.request_api import _send_get_request, _send_post_request, _send_delete_request
 
 
 # 원화 마켓 주문 가격 단위
@@ -370,7 +370,7 @@ class Upbit:
                 data = {'uuid': ticker_or_uuid}
                 headers = self._request_headers(data)
                 result = _send_get_request(url, headers=headers, data=data)
-            else :
+            else:
 
                 url = "https://api.upbit.com/v1/orders"
                 data = {'market': ticker_or_uuid,
@@ -438,7 +438,7 @@ class Upbit:
         except Exception as x:
             print(x.__class__.__name__)
             return None
-    
+
     def withdraw_cash(self, amount: str, contain_req=False):
         """
         현금 출금
@@ -480,6 +480,7 @@ class Upbit:
         except Exception as x:
             print(x.__class__.__name__)
             return None
+
 
 if __name__ == "__main__":
     import pprint

@@ -131,11 +131,11 @@ if __name__ == "__main__":
 
     static.chart = component.RealtimeManager()
     static.chart.start()
-    
+
     app = QApplication(sys.argv)
     ow = OrderbookWidget()
     ow.show()
-    
+
     #cw = test_chart_list.ChartlistWidget()
     #cw.show()
     exit(app.exec_())

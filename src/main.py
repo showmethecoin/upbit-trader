@@ -5,7 +5,7 @@ import os
 import time
 import asyncio
 
-import pyupbit
+import aiopyupbit
 
 import config
 import static
@@ -36,7 +36,7 @@ def init() -> bool:
     static.chart.start()
 
     # User upbit connection
-    static.upbit = pyupbit.Upbit(
+    static.upbit = aiopyupbit.Upbit(
         config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
 
     return True

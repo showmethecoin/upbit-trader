@@ -12,7 +12,7 @@ import pymongo
 import config
 import static
 from static import log
-import pyupbit
+import aiopyupbit
 from db import DBHandler
 
 
@@ -37,7 +37,7 @@ class DataManager:
         self._request_limit = request_limit
         self._scheduler = BackgroundScheduler()
         self._scheduler_status = False
-        self._codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT))
+        self._codes = asyncio.run(aiopyupbit.get_tickers(fiat=config.FIAT))
         self._lock = None
 
     def start(self) -> None:
@@ -108,9 +108,9 @@ class DataManager:
                 if self._request_counter > 0:
                     async with self._lock:
                         self._request_counter -= 1
-                    candle_df = await pyupbit.get_ohlcv(ticker=code,
-                                                        interval="minute1",
-                                                        count=200)
+                    candle_df = await aiopyupbit.get_ohlcv(ticker=code,
+                                                           interval="minute1",
+                                                           count=200)
                     # TODO get_ohlcv에 to 옵션 줘서 추가할 데이터가 존재하지 않을경우 재시도 요청목록에 추가
                     break
                 else:

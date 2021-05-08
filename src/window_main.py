@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import asyncio
-from PyQt5.QtCore import  QSize, Qt
+from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import *
 import static
 import component
@@ -50,6 +50,7 @@ class MainWindow(QMainWindow):
     def close_btn_click(self):
         self.close()
         static.chart.stop()
+
     def home_btn_click(self):
         self.ui.qStackedWidget.setCurrentIndex(0)
         self.ui.home_btn.setStyleSheet(self.clicked_style)

@@ -6,7 +6,7 @@ import asyncio
 import threading
 import multiprocessing
 
-import pyupbit
+import aiopyupbit
 import websockets
 
 import config
@@ -71,7 +71,6 @@ class Coin:
             'obu': [],
             'st': 'SNAPSHOT'
         }
-        
 
     def get_code(self, fiat=True) -> str:
         """코인 마켓 코드 반환
@@ -428,8 +427,10 @@ class RealtimeManager:
         """RealtimeManager 생성자
         """
         # Public
-        self.codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT, contain_name=False))
-        self.coins = {code['market']: Coin(code) for code in asyncio.run(pyupbit.get_tickers(fiat=config.FIAT, contain_name=True))}
+        self.codes = asyncio.run(aiopyupbit.get_tickers(
+            fiat=config.FIAT, contain_name=False))
+        self.coins = {code['market']: Coin(code) for code in asyncio.run(
+            aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))}
         self.uri = "wss://api.upbit.com/websocket/v1"
         self.request = json.dumps([
             {"ticket": str(uuid.uuid4())[:6]},
@@ -458,9 +459,9 @@ class RealtimeManager:
         """
         self.alive = True
         self._websocket = WebsocketManager(
-            uri=self.uri, 
-            request=self.request, 
-            ping_interval=self.ping_interval, 
+            uri=self.uri,
+            request=self.request,
+            ping_interval=self.ping_interval,
             queue=self.__queue)
         self._websocket.start()
         threading.Thread(target=self._sync_thread, daemon=True).start()
@@ -578,7 +579,7 @@ if __name__ == '__main__':
     test.start()
 
     # User upbit connection
-    static.upbit = pyupbit.Upbit(
+    static.upbit = aiopyupbit.Upbit(
         config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
 
     # # Upbit account

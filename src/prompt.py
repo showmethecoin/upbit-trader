@@ -5,7 +5,7 @@ import time
 import math
 import platform
 
-import pyupbit
+import aiopyupbit
 
 import config
 from static import log
@@ -271,7 +271,7 @@ if __name__ == '__main__':
     static.chart.start()
 
     # User upbit connection
-    static.upbit = pyupbit.Upbit(
+    static.upbit = aiopyupbit.Upbit(
         config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
 
     prompt_main()
