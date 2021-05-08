@@ -1,3 +1,5 @@
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 import pandas as pd
 from pymongo import MongoClient
 from pymongo import CursorType

@@ -1,3 +1,5 @@
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 import sys
 import time
 import asyncio
@@ -5,30 +7,14 @@ import datetime
 import traceback
 
 from apscheduler.schedulers.background import BackgroundScheduler
-import pyupbit
-import pandas as pd
 import pymongo
 
 import config
-from db import DBHandler
 import static
 from static import log
+import pyupbit
+from db import DBHandler
 
-
-# class Queue:
-#     def __init__(self):
-#         self._items = deque()
-#         self._lock = Lock()
-
-#     # 생산자(producer)인 디지털 카메라는 새 이미지를 대기 아이템 리스트의 끝에 추가
-#     def put(self, item):
-#         with self._lock:
-#             self._items.append(item)
-
-#     # 소비자(consumer)인 처리 파이프라인의 첫 번쨰 단계에서는 대기 아이템 리스트의 앞쪽에서 이미지 추출
-#     def get(self):
-#         with self._lock:
-#             return self._items.popleft()
 
 class DataManager:
     def __init__(self,
@@ -92,7 +78,7 @@ class DataManager:
         try:
             self._lock = asyncio.Lock()
             self._request_counter = self._request_limit
-            base_time = datetime.datetime.now().replace(second=0, 
+            base_time = datetime.datetime.now().replace(second=0,
                                                         microsecond=0).strftime(config.UPBIT_TIME_FORMAT)
             sync_list = await self._get_sync_list(codes=self._codes, base_time=base_time)
 
@@ -103,7 +89,7 @@ class DataManager:
                     overflow_requests.extend(request_result)
                 log.info(
                     f'Limit overflow requests({len(overflow_requests)}): {overflow_requests}')
-                sync_list = await self._get_sync_list(codes=overflow_requests, 
+                sync_list = await self._get_sync_list(codes=overflow_requests,
                                                       base_time=base_time)
         except:
             print(traceback.format_exc())
@@ -141,7 +127,8 @@ class DataManager:
                            for i in range(len(candle_df))]
             # TODO 만약 캔들데이터가 비정상적(캔들 부족)인 경우 재요청을 위한 처리 필요
             if datetime.datetime.strptime(candle_list[-1]['time'], config.UPBIT_TIME_FORMAT) < datetime.datetime.strptime(base_time, config.UPBIT_TIME_FORMAT) - datetime.timedelta(minutes=1):
-                log.warning(f'CandleTimeError\ncode    : {code}\nbase    : {base_time}\nresponse: {candle_list[-1]["time"]}')
+                log.warning(
+                    f'CandleTimeError\ncode    : {code}\nbase    : {base_time}\nresponse: {candle_list[-1]["time"]}')
                 return code
 
             await self._db_handler.insert_item_many(data=candle_list,
@@ -177,6 +164,6 @@ if __name__ == '__main__':
                           password=config.MONGO['PASSWORD'])
     static.data_manager = DataManager(db_handler=static.db)
     static.data_manager.start()
-    
+
     while True:
         time.sleep(1)

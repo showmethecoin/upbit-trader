@@ -1,15 +1,14 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-# System libraries
 import json
 import uuid
 import asyncio
 import threading
 import multiprocessing
-# Upbit API libraries
+
 import pyupbit
 import websockets
-# User defined modules
+
 import config
 import static
 from static import log
@@ -548,7 +547,6 @@ class Account:
 
 if __name__ == '__main__':
 
-    import sys
     # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
     py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
     if py_ver > 37 and sys.platform.startswith('win'):

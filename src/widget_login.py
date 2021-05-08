@@ -1,37 +1,40 @@
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 import os
 import sys
 import jwt
 import uuid
-from urllib.parse import urlencode
 import requests
-# PyQt5
-from PyQt5.QtCore    import *
+
+from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui     import *
-import ui_styles
+from PyQt5.QtGui import *
+
 from window_main import MainWindow
 from ui_login import Ui_Form
+
+
 class LoginWidget(QWidget):
-    def __init__(self,parent = None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.ui = Ui_Form()
         self.ui.setupUi(self)
         self.status = 0
         self.ui.pushButton_connect.clicked.connect(self.change_page)
-        self.msg =QMessageBox()
+        self.msg = QMessageBox()
         self.read_save()
         # Set Titlebar button Click Event
         self.ui.close_btn.clicked.connect(lambda: self.close())
         self.ui.minimize_btn.clicked.connect(lambda: self.showMinimized())
         self.ui.maximize_btn.clicked.connect(lambda: self.maximize_restore())
         self.setWindowFlag(Qt.FramelessWindowHint)
-        
+
         # MouseLeftClick Event Listener
         def mousePressEvent(event):
             if event.buttons() == Qt.LeftButton:
                 self.dragPos = event.globalPos()
                 event.accept()
-        
+
         # MouseClickMove Event Listener
         def moveWindow(event):
             # IF MAXIMIZED CHANGE TO NORMAL
@@ -43,17 +46,17 @@ class LoginWidget(QWidget):
                 self.move(self.pos() + event.globalPos() - self.dragPos)
                 self.dragPos = event.globalPos()
                 event.accept()
-        
+
         # DoubleClick Event Listener
         def dobleClickMaximizeRestore(event):
             if event.type() == QtCore.QEvent.MouseButtonDblClick:
                 self.maximize_restore()
-        
+
         # Link events to Titlebar
         self.ui.toplabel_title.mousePressEvent = mousePressEvent
         self.ui.toplabel_title.mouseMoveEvent = moveWindow
         self.ui.toplabel_title.mouseDoubleClickEvent = dobleClickMaximizeRestore
-    
+
     # Maximize Control Function
     def maximize_restore(self):
         if self.status == 0:
@@ -64,14 +67,14 @@ class LoginWidget(QWidget):
             self.showNormal()
 
     # Change to Main
-    def change_page(self):                    
+    def change_page(self):
         if self.check_authentication():
             if(self.ui.checkBox_save_user.isChecked()):
                 self.set_save()
             self.secondWindow = MainWindow()
             self.secondWindow.show()
-            self.close() 
-    
+            self.close()
+
     # Check Key
     def check_authentication(self):
         access_key = self.ui.lineEdit_access.text()
@@ -99,19 +102,19 @@ class LoginWidget(QWidget):
             self.msg.setText('Error : ' + res.json()['error']['name'])
             self.msg.show()
             return False
-        else : 
+        else:
             return True
-    
+
     # Make Save File
     def set_save(self):
-        with open('.save.txt','w') as f:
+        with open('.save.txt', 'w') as f:
             f.write(self.ui.lineEdit_access.text() + '\n')
             f.write(self.ui.lineEdit_secret.text())
 
     # Read Save File
     def read_save(self):
-        if os.path.isfile('.save.txt') :
-            with open('.save.txt','r') as f:
+        if os.path.isfile('.save.txt'):
+            with open('.save.txt', 'r') as f:
                 line = f.readline().strip('\n')
                 self.ui.lineEdit_access.setText(line)
                 line = f.readline()
@@ -124,5 +127,3 @@ if __name__ == "__main__":
     GUI.show()
     #Page = SecondPage()
     sys.exit(app.exec_())
-
-

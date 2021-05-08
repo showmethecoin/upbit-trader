@@ -1,13 +1,12 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-# System libraries
 import os
 import time
 import math
 import platform
-# Upbit API libraries
+
 import pyupbit
-# User defined modules
+
 import config
 from static import log
 import static
@@ -43,7 +42,7 @@ def print_program_title() -> None:
     try:
         if platform.system() == 'Windows':
             os.system('cls')
-        else:     
+        else:
             os.system('clear')
     except KeyboardInterrupt as e:
         pass
@@ -196,7 +195,7 @@ def print_holding_list() -> None:
                 balance = float(item["balance"])
                 if currency == 'XYM':
                     continue
-                
+
                 if currency == 'KRW':
                     print(f'\t│ {currency:<5} {math.floor(balance):<21}')
                     total_purchase += balance
@@ -272,6 +271,7 @@ if __name__ == '__main__':
     static.chart.start()
 
     # User upbit connection
-    static.upbit = pyupbit.Upbit(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
+    static.upbit = pyupbit.Upbit(
+        config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
 
     prompt_main()

@@ -1,17 +1,17 @@
-import time
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 import sys
-from PyQt5 import QtCore
+import asyncio
+
 from PyQt5.QtWidgets import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 from mplfinance.original_flavor import candlestick2_ohlc
-import numpy as np
-import asyncio
-from pyupbit.quotation_api import get_ohlcv
+
 import pyupbit
+
 
 class MyMplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=12, height=8, dpi=100):
@@ -28,8 +28,9 @@ class MyMplCanvas(FigureCanvas):
         FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
 
+
 class CandleChartWidget(QWidget):
-    def __init__(self,parent = None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.idx = 0
         vbox = QVBoxLayout()
@@ -47,34 +48,39 @@ class CandleChartWidget(QWidget):
         vbox.addLayout(hbox)
         self.setLayout(vbox)
 
-        self.ani = animation.FuncAnimation(self.canvas.fig, self.animate,interval=1000)
+        self.ani = animation.FuncAnimation(
+            self.canvas.fig, self.animate, interval=1000)
 
     # animation function
     def animate(self, t):
         self.canvas.axes.clear()
         asyncio.run(self.get_chart())
 
-        
     # chart update
-    async def get_chart(self):
-        
-            df = await get_ohlcv(ticker=self.coin, interval="minutes1", count=self.count, to=None)
-            print(self.idx)
-            self.idx+= 1
-            candlestick2_ohlc(self.canvas.axes, df['open'], df['high'], df['low'], df['close'], width=0.5, colorup='r', colordown='g')
 
+    async def get_chart(self):
+        df = await pyupbit.get_ohlcv(ticker=self.coin, interval="minutes1", count=self.count, to=None)
+        candlestick2_ohlc(self.canvas.axes, df['open'], df['high'],
+                          df['low'], df['close'], width=0.5, colorup='r', colordown='g')
 
     def on_expansion(self):
         if self.count < 200:
             self.count += 5
-    
+
     def on_reduction(self):
         if self.count > 15:
             self.count -= 5
 
+
 if __name__ == "__main__":
+    
+    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
+    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+    if py_ver > 37 and sys.platform.startswith('win'):
+	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+     
     qApp = QApplication(sys.argv)
     aw = CandleChartWidget()
-    
+
     aw.show()
     sys.exit(qApp.exec_())

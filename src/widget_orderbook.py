@@ -1,23 +1,26 @@
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 import sys
 import time
+import asyncio
 
-from component import RealtimeManager, Coin
-import static
 from PyQt5 import uic
 from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QTableWidgetItem, QProgressBar
 from PyQt5.QtCore import QPropertyAnimation, Qt, QThread, pyqtSignal
+
+import static
+import component
 
 
 class OrderbookWorker(QThread):
-    dataSent = pyqtSignal(Coin)
+    dataSent = pyqtSignal(component.Coin)
 
     def __init__(self, ticker):
         super().__init__()
         self.size = 10
         self.ticker = ticker
         self.alive = True
-       
+
     def run(self):
         while self.alive:
             time.sleep(0.3)
@@ -31,8 +34,8 @@ class OrderbookWorker(QThread):
 class OrderbookWidget(QWidget):
     def __init__(self, parent=None, ticker="KRW-BTC"):
         super().__init__(parent)
-        uic.loadUi("./src/ui/orderbook.ui", self)
-    
+        uic.loadUi("./src/asset/ui/orderbook.ui", self)
+
         #화면 수직,수평으로 늘릴 경우 칸에 맞게 변경됨
         #사용 가능한 공간을 채우기 위해 섹션의 크기를 자동으로 조정
         #참고 QHeaderView Class
@@ -43,14 +46,14 @@ class OrderbookWidget(QWidget):
 
         self.ticker = ticker
 
-        self.asksAnim = [ ]
-        self.bidsAnim = [ ]
+        self.asksAnim = []
+        self.bidsAnim = []
         for i in range(self.tableBids.rowCount()):
             # 매도호가
             item_0 = QTableWidgetItem(str(""))
             item_0.setTextAlignment(Qt.AlignVCenter)
             self.tableAsks.setItem(i, 0, item_0)
- 
+
             item_1 = QProgressBar(self.tableAsks)
             item_1.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             item_1.setStyleSheet("""
@@ -67,7 +70,6 @@ class OrderbookWidget(QWidget):
             item_0.setTextAlignment(Qt.AlignVCenter)
             self.tableBids.setItem(i, 0, item_0)
 
- 
             item_1 = QProgressBar(self.tableBids)
             item_1.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             item_1.setStyleSheet("""
@@ -83,7 +85,6 @@ class OrderbookWidget(QWidget):
         self.ow.dataSent.connect(self.updateData)
         self.ow.start()
 
- 
     def updateData(self, coin):
         data = coin.get_orderbook_units()
 
@@ -91,9 +92,9 @@ class OrderbookWidget(QWidget):
         data = data[0:10]
         asks_size = coin.get_total_ask_size() * 0.01
         bids_size = coin.get_total_bid_size() * 0.01
-        
+
         # asks테이블 값 설정
-        for i ,v in enumerate(data[::-1]):
+        for i, v in enumerate(data[::-1]):
             item_0 = self.tableAsks.item(i, 0)
             item_0.setText(f"{round(v['ap'],3):,}")
 
@@ -107,10 +108,10 @@ class OrderbookWidget(QWidget):
             self.asksAnim[i].start()
 
         # bids테이블 값 설정
-        for i ,v in enumerate(data):
+        for i, v in enumerate(data):
             item_0 = self.tableBids.item(i, 0)
             item_0.setText(f"{round(v['bp'],3):,}")
-           
+
             item_1 = self.tableBids.cellWidget(i, 1)
             item_1.setRange(0, 100)
             item_1.setFormat(f"{round(v['bs'],3):,}")
@@ -121,16 +122,20 @@ class OrderbookWidget(QWidget):
     def closeEvent(self, event):
         self.ow.close()
 
- 
+
 if __name__ == "__main__":
-    import sys
-    #from PyQt5.QtWidgets import QApplication
-    from PySide2.QtWidgets import QApplication
-    static.chart = RealtimeManager()
+    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
+    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+    if py_ver > 37 and sys.platform.startswith('win'):
+	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    static.chart = component.RealtimeManager()
     static.chart.start()
+    
     app = QApplication(sys.argv)
     ow = OrderbookWidget()
     ow.show()
+    
     #cw = test_chart_list.ChartlistWidget()
     #cw.show()
     exit(app.exec_())

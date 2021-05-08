@@ -17,16 +17,18 @@ class Ui_Form(object):
         Form.resize(450, 764)
         Form.setMinimumSize(QtCore.QSize(0, 0))
         Form.setStyleSheet("background-color: #31363b;\n"
-"color: rgb(200, 200, 200);")
+                           "color: rgb(200, 200, 200);")
         self.verticalLayout = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.top_frame = QtWidgets.QFrame(Form)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.top_frame.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.top_frame.sizePolicy().hasHeightForWidth())
         self.top_frame.setSizePolicy(sizePolicy)
         self.top_frame.setMinimumSize(QtCore.QSize(300, 40))
         self.top_frame.setMaximumSize(QtCore.QSize(16777215, 40))
@@ -36,8 +38,8 @@ class Ui_Form(object):
         self.top_frame.setFont(font)
         self.top_frame.setAutoFillBackground(False)
         self.top_frame.setStyleSheet("background-color: rgb(40,40,40);\n"
-"\n"
-"")
+                                     "\n"
+                                     "")
         self.top_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.top_frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.top_frame.setObjectName("top_frame")
@@ -56,9 +58,9 @@ class Ui_Form(object):
         self.toplabel_icon.setMaximumSize(QtCore.QSize(30, 30))
         self.toplabel_icon.setSizeIncrement(QtCore.QSize(0, 0))
         self.toplabel_icon.setStyleSheet("background-image: url(./src/asset/icons/16x16/cil-chart-line.png);\n"
-"background-position: center;\n"
-"background-repeat: no-repeat;\n"
-"")
+                                         "background-position: center;\n"
+                                         "background-repeat: no-repeat;\n"
+                                         "")
         self.toplabel_icon.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.toplabel_icon.setFrameShadow(QtWidgets.QFrame.Raised)
         self.toplabel_icon.setObjectName("toplabel_icon")
@@ -76,7 +78,8 @@ class Ui_Form(object):
         self.toplabel_title.setFont(font)
         self.toplabel_title.setStyleSheet("margin-left: 3px;")
         self.toplabel_title.setScaledContents(False)
-        self.toplabel_title.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.toplabel_title.setAlignment(
+            QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.toplabel_title.setWordWrap(False)
         self.toplabel_title.setOpenExternalLinks(False)
         self.toplabel_title.setObjectName("toplabel_title")
@@ -92,10 +95,12 @@ class Ui_Form(object):
         self.frame_btn_2.setSpacing(0)
         self.frame_btn_2.setObjectName("frame_btn_2")
         self.minimize_btn = QtWidgets.QPushButton(self.frame_btn_right)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.minimize_btn.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.minimize_btn.sizePolicy().hasHeightForWidth())
         self.minimize_btn.setSizePolicy(sizePolicy)
         self.minimize_btn.setMinimumSize(QtCore.QSize(0, 0))
         self.minimize_btn.setMaximumSize(QtCore.QSize(40, 40))
@@ -103,49 +108,55 @@ class Ui_Form(object):
         self.minimize_btn.setWhatsThis("")
         self.minimize_btn.setAccessibleName("")
         self.minimize_btn.setStyleSheet("QPushButton {    \n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QPushButton:hover {\n"
-"    background-color: rgb(52, 59, 72);\n"
-"}\n"
-"QPushButton:pressed {    \n"
-"    background-color: rgb(85, 170, 255);\n"
-"}")
+                                        "    border: none;\n"
+                                        "    background-color: transparent;\n"
+                                        "}\n"
+                                        "QPushButton:hover {\n"
+                                        "    background-color: rgb(52, 59, 72);\n"
+                                        "}\n"
+                                        "QPushButton:pressed {    \n"
+                                        "    background-color: rgb(85, 170, 255);\n"
+                                        "}")
         self.minimize_btn.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("./src/asset/icons/16x16/cil-window-minimize.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(
+            "./src/asset/icons/16x16/cil-window-minimize.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.minimize_btn.setIcon(icon)
         self.minimize_btn.setObjectName("minimize_btn")
         self.frame_btn_2.addWidget(self.minimize_btn)
         self.maximize_btn = QtWidgets.QPushButton(self.frame_btn_right)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.maximize_btn.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.maximize_btn.sizePolicy().hasHeightForWidth())
         self.maximize_btn.setSizePolicy(sizePolicy)
         self.maximize_btn.setMaximumSize(QtCore.QSize(40, 40))
         self.maximize_btn.setStyleSheet("QPushButton {    \n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QPushButton:hover {\n"
-"    background-color: rgb(52, 59, 72);\n"
-"}\n"
-"QPushButton:pressed {    \n"
-"    background-color: rgb(85, 170, 255);\n"
-"}")
+                                        "    border: none;\n"
+                                        "    background-color: transparent;\n"
+                                        "}\n"
+                                        "QPushButton:hover {\n"
+                                        "    background-color: rgb(52, 59, 72);\n"
+                                        "}\n"
+                                        "QPushButton:pressed {    \n"
+                                        "    background-color: rgb(85, 170, 255);\n"
+                                        "}")
         self.maximize_btn.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("./src/asset/icons/16x16/cil-window-maximize.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(
+            "./src/asset/icons/16x16/cil-window-maximize.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.maximize_btn.setIcon(icon1)
         self.maximize_btn.setObjectName("maximize_btn")
         self.frame_btn_2.addWidget(self.maximize_btn)
         self.close_btn = QtWidgets.QPushButton(self.frame_btn_right)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.close_btn.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.close_btn.sizePolicy().hasHeightForWidth())
         self.close_btn.setSizePolicy(sizePolicy)
         self.close_btn.setMinimumSize(QtCore.QSize(0, 0))
         self.close_btn.setMaximumSize(QtCore.QSize(40, 40))
@@ -154,18 +165,19 @@ class Ui_Form(object):
         font.setWeight(50)
         self.close_btn.setFont(font)
         self.close_btn.setStyleSheet("QPushButton {    \n"
-"    border: none;\n"
-"    background-color: transparent;\n"
-"}\n"
-"QPushButton:hover {\n"
-"    background-color: rgb(52, 59, 72);\n"
-"}\n"
-"QPushButton:pressed {    \n"
-"    background-color: rgb(85, 170, 255);\n"
-"}")
+                                     "    border: none;\n"
+                                     "    background-color: transparent;\n"
+                                     "}\n"
+                                     "QPushButton:hover {\n"
+                                     "    background-color: rgb(52, 59, 72);\n"
+                                     "}\n"
+                                     "QPushButton:pressed {    \n"
+                                     "    background-color: rgb(85, 170, 255);\n"
+                                     "}")
         self.close_btn.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("./src/asset/icons/16x16/cil-x.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap(
+            "./src/asset/icons/16x16/cil-x.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.close_btn.setIcon(icon2)
         self.close_btn.setIconSize(QtCore.QSize(20, 20))
         self.close_btn.setObjectName("close_btn")
@@ -188,12 +200,12 @@ class Ui_Form(object):
         self.avatar = QtWidgets.QFrame(self.login_area)
         self.avatar.setGeometry(QtCore.QRect(150, 130, 121, 121))
         self.avatar.setStyleSheet("QFrame {\n"
-"    border-radius: 60px;\n"
-"    border: 10px solid rgb(85, 170, 255);\n"
-"    background-position: center;\n"
-"}\n"
-"\n"
-"")
+                                  "    border-radius: 60px;\n"
+                                  "    border: 10px solid rgb(85, 170, 255);\n"
+                                  "    background-position: center;\n"
+                                  "}\n"
+                                  "\n"
+                                  "")
         self.avatar.setObjectName("avatar")
         self.label_2 = QtWidgets.QLabel(self.avatar)
         self.label_2.setGeometry(QtCore.QRect(4, 0, 117, 121))
@@ -201,9 +213,9 @@ class Ui_Form(object):
         font.setPointSize(45)
         self.label_2.setFont(font)
         self.label_2.setStyleSheet("color : rgb(85, 170, 255);\n"
-"border: 0px solid rgb(85, 170, 255);\n"
-"background-position: center;\n"
-"background: transparent;")
+                                   "border: 0px solid rgb(85, 170, 255);\n"
+                                   "background-position: center;\n"
+                                   "background: transparent;")
         self.label_2.setAlignment(QtCore.Qt.AlignCenter)
         self.label_2.setObjectName("label_2")
         self.lineEdit_access = QtWidgets.QLineEdit(self.login_area)
@@ -213,17 +225,17 @@ class Ui_Form(object):
         font.setPointSize(10)
         self.lineEdit_access.setFont(font)
         self.lineEdit_access.setStyleSheet("QLineEdit {\n"
-"    border: 2px solid rgb(45, 45, 45);\n"
-"    border-radius: 5px;\n"
-"    padding: 15px;\n"
-"    background-color: rgb(30, 30, 30);    \n"
-"    color: rgb(100, 100, 100);\n"
-"}\n"
-"\n"
-"QLineEdit:focus {\n"
-"    border: 2px solid rgb(85, 170, 255);\n"
-"    color: rgb(0, 200, 200);\n"
-"}")
+                                           "    border: 2px solid rgb(45, 45, 45);\n"
+                                           "    border-radius: 5px;\n"
+                                           "    padding: 15px;\n"
+                                           "    background-color: rgb(30, 30, 30);    \n"
+                                           "    color: rgb(100, 100, 100);\n"
+                                           "}\n"
+                                           "\n"
+                                           "QLineEdit:focus {\n"
+                                           "    border: 2px solid rgb(85, 170, 255);\n"
+                                           "    color: rgb(0, 200, 200);\n"
+                                           "}")
         self.lineEdit_access.setText("")
         self.lineEdit_access.setMaxLength(50)
         self.lineEdit_access.setObjectName("lineEdit_access")
@@ -234,17 +246,17 @@ class Ui_Form(object):
         font.setPointSize(10)
         self.lineEdit_secret.setFont(font)
         self.lineEdit_secret.setStyleSheet("QLineEdit {\n"
-"    border: 2px solid rgb(45, 45, 45);\n"
-"    border-radius: 5px;\n"
-"    padding: 15px;\n"
-"    background-color: rgb(30, 30, 30);    \n"
-"    color: rgb(100, 100, 100);\n"
-"}\n"
-"\n"
-"QLineEdit:focus {\n"
-"    border: 2px solid rgb(85, 170, 255);\n"
-"    color: rgb(200, 200, 200);\n"
-"}")
+                                           "    border: 2px solid rgb(45, 45, 45);\n"
+                                           "    border-radius: 5px;\n"
+                                           "    padding: 15px;\n"
+                                           "    background-color: rgb(30, 30, 30);    \n"
+                                           "    color: rgb(100, 100, 100);\n"
+                                           "}\n"
+                                           "\n"
+                                           "QLineEdit:focus {\n"
+                                           "    border: 2px solid rgb(85, 170, 255);\n"
+                                           "    color: rgb(200, 200, 200);\n"
+                                           "}")
         self.lineEdit_secret.setMaxLength(50)
         self.lineEdit_secret.setEchoMode(QtWidgets.QLineEdit.Password)
         self.lineEdit_secret.setObjectName("lineEdit_secret")
@@ -255,33 +267,33 @@ class Ui_Form(object):
         font.setPointSize(10)
         self.checkBox_save_user.setFont(font)
         self.checkBox_save_user.setStyleSheet("QCheckBox::indicator {\n"
-"    border: 3px solid rgb(100, 100, 100);\n"
-"    width: 15px;\n"
-"    height: 15px;\n"
-"    border-radius: 10px;    \n"
-"    background-color: rgb(135, 135, 135);\n"
-"}\n"
-"QCheckBox::indicator:checked {\n"
-"    border: 3px solid rgb(85, 170, 255);\n"
-"    background-color: rgb(85, 120, 255);\n"
-"}")
+                                              "    border: 3px solid rgb(100, 100, 100);\n"
+                                              "    width: 15px;\n"
+                                              "    height: 15px;\n"
+                                              "    border-radius: 10px;    \n"
+                                              "    background-color: rgb(135, 135, 135);\n"
+                                              "}\n"
+                                              "QCheckBox::indicator:checked {\n"
+                                              "    border: 3px solid rgb(85, 170, 255);\n"
+                                              "    background-color: rgb(85, 120, 255);\n"
+                                              "}")
         self.checkBox_save_user.setObjectName("checkBox_save_user")
         self.pushButton_connect = QtWidgets.QPushButton(self.login_area)
         self.pushButton_connect.setGeometry(QtCore.QRect(80, 490, 271, 50))
         self.pushButton_connect.setStyleSheet("QPushButton {    \n"
-"    background-color: rgb(30, 30, 30);\n"
-"    border: 2px solid rgb(60, 60, 60);\n"
-"    border-radius: 5px;\n"
-"}\n"
-"QPushButton:hover {    \n"
-"    background-color: rgb(60, 60, 60);\n"
-"    border: 2px solid rgb(70, 70, 70);\n"
-"}\n"
-"QPushButton:pressed {    \n"
-"    background-color: rgb(85, 170, 255);\n"
-"    border: 2px solid rgb(85, 170, 255);\n"
-"    color: rgb(35, 35, 35);\n"
-"}")
+                                              "    background-color: rgb(30, 30, 30);\n"
+                                              "    border: 2px solid rgb(60, 60, 60);\n"
+                                              "    border-radius: 5px;\n"
+                                              "}\n"
+                                              "QPushButton:hover {    \n"
+                                              "    background-color: rgb(60, 60, 60);\n"
+                                              "    border: 2px solid rgb(70, 70, 70);\n"
+                                              "}\n"
+                                              "QPushButton:pressed {    \n"
+                                              "    background-color: rgb(85, 170, 255);\n"
+                                              "    border: 2px solid rgb(85, 170, 255);\n"
+                                              "    color: rgb(35, 35, 35);\n"
+                                              "}")
         self.pushButton_connect.setObjectName("pushButton_connect")
         self.label = QtWidgets.QLabel(self.login_area)
         self.label.setGeometry(QtCore.QRect(30, 10, 361, 101))
@@ -307,7 +319,8 @@ class Ui_Form(object):
         font.setFamily("Segoe UI")
         self.label_credits.setFont(font)
         self.label_credits.setStyleSheet("color: rgb(75, 75, 75);")
-        self.label_credits.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_credits.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.label_credits.setObjectName("label_credits")
         self.verticalLayout_2.addWidget(self.label_credits)
         self.verticalLayout.addWidget(self.bottom)
@@ -323,12 +336,15 @@ class Ui_Form(object):
         self.maximize_btn.setToolTip(_translate("Form", "Maximize"))
         self.close_btn.setToolTip(_translate("Form", "Close"))
         self.label_2.setText(_translate("Form", "₿"))
-        self.lineEdit_access.setPlaceholderText(_translate("Form", "Access Key"))
-        self.lineEdit_secret.setPlaceholderText(_translate("Form", "Secret Key"))
+        self.lineEdit_access.setPlaceholderText(
+            _translate("Form", "Access Key"))
+        self.lineEdit_secret.setPlaceholderText(
+            _translate("Form", "Secret Key"))
         self.checkBox_save_user.setText(_translate("Form", "SAVE USER"))
         self.pushButton_connect.setText(_translate("Form", "CONNECT"))
         self.label.setText(_translate("Form", "SIGN IN"))
-        self.label_credits.setText(_translate("Form", "Created by: Wanderson M. Pimenta"))
+        self.label_credits.setText(_translate(
+            "Form", "Created by: Wanderson M. Pimenta"))
 
 
 if __name__ == "__main__":
