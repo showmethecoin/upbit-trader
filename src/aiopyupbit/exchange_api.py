@@ -5,7 +5,11 @@ import re       # PyJWT
 import uuid
 import hashlib
 from urllib.parse import urlencode
-from request_api import _send_get_request, _send_post_request, _send_delete_request
+if __name__ == "__main__" or __name__ == "aiopyupbit":
+    from request_api import _send_get_request, _send_post_request, _send_delete_request
+else:
+    from .request_api import _send_get_request, _send_post_request, _send_delete_request
+
 
 
 # 원화 마켓 주문 가격 단위

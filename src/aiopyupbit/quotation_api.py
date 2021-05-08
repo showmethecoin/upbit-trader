@@ -3,7 +3,10 @@
 # UPbit Quatation (시세 조회) API
 import datetime
 import pandas as pd
-from request_api import _call_public_api
+if __name__ == "__main__" or __name__ == "aiopyupbit":
+    from request_api import _call_public_api
+else:
+    from .request_api import _call_public_api
 
 
 async def get_tickers(fiat="ALL", contain_name=False, limit_info=False):

@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 import re
 import json
-import aiohttp_retry
+if __name__ == "__main__" or __name__ == "aiopyupbit":
+    import aiohttp_retry
+else:
+    from . import aiohttp_retry
 
 getframe_expr = 'sys._getframe({}).f_code.co_name'
 retry_option = aiohttp_retry.ExponentialRetry(
