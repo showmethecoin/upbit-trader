@@ -3,18 +3,18 @@
 import yaml
 
 # Upbit official fees ratio
-FEES = 0.005 
+FEES = 0.005
 # KRW/BRC/ETH/USDT
-FIAT = "KRW" 
+FIAT = "KRW"
 # Base time format
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 # Upbit time format
 UPBIT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
-# Program base 
+# Program base
 PROGRAM = {
     "NAME": "Upbit Automatic Trading Program",
     "VERSION": 0.5,
-    "WIDTH": 108, 
+    "WIDTH": 108,
     "HEIGHT": 200,
 }
 # Rest API request
@@ -22,6 +22,7 @@ SERVER = {
     "EXTERNAL_TIMEOUT": 60,
     "INTERNAL_TIMEOUT": 1,
     "REQUEST_LIMIT": 10,
+    "PING_INTERVAL": 60
 }
 # Read config file
 with open('./config.yaml', 'r') as file:
