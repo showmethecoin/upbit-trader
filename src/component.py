@@ -401,6 +401,7 @@ class WebsocketManager(multiprocessing.Process):
         """Websocket 연결 시작
         사용 예시: wm.start()
         """
+        log.info('Start websocket connection')
         self.alive = True
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.__connect_socket())
@@ -409,6 +410,7 @@ class WebsocketManager(multiprocessing.Process):
         """Websocket 연결 종료
         사용 예시: wm.terminate()
         """
+        log.info('Stop websocket connection')
         self.alive = False
         super().terminate()
 
@@ -416,10 +418,16 @@ class WebsocketManager(multiprocessing.Process):
         """Websocket async 루프 메인
         """
         async with websockets.connect(self.uri, ping_interval=self.ping_interval) as websocket:
-            await websocket.send(self.request)
             while self.alive:
-                message = await websocket.recv()
-                self.__queue.put(json.loads(message.decode('utf8')))
+                try:
+                    await websocket.send(self.request)
+                    while self.alive:
+                        message = await websocket.recv()
+                        self.__queue.put(json.loads(message.decode('utf8')))
+                except websockets.exceptions.ConnectionClosedError:
+                    log.warning(f'Websocket connection closed. It will try to connect again')
+                
+                
 
 
 class RealtimeManager:
