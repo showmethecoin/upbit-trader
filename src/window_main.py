@@ -49,8 +49,8 @@ class MainWindow(QMainWindow):
 
     def close_btn_click(self):
         self.close()
-        static.chart.stop()
-
+        if static.chart != None:
+            static.chart.stop()
     def home_btn_click(self):
         self.ui.qStackedWidget.setCurrentIndex(0)
         self.ui.home_btn.setStyleSheet(self.clicked_style)

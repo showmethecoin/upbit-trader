@@ -12,6 +12,7 @@ import static
 import component
 from static import log
 import prompt
+from widget_login import gui_main
 
 
 def init() -> bool:
@@ -35,10 +36,6 @@ def init() -> bool:
     static.chart = component.RealtimeManager()
     static.chart.start()
 
-    # User upbit connection
-    static.upbit = aiopyupbit.Upbit(
-        config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
-
     return True
 
 
@@ -46,7 +43,8 @@ def main() -> None:
     """프로그램 메인
     """
 
-    prompt.prompt_main()
+    gui_main()
+    #prompt.prompt_main()
 
 
 if __name__ == '__main__':
