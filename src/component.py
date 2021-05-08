@@ -4,8 +4,8 @@
 import json
 import uuid
 import asyncio
+import threading
 import multiprocessing
-from threading import Thread
 # Upbit API libraries
 import pyupbit
 import websockets
@@ -405,82 +405,70 @@ class Coin:
         return self.orderbook['obu'][_index]
 
 
-class Chart(multiprocessing.Process):
-    def __init__(self) -> None:
-        """생성자
-        """
-        # Get coin code list
-        self.codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT))
+class WebsocketManager(multiprocessing.Process):
+    def __init__(self, code:str or list, queue:multiprocessing.Queue):
+        self.alive = False
         # Upbit websocket json request body
-        self.request = ('[{"ticket":"%s"},'
-                        '{"type":"ticker","codes":%s, "isOnlyRealtime":true},'
-                        '{"type":"orderbook","codes":%s, "isOnlyRealtime":true},'
-                        '{"format":"SIMPLE"}]'
-                        % (str(uuid.uuid4())[:6],
-                           self.codes.__repr__().replace("\'", "\""),
-                           self.codes.__repr__().replace("\'", "\"")))
-        # Upbit websocket json response body
-        self.information = {
-            'ty': 'ticker',
-            'cd': '',
-            'st': 'SNAPSHOT'
-        }
-        # Coin dictionary
-        self.coins = {}
-        for code in self.codes:
-            self.coins[code] = Coin(code)
-        # Sync thread status
-        self.sync_status = False
-
+        self.request = json.dumps([
+            {"ticket": str(uuid.uuid4())[:6]},
+            {"type": "ticker", "codes": code, "isOnlyRealtime": True},
+            {"type": "orderbook", "codes": code, "isOnlyRealtime": True},
+            {"format": "SIMPLE"}
+        ])
+        self.__queue = queue
         super().__init__()
+
+    def run(self):
+        self.alive = True
+        self.__loop = asyncio.get_event_loop()
+        self.__loop.run_until_complete(self.__connect_socket())
+
+    def terminate(self):
+        self.alive = False
+        super().terminate()
 
     async def __connect_socket(self):
         uri = "wss://api.upbit.com/websocket/v1"
         async with websockets.connect(uri, ping_interval=60) as websocket:
             await websocket.send(self.request)
+            while self.alive:
+                message = await websocket.recv()
+                self.__queue.put(json.loads(message.decode('utf8')))
 
-            while self.sync_status:
-                response = await websocket.recv()
-                await self._update(json.loads(response.decode('utf8')))
-
-    def run(self):
-        self.__aloop = asyncio.get_event_loop()
-        self.__aloop.run_until_complete(self.__connect_socket())
-
-    def sync_start(self) -> None:
-        """동기화 시작
+class RealtimeManager:
+    def __init__(self) -> None:
+        """생성자
         """
-        log.info('Websocket thread start')
-        self.sync_status = True
-        self.start()
-
-    def sync_stop(self) -> None:
-        """동기화 중지
-        """
-        self.sync_status = False
-        super().terminate()
-
-    def get_sync_status(self) -> bool:
-        """동기화 동작 상태 반환
-
-        Returns:
-            bool: 동기화 동작 유무
-        """
-        return self.sync_status
-
-    async def _update(self, _response: dict) -> None:
-        """코인 정보 갱신
-
-        Args:
-            _response (dict): Json 메세지
-        """
-        if _response['ty'] == 'ticker':
-            self.coins[_response['cd']].ticker = _response
-        else:
-            self.coins[_response['cd']].orderbook = _response
-
+        self.codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT))
+        self.coins = {code:Coin(code) for code in self.codes}
+        self.alive = False
+        self.__queue = multiprocessing.Queue()
+    
     def get_coin(self, _code: str) -> Coin:
         return self.coins[_code]
+
+    def start(self):
+        self.alive = True
+        self._websocket = WebsocketManager(code=self.codes, queue=self.__queue)
+        self._websocket.start()
+        threading.Thread(target=self._sync_thread, daemon=True).start()
+    
+    def stop(self):
+        self._websocket.terminate()
+        self.alive = False
+    
+    def _sync_thread(self):
+        self.__loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.__loop)
+        self.__loop.run_until_complete(self.__sync_loop())
+    
+    async def __sync_loop(self):
+        while self.alive:
+            message = self.__queue.get()
+            if message['ty'] == 'ticker':
+                self.coins[message['cd']].ticker = message
+            else:
+                self.coins[message['cd']].orderbook = message
 
 
 class Account:
@@ -567,8 +555,11 @@ if __name__ == '__main__':
 	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     # Upbit coin chart
-    static.chart = Chart()
-    static.chart.sync_start()
+    # static.chart = Chart()
+    # static.chart.sync_start()
+    test = RealtimeManager()
+    test.start()
+    
 
     # User upbit connection
     static.upbit = pyupbit.Upbit(
