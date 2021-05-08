@@ -405,63 +405,108 @@ class Coin:
 
 
 class WebsocketManager(multiprocessing.Process):
-    def __init__(self, code:str or list, queue:multiprocessing.Queue):
+    def __init__(self, uri: str, request: dict, ping_interval: int, queue: multiprocessing.Queue) -> None:
+        """WebsocketManager 생성자
+
+        Args:
+            uri (str): Websocket 연결 주소
+            request (dict): 요청 메세지 Body
+            ping_interval (int): Ping-Pong 주기
+            queue (multiprocessing.Queue): 수신 메세지 대기열
+        """
+        # Public
+        self.uri = uri
+        self.request = request
+        self.ping_interval = ping_interval
         self.alive = False
-        # Upbit websocket json request body
-        self.request = json.dumps([
-            {"ticket": str(uuid.uuid4())[:6]},
-            {"type": "ticker", "codes": code, "isOnlyRealtime": True},
-            {"type": "orderbook", "codes": code, "isOnlyRealtime": True},
-            {"format": "SIMPLE"}
-        ])
+        # Private
         self.__queue = queue
+
         super().__init__()
 
-    def run(self):
+    def run(self) -> None:
+        """Websocket 연결 시작
+        사용 예시: wm.start()
+        """
         self.alive = True
-        self.__loop = asyncio.get_event_loop()
-        self.__loop.run_until_complete(self.__connect_socket())
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.__connect_socket())
 
-    def terminate(self):
+    def terminate(self) -> None:
+        """Websocket 연결 종료
+        사용 예시: wm.terminate()
+        """
         self.alive = False
         super().terminate()
 
-    async def __connect_socket(self):
-        uri = "wss://api.upbit.com/websocket/v1"
-        async with websockets.connect(uri, ping_interval=60) as websocket:
+    async def __connect_socket(self) -> None:
+        """Websocket async 루프 메인
+        """
+        async with websockets.connect(self.uri, ping_interval=self.ping_interval) as websocket:
             await websocket.send(self.request)
             while self.alive:
                 message = await websocket.recv()
                 self.__queue.put(json.loads(message.decode('utf8')))
 
+
 class RealtimeManager:
     def __init__(self) -> None:
-        """생성자
+        """RealtimeManager 생성자
         """
+        # Public
         self.codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT))
-        self.coins = {code:Coin(code) for code in self.codes}
+        self.coins = {code: Coin(code) for code in self.codes}
+        self.uri = "wss://api.upbit.com/websocket/v1"
+        self.request = json.dumps([
+            {"ticket": str(uuid.uuid4())[:6]},
+            {"type": "ticker", "codes": self.codes, "isOnlyRealtime": True},
+            {"type": "orderbook", "codes": self.codes, "isOnlyRealtime": True},
+            {"format": "SIMPLE"}
+        ])
+        self.ping_interval = config.SERVER["PING_INTERVAL"]
         self.alive = False
+        # Private
         self.__queue = multiprocessing.Queue()
-    
-    def get_coin(self, _code: str) -> Coin:
-        return self.coins[_code]
 
-    def start(self):
+    def get_coin(self, code: str) -> Coin:
+        """코인 반환
+
+        Args:
+            code (str): 코인 코드
+
+        Returns:
+            Coin: 코드에 해당하는 Coin 인스턴스
+        """
+        return self.coins[code]
+
+    def start(self) -> None:
+        """RealtimeManager 동기화 시작
+        """
         self.alive = True
-        self._websocket = WebsocketManager(code=self.codes, queue=self.__queue)
+        self._websocket = WebsocketManager(
+            uri=self.uri, 
+            request=self.request, 
+            ping_interval=self.ping_interval, 
+            queue=self.__queue)
         self._websocket.start()
         threading.Thread(target=self._sync_thread, daemon=True).start()
-    
-    def stop(self):
+
+    def stop(self) -> None:
+        """RealtimeManager 동기화 종료
+        """
         self._websocket.terminate()
         self.alive = False
-    
-    def _sync_thread(self):
-        self.__loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.__loop)
-        self.__loop.run_until_complete(self.__sync_loop())
-    
-    async def __sync_loop(self):
+
+    def _sync_thread(self) -> None:
+        """동기화 Thread 메인
+        """
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self.__sync_loop())
+
+    async def __sync_loop(self) -> None:
+        """동기화 async 루프 메인
+        """
         while self.alive:
             message = self.__queue.get()
             if message['ty'] == 'ticker':
@@ -557,7 +602,6 @@ if __name__ == '__main__':
     # static.chart.sync_start()
     test = RealtimeManager()
     test.start()
-    
 
     # User upbit connection
     static.upbit = pyupbit.Upbit(

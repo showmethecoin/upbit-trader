@@ -22,6 +22,7 @@ SERVER = {
     "EXTERNAL_TIMEOUT": 60,
     "INTERNAL_TIMEOUT": 1,
     "REQUEST_LIMIT": 10,
+    "PING_INTERVAL": 60
 }
 # Read config file
 with open('./config.yaml', 'r') as file:
