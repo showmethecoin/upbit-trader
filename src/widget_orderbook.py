@@ -34,7 +34,7 @@ class OrderbookWorker(QThread):
 class OrderbookWidget(QWidget):
     def __init__(self, parent=None, ticker="KRW-BTC"):
         super().__init__(parent)
-        uic.loadUi("./src/asset/ui/orderbook.ui", self)
+        uic.loadUi("./src/styles/ui/orderbook.ui", self)
 
         #화면 수직,수평으로 늘릴 경우 칸에 맞게 변경됨
         #사용 가능한 공간을 채우기 위해 섹션의 크기를 자동으로 조정

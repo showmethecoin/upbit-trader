@@ -9,24 +9,24 @@ import requests
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
+from PyQt5 import uic
 
 from window_main import MainWindow
-from ui_login import Ui_Form
 
 
 class LoginWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.ui = Ui_Form()
-        self.ui.setupUi(self)
+        uic.loadUi('./src/styles/ui/login.ui', self)
+
         self.status = 0
-        self.ui.pushButton_connect.clicked.connect(self.change_page)
+        self.pushButton_connect.clicked.connect(self.change_page)
         self.msg = QMessageBox()
         self.read_save()
         # Set Titlebar button Click Event
-        self.ui.close_btn.clicked.connect(lambda: self.close())
-        self.ui.minimize_btn.clicked.connect(lambda: self.showMinimized())
-        self.ui.maximize_btn.clicked.connect(lambda: self.maximize_restore())
+        self.close_btn.clicked.connect(lambda: self.close())
+        self.minimize_btn.clicked.connect(lambda: self.showMinimized())
+        self.maximize_btn.clicked.connect(lambda: self.maximize_restore())
         self.setWindowFlag(Qt.FramelessWindowHint)
 
         # MouseLeftClick Event Listener
@@ -53,9 +53,9 @@ class LoginWidget(QWidget):
                 self.maximize_restore()
 
         # Link events to Titlebar
-        self.ui.toplabel_title.mousePressEvent = mousePressEvent
-        self.ui.toplabel_title.mouseMoveEvent = moveWindow
-        self.ui.toplabel_title.mouseDoubleClickEvent = dobleClickMaximizeRestore
+        self.toplabel_title.mousePressEvent = mousePressEvent
+        self.toplabel_title.mouseMoveEvent = moveWindow
+        self.toplabel_title.mouseDoubleClickEvent = dobleClickMaximizeRestore
 
     # Maximize Control Function
     def maximize_restore(self):
@@ -69,7 +69,7 @@ class LoginWidget(QWidget):
     # Change to Main
     def change_page(self):
         if self.check_authentication():
-            if(self.ui.checkBox_save_user.isChecked()):
+            if(self.checkBox_save_user.isChecked()):
                 self.set_save()
             self.secondWindow = MainWindow()
             self.secondWindow.show()
@@ -77,8 +77,8 @@ class LoginWidget(QWidget):
 
     # Check Key
     def check_authentication(self):
-        access_key = self.ui.lineEdit_access.text()
-        secret_key = self.ui.lineEdit_secret.text()
+        access_key = self.lineEdit_access.text()
+        secret_key = self.lineEdit_secret.text()
         server_url = 'https://api.upbit.com'
 
         payload = {
@@ -108,17 +108,17 @@ class LoginWidget(QWidget):
     # Make Save File
     def set_save(self):
         with open('.save.txt', 'w') as f:
-            f.write(self.ui.lineEdit_access.text() + '\n')
-            f.write(self.ui.lineEdit_secret.text())
+            f.write(self.lineEdit_access.text() + '\n')
+            f.write(self.lineEdit_secret.text())
 
     # Read Save File
     def read_save(self):
         if os.path.isfile('.save.txt'):
             with open('.save.txt', 'r') as f:
                 line = f.readline().strip('\n')
-                self.ui.lineEdit_access.setText(line)
+                self.lineEdit_access.setText(line)
                 line = f.readline()
-                self.ui.lineEdit_secret.setText(line)
+                self.lineEdit_secret.setText(line)
 
 
 if __name__ == "__main__":

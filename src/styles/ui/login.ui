@@ -134,7 +134,7 @@ color: rgb(200, 200, 200);</string>
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">background-image: url(icons/16x16/cil-chart-line.png);
+            <string notr="true">background-image: url(./src/styles/icons/16x16/cil-chart-line.png);
 background-position: center;
 background-repeat: no-repeat;
 </string>
@@ -268,7 +268,7 @@ QPushButton:pressed {
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/16x16/cil-window-minimize.png</normaloff>icons/16x16/cil-window-minimize.png</iconset>
+             <normaloff>../icons/20x20/cil-window-minimize.png</normaloff>../icons/20x20/cil-window-minimize.png</iconset>
            </property>
           </widget>
          </item>
@@ -306,7 +306,7 @@ QPushButton:pressed {
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/16x16/cil-window-maximize.png</normaloff>icons/16x16/cil-window-maximize.png</iconset>
+             <normaloff>../icons/16x16/cil-window-maximize.png</normaloff>../icons/16x16/cil-window-maximize.png</iconset>
            </property>
           </widget>
          </item>
@@ -356,7 +356,7 @@ QPushButton:pressed {
            </property>
            <property name="icon">
             <iconset>
-             <normaloff>icons/16x16/cil-x.png</normaloff>icons/16x16/cil-x.png</iconset>
+             <normaloff>../icons/20x20/cil-x.png</normaloff>../icons/20x20/cil-x.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -473,7 +473,7 @@ background: transparent;</string>
 
 QLineEdit:focus {
 	border: 2px solid rgb(85, 170, 255);
-	color: rgb(0, 200, 200);
+	color: rgb(200, 200, 200);
 }</string>
          </property>
          <property name="text">

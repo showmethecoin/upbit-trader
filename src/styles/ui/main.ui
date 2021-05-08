@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1363</width>
+    <width>1072</width>
     <height>720</height>
    </rect>
   </property>
@@ -1941,7 +1941,7 @@ QDoubleSpinBo
             <property name="styleSheet">
              <string notr="true"/>
             </property>
-            <layout class="QHBoxLayout" name="frame_label_top_btn">
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
              <property name="spacing">
               <number>0</number>
              </property>
@@ -1958,17 +1958,11 @@ QDoubleSpinBo
               <number>0</number>
              </property>
              <item>
-              <widget class="QPushButton" name="pushButton">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
+              <widget class="QFrame" name="toplabel_icon">
                <property name="minimumSize">
                 <size>
-                 <width>30</width>
-                 <height>30</height>
+                 <width>0</width>
+                 <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
@@ -1977,12 +1971,23 @@ QDoubleSpinBo
                  <height>30</height>
                 </size>
                </property>
-               <property name="text">
-                <string/>
+               <property name="sizeIncrement">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
                </property>
-               <property name="icon">
-                <iconset>
-                 <normaloff>../asset/icons/16x16/cil-chart-line.png</normaloff>../asset/icons/16x16/cil-chart-line.png</iconset>
+               <property name="styleSheet">
+                <string notr="true">background-image: url(./src/styles/icons/16x16/cil-chart-line.png);
+background-position: center;
+background-repeat: no-repeat;
+</string>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
                </property>
               </widget>
              </item>
@@ -2107,7 +2112,7 @@ QPushButton:pressed {
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>../asset/icons/16x16/cil-window-minimize.png</normaloff>../asset/icons/16x16/cil-window-minimize.png</iconset>
+                 <normaloff>../icons/20x20/cil-window-minimize.png</normaloff>../icons/20x20/cil-window-minimize.png</iconset>
                </property>
               </widget>
              </item>
@@ -2145,7 +2150,7 @@ QPushButton:pressed {
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>../asset/icons/16x16/cil-window-maximize.png</normaloff>../asset/icons/16x16/cil-window-maximize.png</iconset>
+                 <normaloff>../icons/16x16/cil-window-maximize.png</normaloff>../icons/16x16/cil-window-maximize.png</iconset>
                </property>
               </widget>
              </item>
@@ -2195,7 +2200,7 @@ QPushButton:pressed {
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>../asset/icons/16x16/cil-x.png</normaloff>../asset/icons/16x16/cil-x.png</iconset>
+                 <normaloff>../icons/20x20/cil-x.png</normaloff>../icons/20x20/cil-x.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -2318,7 +2323,7 @@ QPushButton:pressed {
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>../asset/icons/24x24/cil-home.png</normaloff>../asset/icons/24x24/cil-home.png</iconset>
+                 <normaloff>../icons/20x20/cil-home.png</normaloff>../icons/20x20/cil-home.png</iconset>
                </property>
               </widget>
              </item>
@@ -2353,7 +2358,7 @@ QPushButton:pressed {
                </property>
                <property name="icon">
                 <iconset>
-                 <normaloff>../asset/icons/24x24/cil-user.png</normaloff>../asset/icons/24x24/cil-user.png</iconset>
+                 <normaloff>../icons/24x24/cil-user.png</normaloff>../icons/24x24/cil-user.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -2375,6 +2380,21 @@ QPushButton:pressed {
                 <enum>QFrame::Raised</enum>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_3">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
                 <item>
                  <spacer name="verticalSpacer">
                   <property name="orientation">
@@ -2389,29 +2409,37 @@ QPushButton:pressed {
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QLabel" name="label">
+                 <widget class="QPushButton" name="btn_settings">
                   <property name="minimumSize">
                    <size>
-                    <width>0</width>
-                    <height>60</height>
+                    <width>65</width>
+                    <height>65</height>
                    </size>
                   </property>
-                  <property name="font">
-                   <font>
-                    <pointsize>20</pointsize>
-                   </font>
-                  </property>
                   <property name="styleSheet">
-                   <string notr="true">color : rgb(85, 170, 255);
-border: 0px solid rgb(85, 170, 255);
-background-position: center;
-background: transparent;</string>
+                   <string notr="true">QPushButton {	
+	border: none;
+	background-color: rgb(40, 40, 40);	
+}
+QPushButton:hover {
+	background-color: rgb(33, 37, 43);
+}
+QPushButton:pressed {	
+	background-color: rgb(85, 170, 255);
+}</string>
                   </property>
                   <property name="text">
-                   <string>₿</string>
+                   <string/>
                   </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
+                  <property name="icon">
+                   <iconset>
+                    <normaloff>../icons/24x24/cil-settings.png</normaloff>../icons/24x24/cil-settings.png</iconset>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>30</width>
+                    <height>30</height>
+                   </size>
                   </property>
                  </widget>
                 </item>
@@ -2527,7 +2555,7 @@ background: transparent;</string>
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QWidget" name="usercoin_widget" native="true"/>
+                  <widget class="QWidget" name="holding_list_widget" native="true"/>
                  </item>
                  <item>
                   <widget class="QWidget" name="trade_widget" native="true"/>

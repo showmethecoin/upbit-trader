@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 import sys
 import asyncio
-
 from PyQt5.QtCore import  QSize, Qt
 from PyQt5.QtWidgets import *
-
 import static
 import component
 from ui_main import Ui_MainWindow
@@ -21,7 +19,7 @@ class MainWindow(QMainWindow):
         # Set Titlebar button Click Event
         self.clicked_style = self.ui.home_btn.styleSheet()
         self.none_clicked_style = self.ui.user_btn.styleSheet()
-        self.ui.close_btn.clicked.connect(lambda: self.close())
+        self.ui.close_btn.clicked.connect(self.close_btn_click)
         self.ui.minimize_btn.clicked.connect(lambda: self.showMinimized())
         self.ui.home_btn.clicked.connect(self.home_btn_click)
         self.ui.user_btn.clicked.connect(self.user_btn_click)
@@ -49,6 +47,9 @@ class MainWindow(QMainWindow):
         self.ui.toplabel_title.mousePressEvent = mousePressEvent
         self.ui.toplabel_title.mouseMoveEvent = moveWindow
 
+    def close_btn_click(self):
+        self.close()
+        static.chart.stop()
     def home_btn_click(self):
         self.ui.qStackedWidget.setCurrentIndex(0)
         self.ui.home_btn.setStyleSheet(self.clicked_style)
