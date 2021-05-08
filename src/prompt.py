@@ -11,7 +11,7 @@ import pyupbit
 import config
 from static import log
 import static
-from component import Coin, Chart
+import component
 
 
 def press_any_key() -> None:
@@ -51,7 +51,7 @@ def print_program_title() -> None:
     print(
         f'\t┃                          {config.PROGRAM["NAME"]} :: Version {config.PROGRAM["VERSION"]}                          ┃')
     print(
-        f'\t┃                          Websocket sync thread status - {"● Enabled" if static.chart.get_sync_status() else "Χ Disabled"}                                ┃')
+        f'\t┃                          Websocket sync thread status - {"● Enabled" if static.chart.alive else "Χ Disabled"}                                ┃')
     print(f'\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛')
 
 
@@ -132,7 +132,7 @@ def print_individual_price() -> None:
             break
 
 
-def print_trade_information(_coin: Coin) -> None:
+def print_trade_information(_coin: component.Coin) -> None:
     """코인 거래 상세 정보 출력
 
     Args:
@@ -249,14 +249,14 @@ def prompt_main() -> None:
         elif int(select) == 3:
             print_holding_list()
         elif int(select) == 8:
-            if not static.chart.sync_status:
-                static.chart.sync_start()
+            if not static.chart.alive:
+                static.chart.start()
             else:
                 print('\tWebsocket sync thread already enabled...')
                 press_any_key()
         elif int(select) == 9:
-            if static.chart.sync_status:
-                static.chart.sync_stop()
+            if static.chart.alive:
+                static.chart.stop()
             else:
                 print('\tWebsocket sync thread already disabled...')
                 press_any_key()
@@ -268,8 +268,8 @@ def prompt_main() -> None:
 if __name__ == '__main__':
 
     # Upbit coin chart
-    static.chart = Chart()
-    static.chart.sync_start()
+    static.chart = component.RealtimeManager()
+    static.chart.start()
 
     # User upbit connection
     static.upbit = pyupbit.Upbit(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])

@@ -5,7 +5,7 @@ import aiohttp_retry
 import threading
 
 getframe_expr = 'sys._getframe({}).f_code.co_name'
-retry_option = aiohttp_retry.ExponentialRetry(factor=0.3, attempts=5, statuses=(500, 502, 504))
+retry_option = aiohttp_retry.ExponentialRetry(factor=0.2, attempts=5, statuses=(500, 502, 504))
 # TODO 스레드풀로 구현
 
 
@@ -23,7 +23,6 @@ async def _parse_remaining_req(remaining_req):
         return None, None, None
 
 
-# asyncio로 비동기 + 스레드풀 구현
 async def _call_public_api(url, **kwargs):
     """
 
@@ -66,7 +65,7 @@ async def _send_post_request(url, headers=None, data=None):
                 remaining_req_dict = {}
                 remaining_req = response.headers.get('Remaining-Req')
                 if remaining_req is not None:
-                    group, min, sec = _parse_remaining_req(remaining_req)
+                    group, min, sec = await _parse_remaining_req(remaining_req)
                     remaining_req_dict['group'] = group
                     remaining_req_dict['min'] = min
                     remaining_req_dict['sec'] = sec
@@ -93,7 +92,7 @@ async def _send_get_request(url, headers=None, data=None):
                 remaining_req_dict = {}
                 remaining_req = response.headers.get('Remaining-Req')
                 if remaining_req is not None:
-                    group, min, sec = _parse_remaining_req(remaining_req)
+                    group, min, sec = await _parse_remaining_req(remaining_req)
                     remaining_req_dict['group'] = group
                     remaining_req_dict['min'] = min
                     remaining_req_dict['sec'] = sec
@@ -120,7 +119,7 @@ async def _send_delete_request(url, headers=None, data=None):
                 remaining_req_dict = {}
                 remaining_req = response.headers.get('Remaining-Req')
                 if remaining_req is not None:
-                    group, min, sec = _parse_remaining_req(remaining_req)
+                    group, min, sec = await _parse_remaining_req(remaining_req)
                     remaining_req_dict['group'] = group
                     remaining_req_dict['min'] = min
                     remaining_req_dict['sec'] = sec

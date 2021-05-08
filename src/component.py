@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 # System libraries
 import json
+import uuid
 import asyncio
-from threading import Thread
+import threading
+import multiprocessing
 # Upbit API libraries
 import pyupbit
-from websocket import WebSocketApp
+import websockets
 # User defined modules
 import config
 import static
@@ -403,87 +405,112 @@ class Coin:
         return self.orderbook['obu'][_index]
 
 
-class Chart:
+class WebsocketManager(multiprocessing.Process):
+    def __init__(self, code:str or list, queue:multiprocessing.Queue):
+        self.alive = False
+        # Upbit websocket json request body
+        self.request = json.dumps([
+            {"ticket": str(uuid.uuid4())[:6]},
+            {"type": "ticker", "codes": code, "isOnlyRealtime": True},
+            {"type": "orderbook", "codes": code, "isOnlyRealtime": True},
+            {"format": "SIMPLE"}
+        ])
+        self.__queue = queue
+        super().__init__()
+
+    def run(self):
+        self.alive = True
+        self.__loop = asyncio.get_event_loop()
+        self.__loop.run_until_complete(self.__connect_socket())
+
+    def terminate(self):
+        self.alive = False
+        super().terminate()
+
+    async def __connect_socket(self):
+        uri = "wss://api.upbit.com/websocket/v1"
+        async with websockets.connect(uri, ping_interval=60) as websocket:
+            await websocket.send(self.request)
+            while self.alive:
+                message = await websocket.recv()
+                self.__queue.put(json.loads(message.decode('utf8')))
+
+class RealtimeManager:
     def __init__(self) -> None:
         """생성자
         """
-        # Get coin code list
         self.codes = asyncio.run(pyupbit.get_tickers(fiat=config.FIAT))
-        # Upbit websocket json request body
-        self.request = ('[{"ticket":"UNIQUE_TICKET"},'
-                        '{"type":"ticker","codes":%s, "isOnlyRealtime":true},'
-                        '{"type":"orderbook","codes":%s, "isOnlyRealtime":true},'
-                        '{"format":"SIMPLE"}]'
-                        % (self.codes.__repr__().replace("\'", "\""),
-                           self.codes.__repr__().replace("\'", "\"")))
-        # Websocket client manager
-        self._web_socket = WebSocketApp(
-            url="wss://api.upbit.com/websocket/v1",
-            on_message=lambda _web_socket, _message:
-                self._on_message(_web_socket, _message),
-            on_error=lambda _web_socket, _message:
-                self._on_error(_web_socket, _message),
-            on_close=lambda _web_socket:
-                self._on_close(_web_socket),
-            on_open=lambda _web_socket:
-                self._on_open(_web_socket))
-        # Upbit websocket json response body
-        self.information = {
-            'ty': 'ticker',
-            'cd': '',
-            'st': 'SNAPSHOT'
-        }
-        # Coin dictionary
-        self.coins = {}
-        for code in self.codes:
-            self.coins[code] = Coin(code)
-        # Sync thread status
+        self.coins = {code:Coin(code) for code in self.codes}
+        self.alive = False
+        self.__queue = multiprocessing.Queue()
+    
+    def get_coin(self, _code: str) -> Coin:
+        return self.coins[_code]
+
+    def start(self):
+        self.alive = True
+        self._websocket = WebsocketManager(code=self.codes, queue=self.__queue)
+        self._websocket.start()
+        threading.Thread(target=self._sync_thread, daemon=True).start()
+    
+    def stop(self):
+        self._websocket.terminate()
+        self.alive = False
+    
+    def _sync_thread(self):
+        self.__loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.__loop)
+        self.__loop.run_until_complete(self.__sync_loop())
+    
+    async def __sync_loop(self):
+        while self.alive:
+            message = self.__queue.get()
+            if message['ty'] == 'ticker':
+                self.coins[message['cd']].ticker = message
+            else:
+                self.coins[message['cd']].orderbook = message
+
+
+class Account:
+    def __init__(self, _access_key, _secret_key) -> None:
+        self._access_key = _access_key
+        self._secret_key = _secret_key
+        #self._upbit = pyupbit.Upbit(_access_key, _secret_key)
+        self.cash = 0.0
+        self.total_purchase = 0.0
+        self.total_avaluate = 0.0
         self.sync_status = False
 
-    def _on_message(self, _web_socket: WebSocketApp, _message) -> None:
-        """Websocket 메세지 수신
-
-        Args:
-            _web_socket (WebSocketApp): Websocket
-            _message ([type]): Json 메세지
-        """
-        # print(json.loads(_message.decode('utf-8')))
-        asyncio.run(self._update(json.loads(_message.decode('utf-8'))))
-
-    def _on_error(self, _web_socket: WebSocketApp, _message) -> None:
-        """Websocket 에러 수신
-
-        Args:
-            _web_socket (WebSocketApp): Websocket
-            _message ([type]): Json 메세지
-        """
-        log.error(_message)
-
-    def _on_close(self, _web_socket: WebSocketApp) -> None:
-        """Websocket 연결 종료
-
-        Args:
-            _web_socket (WebSocketApp): Websocket
-        """
-        log.info('Websocket close')
-        self.sync_status = False
-
-    def _on_open(self, _web_socket: WebSocketApp) -> None:
-        """Websocket 연결 요청
-
-        Args:
-            _web_socket (WebSocketApp): Websocket
-        """
-        log.info('Websocket open')
-        self._web_socket.send(self.request)
-        
     def _sync_thread(self) -> None:
-        self._web_socket.run_forever(ping_interval=40, ping_timeout=20)
+        while self.sync_status:
+            try:
+                total_purchase = 0
+                total_avaluate = 0
+                for item in asyncio.run(static.upbit.get_balances()):
+                    currency = item["currency"]
+                    balance = float(item["balance"])
+
+                    if currency == 'KRW':
+                        self.cash = balance
+                        #total_purchase += balance
+                        #total_avaluate += balance
+                    else:
+                        purchase = round(
+                            balance * float(item["avg_buy_price"]), 0)
+                        avaluate = round(balance * static.chart.get_coin("%s-%s" %
+                                                                         (config.FIAT, currency)).get_trade_price(), 0)
+                        loss = avaluate - purchase
+                        total_purchase += purchase
+                        total_avaluate += avaluate
+
+                self.total_purchase = total_purchase
+                self.total_avaluate = total_avaluate
+            except Exception as e:
+                print(e)
 
     def sync_start(self) -> None:
         """동기화 시작
         """
-        log.info('Websocket thread start')
         self.sync_status = True
         self.thread = Thread(target=self._sync_thread, daemon=True)
         self.thread.start()
@@ -491,49 +518,57 @@ class Chart:
     def sync_stop(self) -> None:
         """동기화 중지
         """
-        self._web_socket.close()
         self.sync_status = False
 
     def get_sync_status(self) -> bool:
         """동기화 동작 상태 반환
-
-        Returns:
-            bool: 동기화 동작 유무
         """
         return self.sync_status
 
-    async def _update(self, _response: dict) -> None:
-        """코인 정보 갱신
-
-        Args:
-            _response (dict): Json 메세지
+    def get_cash(self) -> float:
+        """총 보유 현금
         """
-        if _response['ty'] == 'ticker':
-            self.coins[_response['cd']].ticker = _response
-        else:
-            self.coins[_response['cd']].orderbook = _response
+        return self.cash
 
-    def get_coin(self, _code: str) -> Coin:
-        return self.coins[_code]
+    def get_buy_price(self) -> float:
+        """총 구매 비용
+        """
+        return self.total_purchase
 
+    def get_trade_price(self) -> float:
+        """총 현재 가격
+        """
+        return self.total_avaluate
 
-class Account:
-    def __init__(self, _access_key, _secret_key) -> None:
-        self._access_key = _access_key
-        self._secret_key = _secret_key
-        self._upbit = pyupbit.Upbit(_access_key, _secret_key)
+    def get_total_loss(self) -> float:
+        """총 손익 가격
+        """
+        return (self.total_avaluate - self.total_purchase)
 
 
 if __name__ == '__main__':
 
+    import sys
+    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
+    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+    if py_ver > 37 and sys.platform.startswith('win'):
+	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
     # Upbit coin chart
-    static.chart = Chart()
-    static.chart.sync_start()
+    # static.chart = Chart()
+    # static.chart.sync_start()
+    test = RealtimeManager()
+    test.start()
+    
 
     # User upbit connection
-    static.upbit = pyupbit.Upbit(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
+    static.upbit = pyupbit.Upbit(
+        config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
 
-    print(pyupbit.get_tickers())
+    # # Upbit account
+    # static.account = Account(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
+    # static.account.sync_start()
+
     while(True):
         import time
         time.sleep(1)

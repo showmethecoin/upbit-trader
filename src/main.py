@@ -11,9 +11,9 @@ from pyupbit.exchange_api import Upbit
 # User defined modules
 import config
 import static
+import component
 from static import log
 import prompt
-from component import Chart
 
 
 def init() -> bool:
@@ -34,8 +34,8 @@ def init() -> bool:
     # os.system(f"mode con: lines={config.PROGRAM['HEIGHT']} cols={config.PROGRAM['WIDTH']}")
 
     # Upbit coin chart
-    static.chart = Chart()
-    static.chart.sync_start()
+    static.chart = component.RealtimeManager()
+    static.chart.start()
 
     # User upbit connection
     static.upbit = pyupbit.Upbit(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
