@@ -14,7 +14,7 @@ UPBIT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 # Program base
 PROGRAM = {
     "NAME": "Upbit Automatic Trading Program",
-    "VERSION": 0.6,
+    "VERSION": 0.7,
     "WIDTH": 108,
     "HEIGHT": 200,
 }
