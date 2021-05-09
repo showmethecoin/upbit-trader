@@ -1,27 +1,24 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys
 import time
 import asyncio
 import datetime
 import traceback
 
 from apscheduler.schedulers.background import BackgroundScheduler
-import aiopyupbit
 import pymongo
+import aiopyupbit
 
+import utils
 import config
 import static
-from db import DBHandler
 from static import log
+from db import DBHandler
 
 
 class DataManager:
     def __init__(self,
-                 ip: str = 'localhost',
-                 port: int = 27017,
-                 id: str = None,
-                 password: str = None,
+                 db_handler: DBHandler = None,
                  external_timeout: int = config.SERVER["EXTERNAL_TIMEOUT"],
                  internal_timeout: int = config.SERVER["INTERNAL_TIMEOUT"],
                  request_limit: int = config.SERVER["REQUEST_LIMIT"]):
@@ -33,14 +30,9 @@ class DataManager:
             internal_timeout (int, optional): 최소 요청 시간. Defaults to config.SERVER["INTERNAL_TIMEOUT"].
             request_limit (int, optional): 초당 최대 요청 개수. Defaults to config.SERVER["REQUEST_LIMIT"].
         """
-        # Public
-        self.ip = ip
-        self.port = port
-        self.id = id
-        self.password = password
-        self.external_timeout = external_timeout
-        self.internal_timeout = internal_timeout
-        # Protected
+        self._db_handler = db_handler
+        self._external_timeout = external_timeout
+        self._internal_timeout = internal_timeout
         self._request_counter = request_limit
         self._request_limit = request_limit
         self._scheduler = BackgroundScheduler()
@@ -70,30 +62,25 @@ class DataManager:
         log.info(f'Candle sync sequence start')
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        db = DBHandler(ip=self.ip,
-                       port=self.port,
-                       id=self.id,
-                       password=self.password,
-                       loop=loop)
-        loop.run_until_complete(self._one_minute_candle(db))
+        loop.run_until_complete(self._one_minute_candle())
         loop.close()
         log.info(f'Candle sync sequence complete')
 
-    async def _get_sync_list(self, codes: list, base_time: str, db: DBHandler):
+    async def _get_sync_list(self, codes: list, base_time: str = None):
         try:
-            return [asyncio.create_task(self._request_and_save(code, base_time, db)) for code in codes]
+            return [asyncio.create_task(self._request_and_save(code, base_time)) for code in codes]
         except:
             print(traceback.format_exc())
 
-    async def _one_minute_candle(self, db: DBHandler):
+    async def _one_minute_candle(self):
         """1분 캔들 데이터 동기화 서브 루프
         """
         try:
             self._lock = asyncio.Lock()
             self._request_counter = self._request_limit
-            base_time = datetime.datetime.now().replace(
-                second=0, microsecond=0).strftime(config.UPBIT_TIME_FORMAT)
-            sync_list = await self._get_sync_list(codes=self._codes, base_time=base_time, db=db)
+            base_time = datetime.datetime.now().replace(second=0,
+                                                        microsecond=0).strftime(config.UPBIT_TIME_FORMAT)
+            sync_list = await self._get_sync_list(codes=self._codes, base_time=base_time)
 
             while sync_list:
                 overflow_requests = []
@@ -103,12 +90,11 @@ class DataManager:
                 log.info(
                     f'Limit overflow requests({len(overflow_requests)}): {overflow_requests}')
                 sync_list = await self._get_sync_list(codes=overflow_requests,
-                                                      base_time=base_time,
-                                                      db=db)
+                                                      base_time=base_time)
         except:
             print(traceback.format_exc())
 
-    async def _request_and_save(self, code: str = None, base_time: str = None, db: DBHandler = None) -> None or str:
+    async def _request_and_save(self, code: str = None, base_time: str = None) -> None or str:
         """캔들 데이터 REST 요청 및 DB 저장
 
         Args:
@@ -130,7 +116,7 @@ class DataManager:
                 else:
                     async with self._lock:
                         self._request_counter = self._request_limit
-                        await asyncio.sleep(self.internal_timeout)
+                        await asyncio.sleep(self._internal_timeout)
 
             candle_df = candle_df[candle_df['time'] < base_time]
 
@@ -143,12 +129,12 @@ class DataManager:
             if datetime.datetime.strptime(candle_list[-1]['time'], config.UPBIT_TIME_FORMAT) < datetime.datetime.strptime(base_time, config.UPBIT_TIME_FORMAT) - datetime.timedelta(minutes=1):
                 log.warning(
                     f'CandleTimeError\ncode    : {code}\nbase    : {base_time}\nresponse: {candle_list[-1]["time"]}')
-                # return code
+                return code
 
-            await db.insert_item_many(data=candle_list,
-                                      db_name='candles',
-                                      collection_name=f'{code}_minute_1',
-                                      ordered=False)
+            await self._db_handler.insert_item_many(data=candle_list,
+                                                    db_name='candles',
+                                                    collection_name=f'{code}_minute_1',
+                                                    ordered=False)
             return
 
         # 요청 횟수 제한 초과시 재시도 요청 목록에 포함시키기 위해 코인 마켓 코드 반환
@@ -167,15 +153,13 @@ if __name__ == '__main__':
     log.info(
         f'Starting {config.PROGRAM["NAME"]} Server version {config.PROGRAM["VERSION"]}')
 
-    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
-    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
-    if py_ver > 37 and sys.platform.startswith('win'):
-	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    utils.set_windows_selector_event_loop_global()
 
-    static.data_manager = DataManager(ip=config.MONGO['IP'],
-                                      port=config.MONGO['PORT'],
-                                      id=config.MONGO['ID'],
-                                      password=config.MONGO['PASSWORD'])
+    static.db = DBHandler(ip=config.MONGO['IP'],
+                          port=config.MONGO['PORT'],
+                          id=config.MONGO['ID'],
+                          password=config.MONGO['PASSWORD'])
+    static.data_manager = DataManager(db_handler=static.db)
     static.data_manager.start()
 
     while True:

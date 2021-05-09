@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem, QWidget, QApplication
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
+import utils
 import static
 import component
 from widget_orderbook import OrderbookWorker
@@ -47,7 +48,7 @@ class ChartWorker(QThread):
 class CoinlistWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        uic.loadUi("src/styles/ui/coin_list.ui", self)
+        uic.loadUi(utils.get_file_path("styles/ui/coin_list.ui"), self)
 
         #화면 수직,수평으로 늘릴 경우 칸에 맞게 변경됨
         #사용 가능한 공간을 채우기 위해 섹션의 크기를 자동으로 조정
@@ -120,12 +121,17 @@ class CoinlistWidget(QWidget):
 
 if __name__ == "__main__":
     import sys
-    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
-    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
-    if py_ver > 37 and sys.platform.startswith('win'):
-	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    import aiopyupbit
+    import config
+    
+    utils.set_windows_selector_event_loop_global()
 
-    static.chart = component.RealtimeManager()
+    # Upbit coin chart
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    codes = loop.run_until_complete(
+        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+    static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
 
     app = QApplication(sys.argv)
