@@ -5,6 +5,7 @@ import asyncio
 
 import config
 import static
+import utils
 import component
 from static import log
 from widget_login import gui_main
@@ -19,11 +20,8 @@ def init() -> bool:
 
     log.info('Initializing...')
 
-    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
-    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
-    if py_ver > 37 and sys.platform.startswith('win'):
-	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
+    utils.set_windows_selector_event_loop_global()
+    
     # Upbit coin chart
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import uic
 
+import utils
 from window_main import MainWindow
 import aiopyupbit
 import static
@@ -18,7 +19,7 @@ import static
 class LoginWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        uic.loadUi('styles/ui/login.ui', self)
+        uic.loadUi(utils.get_file_path('styles/ui/login.ui'), self)
 
         self.status = 0
         self.pushButton_connect.clicked.connect(self.change_page)
@@ -96,14 +97,14 @@ class LoginWidget(QWidget):
 
     # Edit Config File
     def edit_config(self):
-        with open('./config.yaml', 'w') as file:
+        with open(utils.get_file_path('config.yaml'), 'w') as file:
             self.config['UPBIT']['ACCESS_KEY'] = self.lineEdit_access.text()
             self.config['UPBIT']['SECRET_KEY'] = self.lineEdit_secret.text()
             yaml.dump(self.config, file)
 
     # Read Save File
     def read_config(self):
-        with open('./config.yaml', 'r') as file:
+        with open(utils.get_file_path('config.yaml'), 'r') as file:
             self.config = yaml.safe_load(file)
         self.lineEdit_access.setText(self.config['UPBIT']['ACCESS_KEY'])
         self.lineEdit_secret.setText(self.config['UPBIT']['SECRET_KEY'])
@@ -118,14 +119,17 @@ def gui_main():
 
 if __name__ == "__main__":
     import component
-    import sys
-    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
-    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
-    if py_ver > 37 and sys.platform.startswith('win'):
-	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    
+    utils.set_windows_selector_event_loop_global()
+
     app = QApplication(sys.argv)
-    static.chart = component.RealtimeManager()
+    # Upbit coin chart
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    codes = loop.run_until_complete(aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+    static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
+
     GUI = LoginWidget()
     GUI.show()
     sys.exit(app.exec_())

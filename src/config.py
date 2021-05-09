@@ -1,6 +1,7 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import yaml
+import utils
 
 # Upbit official fees ratio
 FEES = 0.005
@@ -25,7 +26,7 @@ SERVER = {
     "PING_INTERVAL": 60
 }
 # Read config file
-with open('./config.yaml', 'r') as file:
+with open(utils.get_file_path('config.yaml'), 'r') as file:
     config = yaml.safe_load(file)
 UPBIT = config['UPBIT']
 MONGO = config['MONGO']

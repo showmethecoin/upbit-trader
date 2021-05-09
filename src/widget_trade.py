@@ -4,12 +4,12 @@ from PyQt5.QtWidgets import *
 from PyQt5 import uic
 
 import static
-
+import utils
 
 class TradeWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        uic.loadUi("styles/ui/trade.ui", self)
+        uic.loadUi(utils.get_file_path("styles/ui/trade.ui"), self)
         self.set_price('KRW-BTC')
 
         # BUY Radio Clicked Listener Initiallize
