@@ -196,7 +196,6 @@ def print_holding_list() -> None:
                 balance = float(item["balance"])
                 if currency == 'XYM':
                     continue
-
                 if currency == 'KRW':
                     print(f'\t│ {currency:<5} {math.floor(balance):<21}')
                     total_purchase += balance
