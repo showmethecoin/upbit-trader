@@ -7,5 +7,4 @@ motor==2.3.0
 mplfinance==0.12.7a0
 pyqt5==5.15.2
 aiopyupbit
-
-
+cx_freeze
