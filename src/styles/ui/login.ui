@@ -97,7 +97,7 @@ color: rgb(200, 200, 200);</string>
         <property name="styleSheet">
          <string notr="true"/>
         </property>
-        <layout class="QHBoxLayout" name="frame_label_top_btn_2">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -114,11 +114,14 @@ color: rgb(200, 200, 200);</string>
           <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="toplabel_icon">
+          <widget class="QPushButton" name="pushButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="minimumSize">
             <size>
-             <width>0</width>
-             <height>0</height>
+             <width>30</width>
+             <height>30</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -127,23 +130,26 @@ color: rgb(200, 200, 200);</string>
              <height>30</height>
             </size>
            </property>
-           <property name="sizeIncrement">
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
            <property name="styleSheet">
-            <string notr="true">background-image: url(styles/icons/16x16/cil-chart-line.png);
-background-position: center;
-background-repeat: no-repeat;
-</string>
+            <string notr="true">QPushButton {	
+	background-color: rgb(0, 140, 140);	
+}
+QPushButton:hover {
+	background-color: rgb(40, 40, 40);
+}
+QPushButton:pressed {	
+	background-color: rgb(40, 40, 40);	
+}</string>
            </property>
-           <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
+           <property name="text">
+            <string/>
            </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
+           <property name="icon">
+            <iconset>
+             <normaloff>../icons/16x16/cil-chart-line.png</normaloff>../icons/16x16/cil-chart-line.png</iconset>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -430,7 +436,10 @@ QPushButton:pressed {
           </property>
           <property name="font">
            <font>
+            <family>Footlight MT Light</family>
             <pointsize>45</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="styleSheet">

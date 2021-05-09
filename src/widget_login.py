@@ -14,13 +14,17 @@ import utils
 from window_main import MainWindow
 import aiopyupbit
 import static
+import config
 
 
 class LoginWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         uic.loadUi(utils.get_file_path('styles/ui/login.ui'), self)
-
+        fontDB = QFontDatabase()
+        fontDB.addApplicationFont(utils.get_file_path('/styles/fonts/MASQUE.ttf'))
+        self.label.setFont(QFont('MASQUE',40))
+        self.label_2.setFont(QFont('gulim',45))
         self.status = 0
         self.pushButton_connect.clicked.connect(self.change_page)
         self.msg = QMessageBox()
