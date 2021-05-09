@@ -31,11 +31,15 @@ Total price|Individual price
 - [Index](#index)
   - [0. Environment](#0-environment)
   - [1. Quick Start](#1-quick-start)
-    - [a. Copy config example to config](#a-copy-config-example-to-config)
-    - [b. Edit config](#b-edit-config)
-    - [c. Install python module](#c-install-python-module)
-    - [d. Run code](#d-run-code)
-  - [2. Rule (PEP8)](#2-rule-pep8)
+    - [a. Clone project](#a-clone-project)
+    - [b. Copy config example to config](#b-copy-config-example-to-config)
+    - [c. Edit config](#c-edit-config)
+    - [d. Install python module](#d-install-python-module)
+    - [e. Run code](#e-run-code)
+  - [2. Build package](#2-build-package)
+    - [a. Windows](#a-windows)
+    - [b. Linux & Mac](#b-linux--mac)
+  - [3. Rule (PEP8)](#3-rule-pep8)
     - [a. 코드 레이아웃](#a-코드-레이아웃)
     - [b. 명명 규칙](#b-명명-규칙)
     - [c. 문장과 표현식](#c-문장과-표현식)
@@ -52,43 +56,74 @@ Total price|Individual price
 
 ## 1. Quick Start
 
-### a. Copy config example to config
+### a. Clone project
 
 ``` sh
-cp config.yaml.example config.yaml
+git clone https://github.com/showmethecoin/upbit-trader
 ```
 
-### b. Edit config
+### b. Copy config example to config
+
+``` sh
+cd upbit-trader
+cp config.yaml.example src/config.yaml
+```
+
+### c. Edit config
 
 ``` yaml
 # config.yaml.example 
+# Necessary edit
 UPBIT:
   ACCESS_KEY: INPUT_YOUR_UPBIT_ACCESS_KEY
   SECRET_KEY: INPUT_YOUR_UPBIT_SCEREY_KEY
+# Unnecessary edit
 MONGO: 
   IP: MONOG_IP
   PORT: MOGNO_PORT
   ID: MONOG_ACCOUNT_ID
   PASSWORD: MONOG_ACCOUNT_PASSWORD 
+# Unnecessary edit
 LOG:
   PATH: LOG_SAVE_PATH
   SAVE: WHETHER_TO_SAVE_BOOLEAN
   PRINT: WHETHER_TO_PRINT_BOOLEAN
 ```
 
-### c. Install python module
+### d. Install python module
 
 ``` sh
 pip install -r requirements.txt
 ```
 
-### d. Run code
+### e. Run code
 
 ``` sh
-python src/main.py
+cd src
+python main.py
 ```
 
-## 2. Rule ([PEP8](http://pythonstudy.xyz/python/article/511-%ED%8C%8C%EC%9D%B4%EC%8D%AC-%EC%BD%94%EB%94%A9-%EC%8A%A4%ED%83%80%EC%9D%BC))
+## 2. Build package
+
+### a. Windows
+
+It must build successfully
+
+``` sh
+cd src
+python setup.py bdist_msi
+```
+
+### b. Linux & Mac
+
+It must build successfully but it cannot run normally
+
+``` sh
+cd src
+python setup.py bdist_app
+```
+
+## 3. Rule ([PEP8](http://pythonstudy.xyz/python/article/511-%ED%8C%8C%EC%9D%B4%EC%8D%AC-%EC%BD%94%EB%94%A9-%EC%8A%A4%ED%83%80%EC%9D%BC))
 
 ### a. 코드 레이아웃
 
