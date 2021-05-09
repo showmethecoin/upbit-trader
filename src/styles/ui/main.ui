@@ -1958,11 +1958,11 @@ QDoubleSpinBo
               <number>0</number>
              </property>
              <item>
-              <widget class="QFrame" name="toplabel_icon">
+              <widget class="QPushButton" name="pushButton">
                <property name="minimumSize">
                 <size>
-                 <width>0</width>
-                 <height>0</height>
+                 <width>30</width>
+                 <height>30</height>
                 </size>
                </property>
                <property name="maximumSize">
@@ -1971,23 +1971,15 @@ QDoubleSpinBo
                  <height>30</height>
                 </size>
                </property>
-               <property name="sizeIncrement">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
+               <property name="text">
+                <string/>
                </property>
-               <property name="styleSheet">
-                <string notr="true">background-image: url(./src/styles/icons/16x16/cil-chart-line.png);
-background-position: center;
-background-repeat: no-repeat;
-</string>
+               <property name="icon">
+                <iconset>
+                 <normaloff>../icons/16x16/cil-chart-line.png</normaloff>../icons/16x16/cil-chart-line.png</iconset>
                </property>
-               <property name="frameShape">
-                <enum>QFrame::StyledPanel</enum>
-               </property>
-               <property name="frameShadow">
-                <enum>QFrame::Raised</enum>
+               <property name="flat">
+                <bool>true</bool>
                </property>
               </widget>
              </item>

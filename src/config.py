@@ -1,6 +1,7 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import yaml
+import utils
 
 # Upbit official fees ratio
 FEES = 0.005
@@ -13,7 +14,7 @@ UPBIT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 # Program base
 PROGRAM = {
     "NAME": "Upbit Automatic Trading Program",
-    "VERSION": 0.6,
+    "VERSION": 0.7,
     "WIDTH": 108,
     "HEIGHT": 200,
 }
@@ -25,7 +26,7 @@ SERVER = {
     "PING_INTERVAL": 60
 }
 # Read config file
-with open('./config.yaml', 'r') as file:
+with open(utils.get_file_path('config.yaml'), 'r') as file:
     config = yaml.safe_load(file)
 UPBIT = config['UPBIT']
 MONGO = config['MONGO']

@@ -8,8 +8,9 @@ from matplotlib.figure import Figure
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from mplfinance.original_flavor import candlestick2_ohlc
-
 import aiopyupbit
+
+import utils
 
 
 class MyMplCanvas(FigureCanvas):
@@ -73,10 +74,8 @@ class CandleChartWidget(QWidget):
 
 if __name__ == "__main__":
     import sys
-    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
-    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
-    if py_ver > 37 and sys.platform.startswith('win'):
-	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    
+    utils.set_windows_selector_event_loop_global()
 
     qApp = QApplication(sys.argv)
     aw = CandleChartWidget()
