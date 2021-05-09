@@ -9,7 +9,7 @@ import static
 class TradeWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        uic.loadUi("./src/styles/ui/trade.ui", self)
+        uic.loadUi("styles/ui/trade.ui", self)
         self.set_price('KRW-BTC')
 
         # BUY Radio Clicked Listener Initiallize

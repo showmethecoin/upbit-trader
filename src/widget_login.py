@@ -18,7 +18,7 @@ import static
 class LoginWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        uic.loadUi('./src/styles/ui/login.ui', self)
+        uic.loadUi('styles/ui/login.ui', self)
 
         self.status = 0
         self.pushButton_connect.clicked.connect(self.change_page)

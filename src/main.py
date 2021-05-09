@@ -7,7 +7,6 @@ import config
 import static
 import component
 from static import log
-import prompt
 from widget_login import gui_main
 
 
@@ -25,12 +24,16 @@ def init() -> bool:
     if py_ver > 37 and sys.platform.startswith('win'):
 	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
+    # Upbit coin chart
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    codes = loop.run_until_complete(aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+    static.chart = component.RealtimeManager(codes=codes)
+    static.chart.start()
+
+
     # Prompt window size setting
     # os.system(f"mode con: lines={config.PROGRAM['HEIGHT']} cols={config.PROGRAM['WIDTH']}")
-
-    # Upbit coin chart
-    static.chart = component.RealtimeManager()
-    static.chart.start()
 
     return True
 

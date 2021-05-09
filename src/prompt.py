@@ -4,6 +4,7 @@ import os
 import time
 import math
 import platform
+import asyncio
 
 import aiopyupbit
 
@@ -190,7 +191,7 @@ def print_holding_list() -> None:
 
             print_program_title()
             print('\t│ Code  Count                 Avg Buy         Purchase        Avaluate        Loss            Yield')
-            for item in static.upbit.get_balances():
+            for item in asyncio.run(static.upbit.get_balances()):
                 currency = item["currency"]
                 balance = float(item["balance"])
                 if currency == 'XYM':
@@ -265,9 +266,17 @@ def prompt_main() -> None:
 
 
 if __name__ == '__main__':
-
+    import sys
+    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
+    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
+    if py_ver > 37 and sys.platform.startswith('win'):
+	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+     
     # Upbit coin chart
-    static.chart = component.RealtimeManager()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    codes = loop.run_until_complete(aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+    static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
 
     # User upbit connection

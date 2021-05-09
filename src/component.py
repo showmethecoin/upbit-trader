@@ -430,14 +430,12 @@ class WebsocketManager(multiprocessing.Process):
 
 
 class RealtimeManager:
-    def __init__(self) -> None:
+    def __init__(self, codes:list) -> None:
         """RealtimeManager 생성자
         """
         # Public
-        self.codes = asyncio.run(aiopyupbit.get_tickers(
-            fiat=config.FIAT, contain_name=False))
-        self.coins = {code['market']: Coin(code) for code in asyncio.run(
-            aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))}
+        self.codes = [x['market'] for x in codes]
+        self.coins = {code['market']: Coin(code) for code in codes}
         self.uri = "wss://api.upbit.com/websocket/v1"
         self.request = json.dumps([
             {"ticket": str(uuid.uuid4())[:6]},
@@ -470,6 +468,7 @@ class RealtimeManager:
             request=self.request,
             ping_interval=self.ping_interval,
             queue=self.__queue)
+        multiprocessing.freeze_support()
         self._websocket.start()
         threading.Thread(target=self._sync_thread, daemon=True).start()
 
@@ -573,17 +572,18 @@ class Account:
 
 
 if __name__ == '__main__':
-
+    import sys
     # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
     py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
     if py_ver > 37 and sys.platform.startswith('win'):
 	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-    # Upbit coin chart
-    # static.chart = Chart()
-    # static.chart.sync_start()
-    test = RealtimeManager()
-    test.start()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    codes = loop.run_until_complete(
+        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+    static.chart = RealtimeManager(codes=codes)
+    static.chart.start()
 
     # User upbit connection
     static.upbit = aiopyupbit.Upbit(
