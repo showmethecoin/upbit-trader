@@ -431,7 +431,7 @@ class WebsocketManager(multiprocessing.Process):
 
 
 class RealtimeManager:
-    def __init__(self, codes:list) -> None:
+    def __init__(self, codes: list) -> None:
         """RealtimeManager 생성자
         """
         # Public
@@ -538,7 +538,7 @@ class Account:
         """동기화 시작
         """
         self.sync_status = True
-        self.thread = Thread(target=self._sync_thread, daemon=True)
+        self.thread = threading.Thread(target=self._sync_thread, daemon=True)
         self.thread.start()
 
     def sync_stop(self) -> None:

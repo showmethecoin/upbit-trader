@@ -12,6 +12,7 @@ import aiopyupbit
 
 import utils
 
+
 class MyMplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=12, height=8, dpi=100):
         plt.rcParams['axes.facecolor'] = '31363b'
@@ -72,6 +73,7 @@ class CandleChartWidget(QWidget):
 
 
 if __name__ == "__main__":
+    import sys
     
     utils.set_windows_selector_event_loop_global()
 

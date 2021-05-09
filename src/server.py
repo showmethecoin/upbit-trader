@@ -1,6 +1,5 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys
 import time
 import asyncio
 import datetime
@@ -8,12 +7,12 @@ import traceback
 
 from apscheduler.schedulers.background import BackgroundScheduler
 import pymongo
+import aiopyupbit
 
 import utils
 import config
 import static
 from static import log
-import aiopyupbit
 from db import DBHandler
 
 

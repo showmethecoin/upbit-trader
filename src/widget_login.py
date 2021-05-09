@@ -123,14 +123,16 @@ def gui_main():
 
 if __name__ == "__main__":
     import component
-    
+    import config
+
     utils.set_windows_selector_event_loop_global()
 
     app = QApplication(sys.argv)
     # Upbit coin chart
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    codes = loop.run_until_complete(aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+    codes = loop.run_until_complete(
+        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
     static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
 

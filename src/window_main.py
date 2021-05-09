@@ -68,11 +68,9 @@ if __name__ == "__main__":
     import sys
     import aiopyupbit
     import config
-
-    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
-    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
-    if py_ver > 37 and sys.platform.startswith('win'):
-	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    import utils
+    
+    utils.set_windows_selector_event_loop_global()
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
