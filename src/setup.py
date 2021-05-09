@@ -1,7 +1,7 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
-from cx_Freeze import executable, setup, Executable
+from cx_Freeze import setup, Executable
 
 buildOptions = dict(packages=[],
                     excludes=[],

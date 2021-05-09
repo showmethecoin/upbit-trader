@@ -1,6 +1,5 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys
 import asyncio
 
 import aiopyupbit
@@ -10,7 +9,7 @@ import static
 import utils
 import component
 from static import log
-from widget_login import gui_main
+import widget_login
 
 
 def init() -> bool:
@@ -23,14 +22,14 @@ def init() -> bool:
     log.info('Initializing...')
 
     utils.set_windows_selector_event_loop_global()
-    
+
     # Upbit coin chart
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    codes = loop.run_until_complete(aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+    codes = loop.run_until_complete(
+        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
     static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
-
 
     # Prompt window size setting
     # os.system(f"mode con: lines={config.PROGRAM['HEIGHT']} cols={config.PROGRAM['WIDTH']}")
@@ -42,7 +41,7 @@ def main() -> None:
     """프로그램 메인
     """
 
-    gui_main()
+    widget_login.gui_main()
     #prompt.prompt_main()
 
 

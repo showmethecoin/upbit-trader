@@ -18,7 +18,8 @@ class DBHandler:
         self.password = password
         self.host = f'mongodb://{self.id}:{self.password}@{self.ip}:{self.port}'
         if loop:
-            self.client = motor.motor_asyncio.AsyncIOMotorClient(self.host, io_loop=loop)
+            self.client = motor.motor_asyncio.AsyncIOMotorClient(
+                self.host, io_loop=loop)
             self.loop = loop
         else:
             self.client = motor.motor_asyncio.AsyncIOMotorClient(self.host)
@@ -48,7 +49,7 @@ class DBHandler:
         Returns:
             None: [description]
         """
-        
+
         result = await self.client[db_name][collection_name].insert_many(documents=data, ordered=ordered)
         return result.inserted_ids
 
@@ -91,7 +92,7 @@ async def main():
 
     # MongoDB에서 데이터 추출(내림차순)
     data = await db.find_item(condition=None, db_name='candles',
-                        collection_name='KRW-ADA_minute_1')
+                              collection_name='KRW-ADA_minute_1')
     data = data.sort('time', -1)
 
     data_df = pd.DataFrame(await data.to_list(length=None))

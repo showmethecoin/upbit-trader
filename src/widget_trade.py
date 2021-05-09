@@ -6,13 +6,14 @@ from PyQt5 import uic
 import static
 import utils
 
+
 class TradeWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         uic.loadUi(utils.get_file_path("styles/ui/trade.ui"), self)
         self.set_price('KRW-BTC')
 
-        # BUY Radio Clicked Listener Initiallize
+        # BUY Radio Clicked Listener Initialize
         self.buy_designation_price.setChecked(True)
         self.buy_designation_price.clicked.connect(
             self.clicked_buy_designation_price)
@@ -20,7 +21,7 @@ class TradeWidget(QWidget):
         self.buy_reservation_price.clicked.connect(
             self.clicked_buy_reservation_pice)
 
-        # SELL Radio Clicked Listener Initiallize
+        # SELL Radio Clicked Listener Initialize
         self.sell_designation_price.setChecked(True)
         self.sell_designation_price.clicked.connect(
             self.clicked_sell_designation_price)
@@ -29,17 +30,17 @@ class TradeWidget(QWidget):
         self.sell_reservation_price.clicked.connect(
             self.clicked_sell_reservation_pice)
 
-        # BUY Reset-Button Clicked Listener Initiallize
+        # BUY Reset-Button Clicked Listener Initialize
         self.buy_reset_1.clicked.connect(self.clicked_reset)
         self.buy_reset_2.clicked.connect(self.clicked_reset)
         self.buy_reset_3.clicked.connect(self.clicked_reset)
 
-        # SELL Reset-Button Clicked Listener Initiallize
+        # SELL Reset-Button Clicked Listener Initialize
         self.sell_reset_1.clicked.connect(self.clicked_reset)
         self.sell_reset_2.clicked.connect(self.clicked_reset)
         self.sell_reset_3.clicked.connect(self.clicked_reset)
 
-        # BUY Price Changed Listener Initiallize
+        # BUY Price Changed Listener Initialize
         self.buy_price_1.setGroupSeparatorShown(True)
         self.buy_price_1.textChanged.connect(self.changed_price)
         self.buy_volume_1.textChanged.connect(self.changed_volume)
@@ -48,7 +49,7 @@ class TradeWidget(QWidget):
         self.buy_volume_3.textChanged.connect(self.changed_volume)
         self.buy_total_price_3.textChanged.connect(self.changed_total)
 
-        # SELL Price Changed Listener Initiallize
+        # SELL Price Changed Listener Initialize
         self.sell_price_1.textChanged.connect(self.changed_price)
         self.sell_volume_1.textChanged.connect(self.changed_volume)
         self.sell_total_price_1.textChanged.connect(self.changed_total)
