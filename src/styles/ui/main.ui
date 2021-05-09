@@ -1978,7 +1978,7 @@ QDoubleSpinBo
                 </size>
                </property>
                <property name="styleSheet">
-                <string notr="true">background-image: url(./src/styles/icons/16x16/cil-chart-line.png);
+                <string notr="true">background-image: url(styles/icons/16x16/cil-chart-line.png);
 background-position: center;
 background-repeat: no-repeat;
 </string>

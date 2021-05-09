@@ -63,7 +63,8 @@ class DBHandler:
         Returns:
             dict: [description]
         """
-        return await self.client[db_name][collection_name].find_one(condition, {"_id": False}).inserted_id
+        result = await self.client[db_name][collection_name].find_one(condition, {"_id": False})
+        return result.inserted_id
 
     async def find_item(self, condition: dict = None, db_name: str = None, collection_name: str = None):
         return self.client[db_name][collection_name].find(condition, {"_id": False}, no_cursor_timeout=True, cursor_type=CursorType.EXHAUST)

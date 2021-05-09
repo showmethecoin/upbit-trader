@@ -196,6 +196,7 @@ def print_holding_list() -> None:
                 balance = float(item["balance"])
                 if currency == 'XYM':
                     continue
+
                 if currency == 'KRW':
                     print(f'\t│ {currency:<5} {math.floor(balance):<21}')
                     total_purchase += balance
@@ -272,7 +273,10 @@ if __name__ == '__main__':
 	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
      
     # Upbit coin chart
-    static.chart = component.RealtimeManager()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    codes = loop.run_until_complete(aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+    static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
 
     # User upbit connection

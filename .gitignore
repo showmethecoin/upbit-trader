@@ -137,9 +137,11 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# User defined
 **/__pycache__
-*.log
-*.bak
-.DS_Store
-config.yaml
-.idea
+**/*.log
+**/.DS_Store
+**/*.yaml
+**/.idea
+*.sh
+*.bat
