@@ -22,7 +22,7 @@ class LoginWidget(QWidget):
         super().__init__(parent)
         uic.loadUi(utils.get_file_path('styles/ui/login.ui'), self)
         fontDB = QFontDatabase()
-        fontDB.addApplicationFont(utils.get_file_path('/styles/fonts/MASQUE.ttf'))
+        fontDB.addApplicationFont(utils.get_file_path('styles/fonts/MASQUE.ttf'))
         self.label.setFont(QFont('MASQUE',40))
         self.label_2.setFont(QFont('gulim',45))
         self.status = 0
