@@ -1,6 +1,9 @@
+# !/usr/bin/python
+# -*- coding: utf-8 -*-
 import os
 import sys
 import asyncio
+import multiprocessing
 
 
 def get_file_path(filename: str):
@@ -18,3 +21,9 @@ def set_windows_selector_event_loop_global():
     py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
     if py_ver > 37 and sys.platform.startswith('win'):
 	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
+def set_multiprocessing_context():
+    if sys.platform == 'darwin' and getattr(sys, "frozen", False):
+            multiprocessing.set_start_method('fork')
+    

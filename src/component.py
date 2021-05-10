@@ -7,12 +7,12 @@ import threading
 import multiprocessing
 
 import websockets
+import aiopyupbit
 
 import utils
 import config
 import static
 from static import log
-import aiopyupbit
 
 
 class Coin:
@@ -404,7 +404,8 @@ class WebsocketManager(multiprocessing.Process):
         """
         log.info('Start websocket connection')
         self.alive = True
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         loop.run_until_complete(self.__connect_socket())
 
     def terminate(self) -> None:

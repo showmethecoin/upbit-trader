@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 import asyncio
 
+import aiopyupbit
+
+import utils
 import config
 import static
 import component
@@ -19,7 +22,8 @@ def init() -> bool:
     log.info('Initializing...')
 
     utils.set_windows_selector_event_loop_global()
-
+    utils.set_multiprocessing_context()
+    
     # Upbit coin chart
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
