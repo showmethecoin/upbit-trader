@@ -1,17 +1,17 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-# System libraries
 import os
 import time
 import math
 import platform
-# Upbit API libraries
-import pyupbit
-# User defined modules
+import asyncio
+
+import aiopyupbit
+
+import utils
 import config
-from static import log
 import static
-from component import Coin, Chart
+import component
 
 
 def press_any_key() -> None:
@@ -43,7 +43,7 @@ def print_program_title() -> None:
     try:
         if platform.system() == 'Windows':
             os.system('cls')
-        else:     
+        else:
             os.system('clear')
     except KeyboardInterrupt as e:
         pass
@@ -51,7 +51,7 @@ def print_program_title() -> None:
     print(
         f'\t┃                          {config.PROGRAM["NAME"]} :: Version {config.PROGRAM["VERSION"]}                          ┃')
     print(
-        f'\t┃                          Websocket sync thread status - {"● Enabled" if static.chart.get_sync_status() else "Χ Disabled"}                                ┃')
+        f'\t┃                          Websocket sync thread status - {"● Enabled" if static.chart.alive else "Χ Disabled"}                                ┃')
     print(f'\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛')
 
 
@@ -132,7 +132,7 @@ def print_individual_price() -> None:
             break
 
 
-def print_trade_information(_coin: Coin) -> None:
+def print_trade_information(_coin: component.Coin) -> None:
     """코인 거래 상세 정보 출력
 
     Args:
@@ -187,38 +187,38 @@ def print_holding_list() -> None:
     while True:
         try:
             total_purchase = 0
-            total_avaluate = 0
+            total_evaluate = 0
 
             print_program_title()
-            print('\t│ Code  Count                 Avg Buy         Purchase        Avaluate        Loss            Yield')
-            for item in static.upbit.get_balances():
+            print('\t│ Code  Count                 Avg Buy         Purchase        Evaluate        Loss            Yield')
+            for item in asyncio.run(static.upbit.get_balances()):
                 currency = item["currency"]
                 balance = float(item["balance"])
                 if currency == 'XYM':
                     continue
-                
+
                 if currency == 'KRW':
                     print(f'\t│ {currency:<5} {math.floor(balance):<21}')
                     total_purchase += balance
-                    total_avaluate += balance
+                    total_evaluate += balance
                 else:
                     purchase = round(balance * float(item["avg_buy_price"]), 0)
-                    avaluate = round(balance * static.chart.get_coin("%s-%s" %
+                    evaluate = round(balance * static.chart.get_coin("%s-%s" %
                                                                      (config.FIAT, currency)).get_trade_price(), 0)
-                    loss = avaluate - purchase
+                    loss = evaluate - purchase
                     total_purchase += purchase
-                    total_avaluate += avaluate
+                    total_evaluate += evaluate
                     print(
-                        f'\t│ {currency:<5} {balance:<21} {item["avg_buy_price"]:<15} {purchase:<15.0f} {avaluate:<15.0f} {loss:<15.0f} {((avaluate / purchase) - 1) * 100:<7.2f}%')
+                        f'\t│ {currency:<5} {balance:<21} {item["avg_buy_price"]:<15} {purchase:<15.0f} {evaluate:<15.0f} {loss:<15.0f} {((evaluate / purchase) - 1) * 100:<7.2f}%')
             print(f'\t│\n\t│ Total Purchase: {total_purchase:.0f}')
-            print(f'\t│ Total Avaluate: {total_avaluate:.0f}')
-            print(f'\t│ Total Loss    : {total_avaluate - total_purchase:.0f}')
+            print(f'\t│ Total Evaluate: {total_evaluate:.0f}')
+            print(f'\t│ Total Loss    : {total_evaluate - total_purchase:.0f}')
             print(
-                f'\t│ Total Yield   : {((total_avaluate / total_purchase) - 1) * 100:.2f} %')
+                f'\t│ Total Yield   : {((total_evaluate / total_purchase) - 1) * 100:.2f} %')
 
             print('\t[CTRL + C] Exit to menu')
             time.sleep(5)
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             break
         # except Exception as e:
         #     break
@@ -231,10 +231,10 @@ def prompt_main() -> None:
         print_menu()
         try:
             select = input("\t> ")
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             print("\n\tProgram terminating...")
             exit()
-        except Exception as e:
+        except Exception:
             print("\n\tProgram terminating...")
             exit()
 
@@ -249,14 +249,14 @@ def prompt_main() -> None:
         elif int(select) == 3:
             print_holding_list()
         elif int(select) == 8:
-            if not static.chart.sync_status:
-                static.chart.sync_start()
+            if not static.chart.alive:
+                static.chart.start()
             else:
                 print('\tWebsocket sync thread already enabled...')
                 press_any_key()
         elif int(select) == 9:
-            if static.chart.sync_status:
-                static.chart.sync_stop()
+            if static.chart.alive:
+                static.chart.stop()
             else:
                 print('\tWebsocket sync thread already disabled...')
                 press_any_key()
@@ -267,11 +267,18 @@ def prompt_main() -> None:
 
 if __name__ == '__main__':
 
+    utils.set_windows_selector_event_loop_global()
+
     # Upbit coin chart
-    static.chart = Chart()
-    static.chart.sync_start()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    codes = loop.run_until_complete(
+        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+    static.chart = component.RealtimeManager(codes=codes)
+    static.chart.start()
 
     # User upbit connection
-    static.upbit = pyupbit.Upbit(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
+    static.upbit = aiopyupbit.Upbit(
+        config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
 
     prompt_main()

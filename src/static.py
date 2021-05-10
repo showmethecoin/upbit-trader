@@ -11,10 +11,11 @@ account = None
 
 ''' Logger Configuration'''
 log = logging.getLogger()
-# Setup logger level 
+# Setup logger level
 log.setLevel(logging.INFO)
 # Setup logger format
-formatter = logging.Formatter(fmt=config.LOG['PRINT_FORMAT'], datefmt=config.TIME_FORMAT)
+formatter = logging.Formatter(
+    fmt=config.LOG['PRINT_FORMAT'], datefmt=config.TIME_FORMAT)
 # Setup logger handler
 if config.LOG['PRINT']:
     stream_handler = logging.StreamHandler()
