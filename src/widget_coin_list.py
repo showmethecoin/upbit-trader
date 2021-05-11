@@ -99,14 +99,14 @@ class CoinlistWidget(QWidget):
     def chkItemClicked(self):
         if len(self.coin_list.selectedItems()) == 0:
             return
-        coin = f"KRW-{self.coin_list.selectedItems()[0].text().split('(')[1][:-1]}"
+        code = f"KRW-{self.coin_list.selectedItems()[0].text().split('(')[1][:-1]}"
         self.order.ow.close()
         self.order.ow.wait()
-        self.order.ow = OrderbookWorker(coin)
+        self.order.ow = OrderbookWorker(code)
         self.order.ow.dataSent.connect(self.order.updateData)
         self.order.ow.start()
-        # self.chart.coin = coin
-        self.trade.set_price(coin)
+        self.chart.set_coin(code)
+        self.trade.set_price(code)
 
     def chkTopClicked(self, topIndex):
         # 정렬 누르면 선택된 것이있으면 없애고 정렬
