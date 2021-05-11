@@ -89,19 +89,19 @@ class RequestManager(multiprocessing.Process):
 
     async def __get_sync_list(self, codes: list, base_time: str):
         try:
-            return [asyncio.create_task(self.__request_and_save(code, base_time)) for code in codes]
+            return [asyncio.create_task(self.__request(code, base_time)) for code in codes]
         except:
             print(traceback.format_exc())
 
     async def __request_loop(self):
         while self.alive:
             data = self.__in_queue.get()
-            request_list = await self.__get_sync_list(
-                codes=data['codes'], base_time=data['base_time'])
+            request_list = await self.__get_sync_list(codes=data['codes'], 
+                                                      base_time=data['base_time'])
             request_result = list(filter(None, await asyncio.gather(*request_list)))
             self.__out_queue.put(request_result)
 
-    async def __request_and_save(self, code: str, base_time: str) -> None or str:
+    async def __request(self, code: str, base_time: str) -> None or str:
         try:
             candle_df = await aiopyupbit.get_ohlcv(ticker=code,
                                                    interval="minute1",
@@ -112,11 +112,12 @@ class RequestManager(multiprocessing.Process):
                 x, static.UPBIT_TIME_FORMAT).timetuple()) for x in candle_df['time']]
             candle_list = [candle_df.iloc[i].to_dict()
                            for i in range(len(candle_df))]
+            
             # TODO 만약 캔들데이터가 비정상적(캔들 부족)인 경우 재요청을 위한 처리 필요
             if datetime.datetime.strptime(candle_list[-1]['time'], static.UPBIT_TIME_FORMAT) < datetime.datetime.strptime(base_time, static.UPBIT_TIME_FORMAT) - datetime.timedelta(minutes=1):
-                log.warning(
-                    f'CandleTimeError\ncode    : {code}\nbase    : {base_time}\nresponse: {candle_list[-1]["time"]}')
-                # return code
+                log.warning(f'CandleTimeError\ncode    : {code}\nbase    : {base_time}\nresponse: {candle_list[-1]["time"]}')
+                return code
+            
             data = {
                 'data': candle_list,
                 'db_name': 'candles',
@@ -124,8 +125,8 @@ class RequestManager(multiprocessing.Process):
                 'ordered': False}
             self.__save_queue.put(data)
             return
-        # 요청 횟수 제한 초과시 재시도 요청 목록에 포함시키기 위해 코인 마켓 코드 반환
         except TypeError:
+            # 요청 횟수 제한 초과시 재시도 요청 목록에 포함시키기 위해 코인 마켓 코드 반환
             return code
         except:
             print(traceback.format_exc())
@@ -198,9 +199,7 @@ class DataManager:
         """
         log.info(f'One minute candles sync sequence start')
         try:
-            base_time = datetime.datetime.now()
-            base_time = base_time.replace(second=0, microsecond=0)
-            base_time = base_time.strftime(static.UPBIT_TIME_FORMAT)
+            base_time = datetime.datetime.now().replace(second=0, microsecond=0).strftime(static.UPBIT_TIME_FORMAT)
             sync_list = self.__codes
             while sync_list:
                 overflow_requests = []
@@ -208,10 +207,15 @@ class DataManager:
                     data = {
                         'base_time': base_time,
                         'codes': sync_list[i:i+self.request_limit]}
+                    start = time.time()
                     self.__request_in_queue.put(data)
                     request_result = self.__request_out_queue.get()
+                    spend_time = time.time() - start
+                    log.info(f'Request spend time: {spend_time}')
+                    if spend_time < 1:
+                        time.sleep(1 - spend_time)
                     overflow_requests.extend(request_result)
-                    time.sleep(1)
+                    
                 log.info(
                     f'Limit overflow requests({len(overflow_requests)}): {overflow_requests}')
                 sync_list = overflow_requests
