@@ -19,16 +19,17 @@ class ChartWorker(QThread):
 
     def __init__(self):
         super().__init__()
-        self.alive = True
+        self.alive = False
 
     def run(self):
+        self.alive = True
         while self.alive:
-            time.sleep(0.3)
-            if static.chart.coins.values() != None:
-                self.dataSent.emit(static.chart.coins.values())
+            time.sleep(0.25)
+            self.dataSent.emit(static.chart.coins.values())
 
     def close(self):
         self.alive = False
+        super().terminate()
 
 
 class CoinlistWidget(QWidget):
@@ -42,21 +43,17 @@ class CoinlistWidget(QWidget):
         self.coin_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.coin_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.coin_list.horizontalHeader().setFixedHeight(40)
-        #self.coinlist = static.chart.codes
-        self.coin_list.setRowCount(len(static.chart.codes))
-        
-        for i in range(len(static.chart.codes)):
-            item_0 = QTableWidgetItem(str(""))
-            item_0.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-            self.coin_list.setItem(i, 0, item_0)
-
-            item_1 = QTableWidgetItem(str(""))
-            item_1.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.coin_list.setItem(i, 1, item_1)
-
-            item_2 = QTableWidgetItem(str(""))
-            item_2.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.coin_list.setItem(i, 2, item_2)
+        count_codes = len(static.chart.codes)
+        self.coin_list.setRowCount(count_codes)
+        self.items = {}
+        for i in range(count_codes):
+            self.items[i] = (QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem())
+            self.items[i][0].setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            self.items[i][1].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.items[i][2].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)  
+            self.coin_list.setItem(i, 0, self.items[i][0])            
+            self.coin_list.setItem(i, 1, self.items[i][1])
+            self.coin_list.setItem(i, 2, self.items[i][2])
 
         self.cw = ChartWorker()
         self.cw.dataSent.connect(self.updataData)
@@ -67,25 +64,27 @@ class CoinlistWidget(QWidget):
         self.order = None
         self.chart = None
 
+        self.color_red = QBrush(QColor(21, 125, 25))
+        self.color_green = QBrush(QColor(241, 3, 3))
+        self.color_white = QBrush(QColor(255, 255, 255))
+
     def updataData(self, data):
-        for i,coin in enumerate(data):
-            item_0 = self.coin_list.item(i, 0)
-            item_0.setText(coin.korean_name + '(' + coin.code[4:] + ')')
-            
-            item_1 = self.coin_list.item(i, 1)
-            item_1.setText(str(format(coin.get_trade_price(), ",")))
-
-            item_2 = self.coin_list.item(i, 2)
-            item_2.setText(str(round(coin.get_signed_change_rate() * 100, 2)))
-
-            if round(coin.get_signed_change_rate() * 100, 2) < 0.0:
-                item_1.setForeground(QBrush(QColor(21, 125, 25)))
-                item_2.setForeground(QBrush(QColor(21, 125, 25)))
-            elif round(coin.get_signed_change_rate() * 100, 2) > 0.0:
-                item_1.setForeground(QBrush(QColor(241, 3, 3)))
-                item_2.setForeground(QBrush(QColor(241, 3, 3)))
-
-    def closeEvent(self, event):
+        for i, coin in enumerate(data):
+            change_rate = coin.get_signed_change_rate()
+            self.items[i][0].setText(f'{coin.korean_name}({coin.code[4:]})')
+            self.items[i][1].setText(f'{coin.get_trade_price():,}')
+            self.items[i][2].setText(f'{change_rate * 100:.2f} %')
+            if change_rate < 0:
+                self.items[i][1].setForeground(self.color_red)
+                self.items[i][2].setForeground(self.color_red)
+            elif change_rate > 0:
+                self.items[i][1].setForeground(self.color_green)
+                self.items[i][2].setForeground(self.color_green)
+            else:
+                self.items[i][1].setForeground(self.color_white)
+                self.items[i][2].setForeground(self.color_white)
+                
+    def closeEvent(self):
         self.cw.close()
 
     def setOrder(self, order):
@@ -100,13 +99,13 @@ class CoinlistWidget(QWidget):
     def chkItemClicked(self):
         if len(self.coin_list.selectedItems()) == 0:
             return
-        coin = "KRW-"+self.coin_list.selectedItems()[0].text().split('(')[1][:-1]
+        coin = f"KRW-{self.coin_list.selectedItems()[0].text().split('(')[1][:-1]}"
         self.order.ow.close()
         self.order.ow.wait()
         self.order.ow = OrderbookWorker(coin)
         self.order.ow.dataSent.connect(self.order.updateData)
         self.order.ow.start()
-        self.chart.coin = coin
+        # self.chart.coin = coin
         self.trade.set_price(coin)
 
     def chkTopClicked(self, topIndex):
@@ -118,13 +117,13 @@ class CoinlistWidget(QWidget):
             static.chart.sort(target='value')
         else:
             static.chart.sort(target='change')
-            
+
 
 if __name__ == "__main__":
     import sys
     import aiopyupbit
     import config
-    
+
     utils.set_windows_selector_event_loop_global()
 
     # Upbit coin chart
