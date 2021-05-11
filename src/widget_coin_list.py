@@ -4,7 +4,7 @@ import time
 import asyncio
 
 from PyQt5 import uic
-from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem, QWidget, QApplication
+from PyQt5.QtWidgets import QAbstractItemDelegate, QHeaderView, QTableWidgetItem, QWidget, QApplication
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
@@ -110,6 +110,8 @@ class CoinlistWidget(QWidget):
         self.trade.set_price(coin)
 
     def chkTopClicked(self, topIndex):
+        # 정렬 누르면 선택된 것이있으면 없애고 정렬
+        self.coin_list.clearSelection()
         if topIndex == 0:
             static.chart.sort(target='code')
         elif topIndex == 1:
