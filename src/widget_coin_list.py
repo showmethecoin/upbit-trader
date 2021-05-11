@@ -17,9 +17,8 @@ from widget_orderbook import OrderbookWorker
 class ChartWorker(QThread):
     dataSent = pyqtSignal(object)
 
-    def __init__(self, coinlist):
+    def __init__(self):
         super().__init__()
-        self.coinlist = coinlist
         self.alive = True
 
     def run(self):
@@ -27,7 +26,6 @@ class ChartWorker(QThread):
             time.sleep(0.3)
             if static.chart.coins.values() != None:
                 self.dataSent.emit(static.chart.coins.values())
-
 
     def close(self):
         self.alive = False
@@ -60,7 +58,7 @@ class CoinlistWidget(QWidget):
             item_2.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.coin_list.setItem(i, 2, item_2)
 
-        self.cw = ChartWorker(static.chart.codes)
+        self.cw = ChartWorker()
         self.cw.dataSent.connect(self.updataData)
         self.cw.start()
 
@@ -112,7 +110,13 @@ class CoinlistWidget(QWidget):
         self.trade.set_price(coin)
 
     def chkTopClicked(self, topIndex):
-        print(topIndex)
+        if topIndex == 0:
+            static.chart.sort(target='code')
+        elif topIndex == 1:
+            static.chart.sort(target='value')
+        else:
+            static.chart.sort(target='change')
+            
 
 if __name__ == "__main__":
     import sys

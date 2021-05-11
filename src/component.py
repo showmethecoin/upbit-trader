@@ -436,17 +436,22 @@ class RealtimeManager:
         """
         # Public
         self.codes = [x['market'] for x in codes]
+        self.sort_status = {'method': None,
+                            'ordered': None}
         self.coins = {code['market']: Coin(code) for code in codes}
         self.uri = "wss://api.upbit.com/websocket/v1"
-        self.request = json.dumps([
-            {"ticket": str(uuid.uuid4())[:6]},
-            {"type": "ticker", "codes": self.codes, "isOnlyRealtime": True},
-            {"type": "orderbook", "codes": self.codes, "isOnlyRealtime": True},
-            {"format": "SIMPLE"}
-        ])
+        self.request = json.dumps([{"ticket": str(uuid.uuid4())[:6]},
+                                   {"type": "ticker",
+                                    "codes": self.codes,
+                                    "isOnlyRealtime": True},
+                                   {"type": "orderbook",
+                                    "codes": self.codes,
+                                    "isOnlyRealtime": True},
+                                   {"format": "SIMPLE"}])
         self.ping_interval = config.SERVER["PING_INTERVAL"]
         self.alive = False
         # Private
+        self.__origin_coins = self.coins
         self.__queue = multiprocessing.Queue()
 
     def get_coin(self, code: str) -> Coin:
@@ -459,6 +464,50 @@ class RealtimeManager:
             Coin: 코드에 해당하는 Coin 인스턴스
         """
         return self.coins[code]
+
+    def sort(self, target: str):
+        if target == 'code':
+            if self.sort_status['method'] != 'code':
+                self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_code())}
+                self.sort_status['method'] = 'code'
+                self.sort_status['ordered'] = 'ascending'
+            elif self.sort_status['ordered'] == 'ascending':
+                self.coins = self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_code(), reverse=True)}
+                self.sort_status['ordered'] = 'descending'
+            else:
+                self.coins = self.__origin_coins
+                self.sort_status['method'] = None
+                self.sort_status['ordered'] = None
+        elif target == 'value':
+            if self.sort_status['method'] != 'value':
+                self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_trade_price())}
+                self.sort_status['method'] = 'value'
+                self.sort_status['ordered'] = 'ascending'
+            elif self.sort_status['ordered'] == 'ascending':
+                self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_trade_price(), reverse=True)}
+                self.sort_status['ordered'] = 'descending'
+            else:
+                self.coins = self.__origin_coins
+                self.sort_status['method'] = None
+                self.sort_status['ordered'] = None
+        elif target == 'change':
+            if self.sort_status['method'] != 'change':
+                self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_signed_change_rate(), reverse=True)}
+                self.sort_status['method'] = 'change'
+                self.sort_status['ordered'] = 'ascending'
+            elif self.sort_status['ordered'] == 'ascending':
+                self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_signed_change_rate())}
+                self.sort_status['ordered'] = 'descending'
+            else:
+                self.coins = self.__origin_coins
+                self.sort_status['method'] = None
+                self.sort_status['ordered'] = None
 
     def start(self) -> None:
         """RealtimeManager 동기화 시작
