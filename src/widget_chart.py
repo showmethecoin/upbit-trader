@@ -74,7 +74,7 @@ class CandleChartWidget(QWidget):
 
 if __name__ == "__main__":
     import sys
-    
+
     utils.set_windows_selector_event_loop_global()
 
     qApp = QApplication(sys.argv)

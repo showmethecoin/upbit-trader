@@ -18,26 +18,26 @@ from db import DBHandler
 
 class DataManager:
     def __init__(self,
-                 db_handler: DBHandler = None,
-                 external_timeout: int = config.SERVER["EXTERNAL_TIMEOUT"],
-                 internal_timeout: int = config.SERVER["INTERNAL_TIMEOUT"],
-                 request_limit: int = config.SERVER["REQUEST_LIMIT"]):
-        """DataManager 생성자
-
-        Args:
-            db_handler (DBHandler, optional): MongoDB 핸들러. Defaults to None.
-            external_timeout (int, optional): 최대 요청 시간. Defaults to config.SERVER["EXTERNAL_TIMEOUT"].
-            internal_timeout (int, optional): 최소 요청 시간. Defaults to config.SERVER["INTERNAL_TIMEOUT"].
-            request_limit (int, optional): 초당 최대 요청 개수. Defaults to config.SERVER["REQUEST_LIMIT"].
-        """
-        self._db_handler = db_handler
-        self._external_timeout = external_timeout
-        self._internal_timeout = internal_timeout
+                 db_ip: str = 'localhost',
+                 db_port: int = 27017,
+                 db_id: str = None,
+                 db_password: str = None,
+                 external_timeout: int = 60,
+                 internal_timeout: int = 1,
+                 request_limit: int = 10):
+        # Public
+        self.db_ip = db_ip
+        self.db_port = db_port
+        self.db_id = db_id
+        self.db_password = db_password
+        self.external_timeout = external_timeout
+        self.internal_timeout = internal_timeout
+        self.request_limit = request_limit
+        # Protected
         self._request_counter = request_limit
-        self._request_limit = request_limit
         self._scheduler = BackgroundScheduler()
         self._scheduler_status = False
-        self._codes = asyncio.run(aiopyupbit.get_tickers(fiat=config.FIAT))
+        self._codes = asyncio.run(aiopyupbit.get_tickers(fiat=static.FIAT))
         self._lock = None
 
     def start(self) -> None:
@@ -62,39 +62,47 @@ class DataManager:
         log.info(f'Candle sync sequence start')
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(self._one_minute_candle())
+        db = DBHandler(ip=self.db_ip,
+                       port=self.db_port,
+                       id=self.db_id,
+                       password=self.db_password,
+                       loop=loop)
+        loop.run_until_complete(self._one_minute_candle(db))
         loop.close()
         log.info(f'Candle sync sequence complete')
 
-    async def _get_sync_list(self, codes: list, base_time: str = None):
+    async def _get_sync_list(self, codes: list, base_time: str, db: DBHandler):
         try:
-            return [asyncio.create_task(self._request_and_save(code, base_time)) for code in codes]
+            return [asyncio.create_task(self._request_and_save(code, base_time, db)) for code in codes]
         except:
             print(traceback.format_exc())
 
-    async def _one_minute_candle(self):
+    async def _one_minute_candle(self, db: DBHandler):
         """1분 캔들 데이터 동기화 서브 루프
         """
         try:
             self._lock = asyncio.Lock()
-            self._request_counter = self._request_limit
-            base_time = datetime.datetime.now().replace(second=0,
-                                                        microsecond=0).strftime(config.UPBIT_TIME_FORMAT)
-            sync_list = await self._get_sync_list(codes=self._codes, base_time=base_time)
+            self._request_counter = static.REQUEST_LIMIT
+            base_time = datetime.datetime.now().replace(
+                second=0, microsecond=0).strftime(static.UPBIT_TIME_FORMAT)
+            sync_list = await self._get_sync_list(codes=self._codes,
+                                                  base_time=base_time,
+                                                  db=db)
 
             while sync_list:
                 overflow_requests = []
-                for i in range(0, len(sync_list), self._request_limit):
-                    request_result = list(filter(None, await asyncio.gather(*sync_list[i:i+self._request_limit])))
+                for i in range(0, len(sync_list), self.request_limit):
+                    request_result = list(filter(None, await asyncio.gather(*sync_list[i:i+self.request_limit])))
                     overflow_requests.extend(request_result)
                 log.info(
                     f'Limit overflow requests({len(overflow_requests)}): {overflow_requests}')
                 sync_list = await self._get_sync_list(codes=overflow_requests,
-                                                      base_time=base_time)
+                                                      base_time=base_time,
+                                                      db=db)
         except:
             print(traceback.format_exc())
 
-    async def _request_and_save(self, code: str = None, base_time: str = None) -> None or str:
+    async def _request_and_save(self, code: str = None, base_time: str = None, db: DBHandler = None) -> None or str:
         """캔들 데이터 REST 요청 및 DB 저장
 
         Args:
@@ -115,26 +123,26 @@ class DataManager:
                     break
                 else:
                     async with self._lock:
-                        self._request_counter = self._request_limit
-                        await asyncio.sleep(self._internal_timeout)
+                        self._request_counter = self.request_limit
+                        await asyncio.sleep(self.internal_timeout)
 
             candle_df = candle_df[candle_df['time'] < base_time]
 
             candle_df['_id'] = [time.mktime(datetime.datetime.strptime(
-                x, config.UPBIT_TIME_FORMAT).timetuple()) for x in candle_df['time']]
+                x, static.UPBIT_TIME_FORMAT).timetuple()) for x in candle_df['time']]
 
             candle_list = [candle_df.iloc[i].to_dict()
                            for i in range(len(candle_df))]
             # TODO 만약 캔들데이터가 비정상적(캔들 부족)인 경우 재요청을 위한 처리 필요
-            if datetime.datetime.strptime(candle_list[-1]['time'], config.UPBIT_TIME_FORMAT) < datetime.datetime.strptime(base_time, config.UPBIT_TIME_FORMAT) - datetime.timedelta(minutes=1):
+            if datetime.datetime.strptime(candle_list[-1]['time'], static.UPBIT_TIME_FORMAT) < datetime.datetime.strptime(base_time, static.UPBIT_TIME_FORMAT) - datetime.timedelta(minutes=1):
                 log.warning(
                     f'CandleTimeError\ncode    : {code}\nbase    : {base_time}\nresponse: {candle_list[-1]["time"]}')
-                return code
+                # return code
 
-            await self._db_handler.insert_item_many(data=candle_list,
-                                                    db_name='candles',
-                                                    collection_name=f'{code}_minute_1',
-                                                    ordered=False)
+            await db.insert_item_many(data=candle_list,
+                                      db_name='candles',
+                                      collection_name=f'{code}_minute_1',
+                                      ordered=False)
             return
 
         # 요청 횟수 제한 초과시 재시도 요청 목록에 포함시키기 위해 코인 마켓 코드 반환
@@ -150,16 +158,17 @@ class DataManager:
 
 if __name__ == '__main__':
 
-    log.info(
-        f'Starting {config.PROGRAM["NAME"]} Server version {config.PROGRAM["VERSION"]}')
-
     utils.set_windows_selector_event_loop_global()
 
-    static.db = DBHandler(ip=config.MONGO['IP'],
-                          port=config.MONGO['PORT'],
-                          id=config.MONGO['ID'],
-                          password=config.MONGO['PASSWORD'])
-    static.data_manager = DataManager(db_handler=static.db)
+    static.config = config.Config()
+    static.config.load()
+    static.data_manager = DataManager(db_ip=static.config.mongo_ip,
+                                      db_port=static.config.mongo_port,
+                                      db_id=static.config.mongo_id,
+                                      db_password=static.config.mongo_password,
+                                      external_timeout=static.EXTERNAL_TIMEOUT,
+                                      internal_timeout=static.INTERNAL_TIMEOUT,
+                                      request_limit=static.REQUEST_LIMIT)
     static.data_manager.start()
 
     while True:

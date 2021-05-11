@@ -122,15 +122,14 @@ class CoinlistWidget(QWidget):
 if __name__ == "__main__":
     import sys
     import aiopyupbit
-    import config
-    
+
     utils.set_windows_selector_event_loop_global()
 
     # Upbit coin chart
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     codes = loop.run_until_complete(
-        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+        aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
     static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
 

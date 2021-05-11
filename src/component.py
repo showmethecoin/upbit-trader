@@ -432,7 +432,9 @@ class WebsocketManager(multiprocessing.Process):
 
 
 class RealtimeManager:
-    def __init__(self, codes: list) -> None:
+    def __init__(self, 
+                 codes: list,
+                 ping_interval:int=60) -> None:
         """RealtimeManager 생성자
         """
         # Public
@@ -445,7 +447,7 @@ class RealtimeManager:
             {"type": "orderbook", "codes": self.codes, "isOnlyRealtime": True},
             {"format": "SIMPLE"}
         ])
-        self.ping_interval = config.SERVER["PING_INTERVAL"]
+        self.ping_interval = ping_interval
         self.alive = False
         # Private
         self.__queue = multiprocessing.Queue()
@@ -525,7 +527,7 @@ class Account:
                         purchase = round(
                             balance * float(item["avg_buy_price"]), 0)
                         avaluate = round(balance * static.chart.get_coin("%s-%s" %
-                                                                         (config.FIAT, currency)).get_trade_price(), 0)
+                                                                         (static.FIAT, currency)).get_trade_price(), 0)
                         loss = avaluate - purchase
                         total_purchase += purchase
                         total_avaluate += avaluate
@@ -574,24 +576,19 @@ class Account:
 
 
 if __name__ == '__main__':
-
+    import time
+    
     utils.set_windows_selector_event_loop_global()
 
+    static.config = config.Config()
+    static.config.load()
+    
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     codes = loop.run_until_complete(
-        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+        aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
     static.chart = RealtimeManager(codes=codes)
     static.chart.start()
 
-    # User upbit connection
-    static.upbit = aiopyupbit.Upbit(
-        config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
-
-    # # Upbit account
-    # static.account = Account(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
-    # static.account.sync_start()
-
     while(True):
-        import time
         time.sleep(1)
