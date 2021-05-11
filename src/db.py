@@ -8,7 +8,11 @@ class DBHandler:
     """MongoDB 핸들러
     """
 
-    def __init__(self, ip='localhost', port=27017, id=None, password=None, loop=None):
+    def __init__(self,
+                 ip='localhost', 
+                 port=27017, 
+                 id=None, 
+                 password=None, loop=None):
         self.ip = ip
         self.port = port
         self.id = id
@@ -98,7 +102,7 @@ async def main():
     data_df = data_df.set_index('time', inplace=False)
 
     # Dataframe 리샘플링
-    RESAMPLING = '5T'
+    RESAMPLING = 'B'
     new_df = pd.DataFrame()
     new_df['open'] = data_df.open.resample(RESAMPLING).first()
     new_df['high'] = data_df.high.resample(RESAMPLING).max()
