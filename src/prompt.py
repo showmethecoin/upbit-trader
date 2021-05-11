@@ -49,7 +49,7 @@ def print_program_title() -> None:
         pass
     print(f'\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓')
     print(
-        f'\t┃                          {config.PROGRAM["NAME"]} :: Version {config.PROGRAM["VERSION"]}                          ┃')
+        f'\t┃                          Upbit Automatic Trading Program :: Version {static.config.program_version}                          ┃')
     print(
         f'\t┃                          Websocket sync thread status - {"● Enabled" if static.chart.alive else "Χ Disabled"}                                ┃')
     print(f'\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛')
@@ -204,7 +204,7 @@ def print_holding_list() -> None:
                 else:
                     purchase = round(balance * float(item["avg_buy_price"]), 0)
                     evaluate = round(balance * static.chart.get_coin("%s-%s" %
-                                                                     (config.FIAT, currency)).get_trade_price(), 0)
+                                                                     (static.FIAT, currency)).get_trade_price(), 0)
                     loss = evaluate - purchase
                     total_purchase += purchase
                     total_evaluate += evaluate
@@ -266,19 +266,20 @@ def prompt_main() -> None:
 
 
 if __name__ == '__main__':
+    import component
 
     utils.set_windows_selector_event_loop_global()
 
-    # Upbit coin chart
+    static.config = config.Config()
+    static.config.load()
+    
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     codes = loop.run_until_complete(
-        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+        aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
     static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
-
-    # User upbit connection
-    static.upbit = aiopyupbit.Upbit(
-        config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
+    
+    static.upbit = aiopyupbit.Upbit(static.config.upbit_access_key, static.config.upbit_secret_key)
 
     prompt_main()

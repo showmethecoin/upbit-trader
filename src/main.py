@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 import asyncio
 
+import aiopyupbit
+
+import utils
 import config
 import static
-import component
 from static import log
+import component
 import widget_login
 import utils
 import aiopyupbit
@@ -20,14 +23,18 @@ def init() -> bool:
     """
 
     log.info('Initializing...')
-
+    
     utils.set_windows_selector_event_loop_global()
-
+    utils.set_multiprocessing_context()
+    
+    static.config = config.Config()
+    static.config.load()
+    
     # Upbit coin chart
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     codes = loop.run_until_complete(
-        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+        aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
     static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
 
@@ -46,9 +53,6 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-
-    log.info(
-        f'Starting {config.PROGRAM["NAME"]} version {config.PROGRAM["VERSION"]}')
 
     init()
     main()
