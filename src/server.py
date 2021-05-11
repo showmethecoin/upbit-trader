@@ -116,7 +116,7 @@ class RequestManager(multiprocessing.Process):
             # TODO 만약 캔들데이터가 비정상적(캔들 부족)인 경우 재요청을 위한 처리 필요
             if datetime.datetime.strptime(candle_list[-1]['time'], static.UPBIT_TIME_FORMAT) < datetime.datetime.strptime(base_time, static.UPBIT_TIME_FORMAT) - datetime.timedelta(minutes=1):
                 log.warning(f'CandleTimeError\ncode    : {code}\nbase    : {base_time}\nresponse: {candle_list[-1]["time"]}')
-                return code
+                # return code
             
             data = {
                 'data': candle_list,
@@ -174,6 +174,11 @@ class DataManager:
                                  trigger='cron',
                                  second='0',
                                  id="data_manager_one_minute_sync_loop")
+        # self.__scheduler.add_job(func=self._other_sync_loop,
+        #                          trigger='cron',
+        #                          minute='*/3',
+        #                          args=['minute_3'],
+        #                          id="data_manager_three_minute_sync_loop")
         self.__scheduler.start()
         self.__save_manager = SaveManager(db_ip=self.db_ip,
                                           db_port=self.db_port,
@@ -197,7 +202,7 @@ class DataManager:
     def _one_minute_sync_loop(self):
         """캔들 데이터 동기화 메인 루프
         """
-        log.info(f'One minute candles sync sequence start')
+        log.info(f'minute_1 candles sync sequence start')
         try:
             base_time = datetime.datetime.now().replace(second=0, microsecond=0).strftime(static.UPBIT_TIME_FORMAT)
             sync_list = self.__codes
@@ -221,62 +226,76 @@ class DataManager:
                 sync_list = overflow_requests
 
             if self.__request_out_queue.empty():
-                log.info(f'Candle sync sequence complete')
+                log.info(f'minute_1 candles sync sequence complete')
             else:
-                log.info(f'Candle sync sequence failed')
+                log.info(f'minute_1 candles sync sequence failed')
         except:
             print(traceback.format_exc())
 
     def _other_sync_loop(self, target: str):
         """캔들 데이터 동기화 메인 루프
         """
+        log.info(f'{target} candles sync sequence start')
         self.__loop.run_until_complete(self._other_sync(target=target))
+        log.info(f'{target} candles sync sequence complete')
 
     async def _other_sync(self, target: str):
-        for code in self.codes:
-            data = await self.__db.find_item(condition=None, db_name='candles',
-                                             collection_name=f'{code}_minute_1')
-            data_df = pd.DataFrame(await data.to_list(length=None))
-            # Dataframe 인덱스 설정
-            data_df['time'] = pd.to_datetime(data_df['time'])
-            data_df = data_df.set_index('time', inplace=False)
+        try:
+            for code in self.__codes:
+                data = await self.__db.find_item(condition=None, db_name='candles',
+                                                collection_name=f'{code}_minute_1')
+                data_df = pd.DataFrame(await data.to_list(length=None))
+                # Dataframe 인덱스 설정
+                data_df['time'] = pd.to_datetime(data_df['time'])
+                data_df = data_df.set_index('time', inplace=False)
 
-            # Dataframe 리샘플링
-            if target == 'minute_3':
-                RESAMPLING = '3T'
-            elif target == 'minute_5':
-                RESAMPLING = '5T'
-            elif target == 'minute_10':
-                RESAMPLING = '10T'
-            elif target == 'minute_15':
-                RESAMPLING = '15T'
-            elif target == 'minute_30':
-                RESAMPLING = '30T'
-            elif target == 'minute_60':
-                RESAMPLING = '1H'
-            elif target == 'minute_240':
-                RESAMPLING = '4H'
-            elif target == 'day':
-                RESAMPLING = '1D'
-            elif target == 'week':
-                RESAMPLING = 'B'
-            elif target == 'month':
-                RESAMPLING = '1M'
+                # Dataframe 리샘플링
+                if target == 'minute_3':
+                    RESAMPLING = '3T'
+                elif target == 'minute_5':
+                    RESAMPLING = '5T'
+                elif target == 'minute_10':
+                    RESAMPLING = '10T'
+                elif target == 'minute_15':
+                    RESAMPLING = '15T'
+                elif target == 'minute_30':
+                    RESAMPLING = '30T'
+                elif target == 'minute_60':
+                    RESAMPLING = '1H'
+                elif target == 'minute_240':
+                    RESAMPLING = '4H'
+                # elif target == 'day':
+                #     RESAMPLING = '1D'
+                # elif target == 'week':
+                #     RESAMPLING = 'B'
+                # elif target == 'month':
+                #     RESAMPLING = '1M'
 
-            new_df = pd.DataFrame()
-            if not 'minute' in target:
-                new_df['open'] = data_df.open.resample(RESAMPLING).first()
-                new_df['high'] = data_df.high.resample(RESAMPLING).max()
-                new_df['low'] = data_df.low.resample(RESAMPLING).min()
-                new_df['close'] = data_df.close.resample(RESAMPLING).last()
-                new_df['volume'] = data_df.volume.resample(RESAMPLING).sum()
-            else:
-                new_df['open'] = data_df.open.resample(RESAMPLING).first()
-                new_df['high'] = data_df.high.resample(RESAMPLING).max()
-                new_df['low'] = data_df.low.resample(RESAMPLING).min()
-                new_df['close'] = data_df.close.resample(RESAMPLING).last()
-                new_df['volume'] = data_df.volume.resample(RESAMPLING).sum()
-            new_df = new_df.sort_index(ascending=True)
+                new_df = pd.DataFrame()
+                if not 'minute' in target:
+                    new_df['open'] = data_df.open.resample(RESAMPLING).first()
+                    new_df['high'] = data_df.high.resample(RESAMPLING).max()
+                    new_df['low'] = data_df.low.resample(RESAMPLING).min()
+                    new_df['close'] = data_df.close.resample(RESAMPLING).last()
+                    new_df['volume'] = data_df.volume.resample(RESAMPLING).sum()
+                else:
+                    new_df['open'] = data_df.open.resample(RESAMPLING).first()
+                    new_df['high'] = data_df.high.resample(RESAMPLING).max()
+                    new_df['low'] = data_df.low.resample(RESAMPLING).min()
+                    new_df['close'] = data_df.close.resample(RESAMPLING).last()
+                    new_df['volume'] = data_df.volume.resample(RESAMPLING).sum()
+                new_df = new_df.reset_index()
+                new_df['_id'] = [time.mktime(x.timetuple()) for x in new_df['time']]
+                candle_list = [new_df.iloc[i].to_dict()
+                            for i in range(len(new_df))]
+                data = {
+                    'data': candle_list,
+                    'db_name': 'candles',
+                    'collection_name': f'{code}_{target}',
+                    'ordered': False}
+                self.__save_queue.put(data)
+        except:
+            print(traceback.format_exc())
 
 
 if __name__ == '__main__':
