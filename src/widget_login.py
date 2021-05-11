@@ -83,9 +83,6 @@ class LoginWidget(QWidget):
         if result:
             if(self.checkBox_save_user.isChecked()):
                 self.save_config()
-            # User upbit connection
-            static.upbit = aiopyupbit.Upbit(
-                self.lineEdit_access.text(), self.lineEdit_secret.text())
             self.secondWindow = MainWindow()
             self.secondWindow.show()
             self.close()
