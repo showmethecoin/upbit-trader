@@ -141,7 +141,6 @@ cython_debug/
 **/__pycache__
 **/*.log
 **/.DS_Store
-**/*.yaml
 **/.idea
 **/*.example
 *.sh
