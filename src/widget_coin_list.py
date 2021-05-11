@@ -15,7 +15,7 @@ from widget_orderbook import OrderbookWorker
 
 
 class ChartWorker(QThread):
-    dataSent = pyqtSignal(list)
+    dataSent = pyqtSignal(object)
 
     def __init__(self, coinlist):
         super().__init__()
@@ -24,22 +24,10 @@ class ChartWorker(QThread):
 
     def run(self):
         while self.alive:
-            data = []
-            cointradeprice = []
-            coinchangerate = []
-            for coin in static.chart.coins.values():
-                #foramt(값, ",") 이거 1000단위로 , 찍어줌
-                cointradeprice.append(
-                    format(round(coin.get_trade_price(), 3), ","))
-                coinchangerate.append(
-                    round(coin.get_signed_change_rate() * 100, 2))
-            data.append(self.coinlist)
-            data.append(cointradeprice)
-            data.append(coinchangerate)
-            time.sleep(0.1)
+            time.sleep(0.3)
+            if static.chart.coins.values() != None:
+                self.dataSent.emit(static.chart.coins.values())
 
-            if data != None:
-                self.dataSent.emit(data)
 
     def close(self):
         self.alive = False
@@ -57,7 +45,8 @@ class CoinlistWidget(QWidget):
         self.coin_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.coin_list.horizontalHeader().setFixedHeight(40)
         self.coinlist = static.chart.codes
-
+        self.coin_list.setRowCount(len(self.coinlist))
+        
         for i in range(len(self.coinlist)):
             item_0 = QTableWidgetItem(str(""))
             item_0.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
@@ -80,17 +69,20 @@ class CoinlistWidget(QWidget):
         self.chart = None
 
     def updataData(self, data):
-        for i in range(len(data[0])):
+        for i,coin in enumerate(data):
             item_0 = self.coin_list.item(i, 0)
-            item_0.setText(str(data[0][i]))
+            item_0.setText(coin.korean_name + '(' + coin.code[4:] + ')')
+            
             item_1 = self.coin_list.item(i, 1)
-            item_1.setText(str(data[1][i]))
+            item_1.setText(str(format(coin.get_trade_price(), ",")))
+
             item_2 = self.coin_list.item(i, 2)
-            item_2.setText(str(data[2][i]))
-            if data[2][i] < 0:
+            item_2.setText(str(round(coin.get_signed_change_rate() * 100, 2)))
+            
+            if round(coin.get_signed_change_rate() * 100, 2) < 0:
                 item_1.setForeground(QBrush(QColor(21, 125, 25)))
                 item_2.setForeground(QBrush(QColor(21, 125, 25)))
-            elif data[2][i] > 0:
+            elif round(coin.get_signed_change_rate() * 100, 2) > 0:
                 item_1.setForeground(QBrush(QColor(241, 3, 3)))
                 item_2.setForeground(QBrush(QColor(241, 3, 3)))
 
@@ -109,7 +101,7 @@ class CoinlistWidget(QWidget):
     def chkItemClicked(self):
         if len(self.coin_list.selectedItems()) == 0:
             return
-        coin = self.coin_list.selectedItems()[0].text()
+        coin = "KRW-"+self.coin_list.selectedItems()[0].text().split('(')[1][:-1]
         self.order.ow.close()
         self.order.ow.wait()
         self.order.ow = OrderbookWorker(coin)

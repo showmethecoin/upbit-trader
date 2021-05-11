@@ -7,6 +7,9 @@ import static
 import component
 from static import log
 import widget_login
+import utils
+import aiopyupbit
+
 
 
 def init() -> bool:

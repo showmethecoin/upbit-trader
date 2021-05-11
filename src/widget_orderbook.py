@@ -3,7 +3,7 @@
 import time
 import asyncio
 
-from PyQt5 import uic
+from PyQt5 import QtGui, uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QPropertyAnimation, Qt, QThread, pyqtSignal
 
@@ -44,6 +44,7 @@ class OrderbookWidget(QWidget):
         self.tableAsks.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tableBids.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+        
         self.ticker = ticker
 
         self.asksAnim = []
@@ -92,45 +93,76 @@ class OrderbookWidget(QWidget):
         data = data[0:10]
         asks_size = coin.get_total_ask_size() * 0.01
         bids_size = coin.get_total_bid_size() * 0.01
+        # 현재가, 호가창에서 현재가의 위치를 찍기위해 선언
+        trade_price = coin.get_trade_price()
 
-        # asks테이블 값 설정
-        for i, v in enumerate(data[::-1]):
+        #self.tableAsks.setForeground(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+
+        for i in range(len(data)):
             item_0 = self.tableAsks.item(i, 0)
-            item_0.setText(f"{round(v['ap'],3):,}")
-
+            item_0.setText(f"{round(data[9-i]['ap'],3):,}")
             item_1 = self.tableAsks.cellWidget(i, 1)
+            if data[9-i]['ap'] == trade_price:
+                item_0.setForeground(QtGui.QBrush(QtGui.QColor(255, 255, 0)))
+            else:
+                item_0.setForeground(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
             # 범위가 int형으로 들어가기 때문에(값이 낮아서 전부 0으로 되는 문제)
             # 소수 3째자리 까지 표현하므로 범위값에 1000을 곱해서 범위를 지정해줌
             item_1.setRange(0, 100)
-            item_1.setFormat(f"{round(v['as'],3):,}")
-            self.asksAnim[i].setStartValue(v['as']/asks_size)
-            self.asksAnim[i].setEndValue(v['as']/asks_size)
-            self.asksAnim[i].start()
+            item_1.setFormat(f"{round(data[9-i]['as'],3):,}")
 
-        # bids테이블 값 설정
-        for i, v in enumerate(data):
             item_0 = self.tableBids.item(i, 0)
-            item_0.setText(f"{round(v['bp'],3):,}")
-
+            item_0.setText(f"{round(data[i]['bp'],3):,}")
+            if data[i]['bp'] == trade_price:
+                #item_0.setStyleSheet("border:1px solid grey; border-bottom-left-radius: 5px;border-bottom-right-radius: 5px;")
+                #self.tableview.setSelectionBehavior(QTableView.SelectRows);
+                item_0.setForeground(QtGui.QBrush(QtGui.QColor(255, 255, 0)))
+            else:
+                item_0.setForeground(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+            
             item_1 = self.tableBids.cellWidget(i, 1)
             item_1.setRange(0, 100)
-            item_1.setFormat(f"{round(v['bs'],3):,}")
-            self.bidsAnim[i].setStartValue(v['bs']/bids_size)
-            self.bidsAnim[i].setEndValue(v['bs']/bids_size)
-            self.bidsAnim[i].start()
+            item_1.setFormat(f"{round(data[i]['bs'],3):,}")
 
+            self.asksAnim[i].setStartValue(data[9-i]['as']/asks_size)
+            self.asksAnim[i].setEndValue(data[9-i]['as']/asks_size)
+            self.asksAnim[i].start()
+            self.bidsAnim[i].setStartValue(data[i]['bs']/bids_size)
+            self.bidsAnim[i].setEndValue(data[i]['bs']/bids_size)
+            self.bidsAnim[i].start()
+       
     def closeEvent(self, event):
         self.ow.close()
 
 
 if __name__ == "__main__":
     import sys
+
+    import aiopyupbit
+    import config
+    import utils
+
+#   위에 3개 지움
+
+
     # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
     py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
     if py_ver > 37 and sys.platform.startswith('win'):
 	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-    static.chart = component.RealtimeManager()
+
+#요기부터
+    utils.set_windows_selector_event_loop_global()
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    codes = loop.run_until_complete(
+        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+
+#요기까지 지움
+
+
+    static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
 
     app = QApplication(sys.argv)
