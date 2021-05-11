@@ -44,10 +44,10 @@ class CoinlistWidget(QWidget):
         self.coin_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.coin_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.coin_list.horizontalHeader().setFixedHeight(40)
-        self.coinlist = static.chart.codes
-        self.coin_list.setRowCount(len(self.coinlist))
+        #self.coinlist = static.chart.codes
+        self.coin_list.setRowCount(len(static.chart.codes))
         
-        for i in range(len(self.coinlist)):
+        for i in range(len(static.chart.codes)):
             item_0 = QTableWidgetItem(str(""))
             item_0.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
             self.coin_list.setItem(i, 0, item_0)
@@ -60,10 +60,11 @@ class CoinlistWidget(QWidget):
             item_2.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.coin_list.setItem(i, 2, item_2)
 
-        self.cw = ChartWorker(self.coinlist)
+        self.cw = ChartWorker(static.chart.codes)
         self.cw.dataSent.connect(self.updataData)
         self.cw.start()
 
+        self.coin_list.horizontalHeader().sectionClicked.connect(self.chkTopClicked)
         self.coin_list.cellClicked.connect(self.chkItemClicked)
         self.order = None
         self.chart = None
@@ -78,11 +79,11 @@ class CoinlistWidget(QWidget):
 
             item_2 = self.coin_list.item(i, 2)
             item_2.setText(str(round(coin.get_signed_change_rate() * 100, 2)))
-            
-            if round(coin.get_signed_change_rate() * 100, 2) < 0:
+
+            if round(coin.get_signed_change_rate() * 100, 2) < 0.0:
                 item_1.setForeground(QBrush(QColor(21, 125, 25)))
                 item_2.setForeground(QBrush(QColor(21, 125, 25)))
-            elif round(coin.get_signed_change_rate() * 100, 2) > 0:
+            elif round(coin.get_signed_change_rate() * 100, 2) > 0.0:
                 item_1.setForeground(QBrush(QColor(241, 3, 3)))
                 item_2.setForeground(QBrush(QColor(241, 3, 3)))
 
@@ -110,6 +111,8 @@ class CoinlistWidget(QWidget):
         self.chart.coin = coin
         self.trade.set_price(coin)
 
+    def chkTopClicked(self, topIndex):
+        print(topIndex)
 
 if __name__ == "__main__":
     import sys
