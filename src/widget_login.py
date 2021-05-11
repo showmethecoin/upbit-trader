@@ -1,9 +1,9 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
-import yaml
 import asyncio
 
+import aiopyupbit
 from PyQt5 import QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -12,13 +12,12 @@ from PyQt5 import uic
 
 import utils
 from window_main import MainWindow
-import aiopyupbit
 import static
 import config
 
 
 class LoginWidget(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None,):
         super().__init__(parent)
         uic.loadUi(utils.get_file_path('styles/ui/login.ui'), self)
         fontDB = QFontDatabase()
@@ -28,7 +27,7 @@ class LoginWidget(QWidget):
         self.status = 0
         self.pushButton_connect.clicked.connect(self.change_page)
         self.msg = QMessageBox()
-        self.read_config()
+        self.load_config()
         # Set Titlebar button Click Event
         self.close_btn.clicked.connect(self.close_btn_click)
         self.minimize_btn.clicked.connect(lambda: self.showMinimized())
@@ -79,12 +78,11 @@ class LoginWidget(QWidget):
 
     # Change to Main
     def change_page(self):
-        static.upbit = aiopyupbit.Upbit(
-            self.lineEdit_access.text(), self.lineEdit_secret.text())
+        static.upbit = aiopyupbit.Upbit(self.lineEdit_access.text(), self.lineEdit_secret.text())
         result, message = asyncio.run(static.upbit.check_authentication())
         if result:
             if(self.checkBox_save_user.isChecked()):
-                self.edit_config()
+                self.save_config()
             # User upbit connection
             static.upbit = aiopyupbit.Upbit(
                 self.lineEdit_access.text(), self.lineEdit_secret.text())
@@ -99,19 +97,16 @@ class LoginWidget(QWidget):
             self.msg.setText(f'Error : {message}')
             self.msg.show()
 
-    # Edit Config File
-    def edit_config(self):
-        with open(utils.get_file_path('config.yaml'), 'w') as file:
-            self.config['UPBIT']['ACCESS_KEY'] = self.lineEdit_access.text()
-            self.config['UPBIT']['SECRET_KEY'] = self.lineEdit_secret.text()
-            yaml.dump(self.config, file)
+    # Save config
+    def save_config(self):
+        static.config.upbit_access_key = self.lineEdit_access.text()
+        static.config.upbit_secret_key = self.lineEdit_secret.text()
+        static.config.save()
 
-    # Read Save File
-    def read_config(self):
-        with open(utils.get_file_path('config.yaml'), 'r') as file:
-            self.config = yaml.safe_load(file)
-        self.lineEdit_access.setText(self.config['UPBIT']['ACCESS_KEY'])
-        self.lineEdit_secret.setText(self.config['UPBIT']['SECRET_KEY'])
+    # Load config and read
+    def load_config(self):
+        self.lineEdit_access.setText(static.config.upbit_access_key)
+        self.lineEdit_secret.setText(static.config.upbit_secret_key)
 
 
 def gui_main():
@@ -123,19 +118,20 @@ def gui_main():
 
 if __name__ == "__main__":
     import component
-    import config
 
     utils.set_windows_selector_event_loop_global()
 
-    app = QApplication(sys.argv)
-    # Upbit coin chart
+    static.config = config.Config()
+    static.config.load()
+    
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     codes = loop.run_until_complete(
-        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+        aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
     static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
 
+    app = QApplication(sys.argv)
     GUI = LoginWidget()
     GUI.show()
     sys.exit(app.exec_())

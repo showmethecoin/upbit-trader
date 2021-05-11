@@ -4,14 +4,15 @@ import pandas as pd
 import motor.motor_asyncio
 from pymongo import CursorType
 
-import config
-
-
 class DBHandler:
     """MongoDB 핸들러
     """
 
-    def __init__(self, ip='localhost', port=27017, id=None, password=None, loop=None):
+    def __init__(self,
+                 ip='localhost', 
+                 port=27017, 
+                 id=None, 
+                 password=None, loop=None):
         self.ip = ip
         self.port = port
         self.id = id
@@ -87,8 +88,8 @@ class DBHandler:
 
 
 async def main():
-    db = DBHandler(ip=config.MONGO['IP'], port=config.MONGO['PORT'],
-                   id=config.MONGO['ID'], password=config.MONGO['PASSWORD'])
+    db = DBHandler(ip=static.config.mongo_ip, port=static.config.mongo_port,
+                   id=static.config.mongo_id, password=static.config.mongo_password)
 
     # MongoDB에서 데이터 추출(내림차순)
     data = await db.find_item(condition=None, db_name='candles',
@@ -101,7 +102,7 @@ async def main():
     data_df = data_df.set_index('time', inplace=False)
 
     # Dataframe 리샘플링
-    RESAMPLING = '5T'
+    RESAMPLING = 'B'
     new_df = pd.DataFrame()
     new_df['open'] = data_df.open.resample(RESAMPLING).first()
     new_df['high'] = data_df.high.resample(RESAMPLING).max()
@@ -114,5 +115,11 @@ async def main():
 
 if __name__ == '__main__':
     import asyncio
+    import static
+    import config
+    
+    static.config = config.Config()
+    static.config.load()
+    
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
