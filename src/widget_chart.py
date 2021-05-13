@@ -10,7 +10,6 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from mplfinance.original_flavor import candlestick2_ohlc
 import aiopyupbit
-import pandas as pd
 
 import utils
 
@@ -103,6 +102,10 @@ class CandleChartWidget(QWidget):
     # chart update
     def get_chart(self):
         df = self.__out_queue.get()
+        if isinstance(df, type(None)):
+            df = self.before_df
+        else:
+            self.before_df = df
         try:
             candlestick2_ohlc(self.canvas.axes, 
                             df['open'], 
@@ -110,8 +113,8 @@ class CandleChartWidget(QWidget):
                             df['low'], 
                             df['close'], 
                             width=0.5, 
-                            colorup='r', 
-                            colordown='g')
+                            colorup='#02C076', 
+                            colordown='#CF304A')
         except:
             pass
 

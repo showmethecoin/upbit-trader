@@ -42,14 +42,20 @@ class CoinlistWidget(QWidget):
         #참고 QHeaderView Class
         self.coin_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.coin_list.horizontalHeader().sectionClicked.connect(self.chkTopClicked)
+        # self.coin_list.horizontalHeader(0).setToolTip()
+        # self.coin_list.setSortingEnabled(True)
         self.coin_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         
         count_codes = len(static.chart.codes)
         self.coin_list.setRowCount(count_codes)
-        self.items = {}
+        font = QFont()
+        font.setBold(True)
+        self.items = []
         for i in range(count_codes):
-            self.items[i] = (QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem())
+            self.items.append([QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem()])
+            self.items[i][0].setFont(font)
             self.items[i][0].setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            self.items[i][1].setFont(font)
             self.items[i][1].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.items[i][2].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)  
             self.coin_list.setItem(i, 0, self.items[i][0])            
@@ -64,8 +70,8 @@ class CoinlistWidget(QWidget):
         self.order = None
         self.chart = None
 
-        self.color_red = QBrush(QColor(21, 125, 25))
-        self.color_green = QBrush(QColor(241, 3, 3))
+        self.color_red = QBrush(QColor(207, 48, 74))  # CF304A
+        self.color_green = QBrush(QColor(2, 192, 118))  # 02C076
         self.color_white = QBrush(QColor(255, 255, 255))
 
     def updataData(self, data):
@@ -97,9 +103,10 @@ class CoinlistWidget(QWidget):
         self.trade = trade
 
     def chkItemClicked(self):
-        if len(self.coin_list.selectedItems()) == 0:
+        select_item = self.coin_list.selectedItems()
+        if len(select_item) == 0:
             return
-        code = f"KRW-{self.coin_list.selectedItems()[0].text().split('(')[1][:-1]}"
+        code = f"KRW-{select_item[0].text().split('(')[1][:-1]}"
         self.order.ow.close()
         self.order.ow.wait()
         self.order.ow = OrderbookWorker(code)

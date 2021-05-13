@@ -20,6 +20,7 @@ class LoginWidget(QWidget):
     def __init__(self, parent=None,):
         super().__init__(parent)
         uic.loadUi(utils.get_file_path('styles/ui/login.ui'), self)
+        
         fontDB = QFontDatabase()
         fontDB.addApplicationFont(utils.get_file_path('styles/fonts/MASQUE.ttf'))
         self.label.setFont(QFont('MASQUE',55))
@@ -53,14 +54,14 @@ class LoginWidget(QWidget):
                 event.accept()
 
         # DoubleClick Event Listener
-        def dobleClickMaximizeRestore(event):
+        def doubleClickMaximizeRestore(event):
             if event.type() == QtCore.QEvent.MouseButtonDblClick:
                 self.maximize_restore()
 
         # Link events to Titlebar
         self.toplabel_title.mousePressEvent = mousePressEvent
         self.toplabel_title.mouseMoveEvent = moveWindow
-        self.toplabel_title.mouseDoubleClickEvent = dobleClickMaximizeRestore
+        self.toplabel_title.mouseDoubleClickEvent = doubleClickMaximizeRestore
 
     def close_btn_click(self):
         self.close()
