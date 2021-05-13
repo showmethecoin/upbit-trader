@@ -43,18 +43,18 @@ class OrderbookWidget(QWidget):
         self.tableBids.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tableAsks.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tableBids.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
-        self.ticker = ticker
+        
+        self.ow = OrderbookWorker(ticker)
+        self.ow.dataSent.connect(self.updateData)
+        self.ow.start()
 
         self.asksAnim = []
         self.bidsAnim = []
-
-        self.bid_items = {}
-        self.ask_items = {}
+        self.bid_items = []
+        self.ask_items = []
         for i in range(self.tableBids.rowCount()):
             # 매도호가
-            self.bid_items[i] = (QTableWidgetItem(),
-                                 QProgressBar(self.tableBids))
+            self.bid_items.append([QTableWidgetItem(), QProgressBar(self.tableBids), 0])
             self.bid_items[i][0].setTextAlignment(Qt.AlignVCenter)
             self.tableBids.setItem(i, 0, self.bid_items[i][0])
             self.bid_items[i][1].setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -69,8 +69,7 @@ class OrderbookWidget(QWidget):
             self.bidsAnim.append(anim)
 
             # 매수호가
-            self.ask_items[i] = (QTableWidgetItem(
-                str("")), QProgressBar(self.tableAsks))
+            self.ask_items.append([QTableWidgetItem(), QProgressBar(self.tableAsks), 0])
             self.ask_items[i][0].setTextAlignment(Qt.AlignVCenter)
             self.tableAsks.setItem(i, 0, self.ask_items[i][0])
             self.ask_items[i][1].setAlignment(Qt.AlignRight | Qt.AlignVCenter)
@@ -84,47 +83,33 @@ class OrderbookWidget(QWidget):
             anim.setDuration(100)
             self.asksAnim.append(anim)
 
-        self.ow = OrderbookWorker(self.ticker)
-        self.ow.dataSent.connect(self.updateData)
-        self.ow.start()
-
         self.color_white = QtGui.QBrush(QtGui.QColor(255, 255, 255))
         self.color_yellow = QtGui.QBrush(QtGui.QColor(255, 255, 0))
 
     def updateData(self, coin):
         try:
-            data = coin.get_orderbook_units()[0:10] # 15개의 데이터를 10개로 자름
+            data = coin.get_orderbook_units()[0:10] 
             asks_size = sum([x['as'] for x in data])
             bids_size = sum([x['bs'] for x in data])
             current_price = coin.get_trade_price()
-
-            #self.tableAsks.setForeground(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
             for i in range(len(data)):
-                self.ask_items[i][0].setText(f"{data[9-i]['ap']:,.3f}")
-                if data[9-i]['ap'] == current_price:  # 현재가
-                    self.ask_items[i][0].setForeground(self.color_yellow)
-                else:
-                    self.ask_items[i][0].setForeground(self.color_white)
-                # 범위가 int형으로 들어가기 때문에(값이 낮아서 전부 0으로 되는 문제)
-                # 소수 3째자리 까지 표현하므로 범위값에 1000을 곱해서 범위를 지정해줌
+                
+                self.bid_items[i][0].setText(f"{(lambda x: x if x < 100 else int(x))(data[i]['bp']):,}")
+                self.bid_items[i][0].setForeground((lambda x: self.color_yellow if x == current_price else self.color_white)(data[i]['bp']))
+                self.bid_items[i][1].setRange(0, 100)
+                self.bid_items[i][1].setFormat(f"{data[i]['bs']:,.3f}")
+                
+                self.ask_items[i][0].setText(f"{(lambda x: x if x < 100 else int(x))(data[9-i]['ap']):,}")
+                self.ask_items[i][0].setForeground((lambda x: self.color_yellow if x == current_price else self.color_white)(data[9-i]['ap']))
                 self.ask_items[i][1].setRange(0, 100)
                 self.ask_items[i][1].setFormat(f"{data[9-i]['as']:,.3f}")
 
-                self.bid_items[i][0].setText(f"{data[i]['bp']:,.3f}")
-                if data[i]['bp'] == current_price:
-                    self.bid_items[i][0].setForeground(self.color_yellow)
-                else:
-                    self.bid_items[i][0].setForeground(self.color_white)
-
-                self.bid_items[i][1].setRange(0, 100)
-                self.bid_items[i][1].setFormat(f"{data[i]['bs']:,.3f}")
-
-                ask_range = data[9-i]['as'] * 100 / asks_size 
-                bid_range = data[i]['bs'] * 100 / bids_size
-                self.bidsAnim[i].setStartValue(bid_range)
-                self.bidsAnim[i].setEndValue(bid_range)
-                self.asksAnim[i].setStartValue(ask_range)
-                self.asksAnim[i].setEndValue(ask_range)
+                self.bidsAnim[i].setStartValue(self.bid_items[i][2])
+                self.asksAnim[i].setStartValue(self.ask_items[i][2])
+                self.bid_items[i][2] = (data[i]['bs'] / bids_size) * 100
+                self.ask_items[i][2] = (data[9-i]['as'] / asks_size * 100)
+                self.bidsAnim[i].setEndValue(self.bid_items[i][2])
+                self.asksAnim[i].setEndValue(self.ask_items[i][2])
                 self.bidsAnim[i].start()
                 self.asksAnim[i].start()
         except ValueError:

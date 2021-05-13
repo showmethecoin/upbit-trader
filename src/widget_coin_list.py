@@ -41,8 +41,9 @@ class CoinlistWidget(QWidget):
         #사용 가능한 공간을 채우기 위해 섹션의 크기를 자동으로 조정
         #참고 QHeaderView Class
         self.coin_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.coin_list.horizontalHeader().sectionClicked.connect(self.chkTopClicked)
         self.coin_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.coin_list.horizontalHeader().setFixedHeight(40)
+        
         count_codes = len(static.chart.codes)
         self.coin_list.setRowCount(count_codes)
         self.items = {}
@@ -59,7 +60,6 @@ class CoinlistWidget(QWidget):
         self.cw.dataSent.connect(self.updataData)
         self.cw.start()
 
-        self.coin_list.horizontalHeader().sectionClicked.connect(self.chkTopClicked)
         self.coin_list.cellClicked.connect(self.chkItemClicked)
         self.order = None
         self.chart = None
@@ -72,7 +72,7 @@ class CoinlistWidget(QWidget):
         for i, coin in enumerate(data):
             change_rate = coin.get_signed_change_rate()
             self.items[i][0].setText(f'{coin.korean_name}({coin.code[4:]})')
-            self.items[i][1].setText(f'{coin.get_trade_price():,}')
+            self.items[i][1].setText(f'{(lambda x: x if x < 100 else int(x))(coin.get_trade_price()):,}')
             self.items[i][2].setText(f'{change_rate * 100:.2f} %')
             if change_rate < 0:
                 self.items[i][1].setForeground(self.color_red)

@@ -103,14 +103,17 @@ class CandleChartWidget(QWidget):
     # chart update
     def get_chart(self):
         df = self.__out_queue.get()
-        candlestick2_ohlc(self.canvas.axes, 
-                          df['open'], 
-                          df['high'],
-                          df['low'], 
-                          df['close'], 
-                          width=0.5, 
-                          colorup='r', 
-                          colordown='g')
+        try:
+            candlestick2_ohlc(self.canvas.axes, 
+                            df['open'], 
+                            df['high'],
+                            df['low'], 
+                            df['close'], 
+                            width=0.5, 
+                            colorup='r', 
+                            colordown='g')
+        except:
+            pass
 
     def on_expansion(self):
         if self.count < 200:
