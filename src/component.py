@@ -587,8 +587,10 @@ class Account:
                         self.cash = balance
                         self.locked_cash = locked
                         #print("cash: ", self.cash)
+                    elif currency == 'XYM':
+                        continue
                     else:
-                        coin = static.chart.get_coin("%s-%s" %(config.FIAT, currency))
+                        coin = static.chart.get_coin("%s-%s" %(static.FIAT, currency))
                         coin.account['bal'] = balance
                         coin.account['lock'] = locked
                         coin.account['abp'] = avg_buy_price
@@ -680,12 +682,12 @@ if __name__ == '__main__':
 
     # User upbit connection
     static.upbit = aiopyupbit.Upbit(
-        config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
+        static.config.upbit_access_key, static.config.upbit_secret_key)
 
     # Upbit account
     import time
     time.sleep(3)
-    static.account = Account(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
+    static.account = Account(static.config.upbit_access_key, static.config.upbit_secret_key)
     static.account.sync_start()
 
     while(True):
