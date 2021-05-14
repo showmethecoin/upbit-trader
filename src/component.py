@@ -72,6 +72,15 @@ class Coin:
             'obu': [],
             'st': 'SNAPSHOT'
         }
+        self.account = {
+            'bal': 0.0,
+            'lock': 0.0,
+            'abp': 0,
+            'eval': 0,
+            'pur': 0,
+            'loss': 0,
+            'yield': 0.0
+        }
 
     def get_code(self, fiat=True) -> str:
         """코인 마켓 코드 반환
@@ -503,45 +512,44 @@ class Account:
         self._access_key = _access_key
         self._secret_key = _secret_key
         #self._upbit = pyupbit.Upbit(_access_key, _secret_key)
-        self.assets
         self.cash = 0.0
-        self.total_purchase = 0.0
-        self.total_avaluate = 0.0
+        self.total_purchase = 0
+        self.total_evaluate = 0
+        self.total_loss = 0
+        self.total_yield = 0.0
         self.sync_status = False
 
     def _sync_thread(self) -> None:
-        print("start")
-        print(self.sync_status)
         while self.sync_status:
             try:
                 total_purchase = 0
-                total_avaluate = 0
+                total_evaluate = 0
 
                 balances = asyncio.run(static.upbit.get_balances())
 
                 for item in balances:
-                    currency = item["currency"]
+                    currency = str(item["currency"])
                     balance = float(item["balance"])
-                    avg_buy_price = float(item['avg_buy_price'])
-                    evaluate_amount = round(balance * static.chart.get_coin("%s-%s" %(config.FIAT, currency)).get_trade_price(), 0)
-                    purchase_amount = round(balance * avg_buy_price, 0)
 
                     if currency == 'KRW':
                         self.cash = balance
-                        print("cash: ", self.cash)
-                        #total_purchase += balance
-                        #total_avaluate += balance
+                        #print("cash: ", self.cash)
                     else:
-                        purchase = round(
-                            balance * float(item["avg_buy_price"]), 0)
-                        avaluate = round(balance * static.chart.get_coin("%s-%s" %
-                                                                         (config.FIAT, currency)).get_trade_price(), 0)
-                        loss = avaluate - purchase
-                        total_purchase += purchase
-                        total_avaluate += avaluate
+                        coin = static.chart.get_coin("%s-%s" %(config.FIAT, currency))
+                        coin.account['bal'] = float(item['balance'])
+                        coin.account['abp'] = float(item['avg_buy_price'])
+                        coin.account['pur'] = round(balance * float(item["avg_buy_price"]), 0)
+                        coin.account['eval'] = round(balance * coin.get_trade_price(), 0)
+                        coin.account['loss'] = coin.account['eval'] - coin.account['pur']
+                        coin.account['yield'] = round(coin.account['loss'] / coin.account['pur'] * 100, 2)
+                        total_purchase += coin.account['pur']
+                        total_evaluate += coin.account['eval']
+                        #print(static.chart.coins['KRW-' + currency].account)
 
                 self.total_purchase = total_purchase
-                self.total_avaluate = total_avaluate
+                self.total_evaluate = total_evaluate
+                self.total_loss = total_evaluate - total_purchase
+                self.total_yield = self.total_loss / total_purchase * 100
             except Exception as e:
                 print(e)
 
@@ -568,88 +576,25 @@ class Account:
         return self.cash
 
     def get_buy_price(self) -> float:
-        """총 구매 비용
+        """총 매수 비용
         """
         return self.total_purchase
 
-    def get_trade_price(self) -> float:
-        """총 현재 가격
+    def get_evaluate_price(self) -> float:
+        """총 평가 가격
         """
-        return self.total_avaluate
+        return self.total_evaluate
 
     def get_total_loss(self) -> float:
         """총 손익 가격
         """
-        return (self.total_avaluate - self.total_purchase)
+        return self.total_loss
 
-    def get_coin_balance(self, ticker):
-        """ticker 코인 보유수량
+    def get_total_yeild(self) -> float:
+        """총 수익률
         """
-        balance = 0
-        for item in balances:
-            if item['currency'] == ticker:
-                balance = float(item['balance'])
-                break
-        return balance
+        return self.total_yield
 
-    def get_coin_avg_buy_price(self, ticker):
-        """ticker 코인 매수평균가
-        """
-        avg_buy_price = 0
-        for item in balances:
-            if item['currency'] == ticker:
-                avg_buy_price = float(item['avg_buy_price'])
-                break
-        return avg_buy_price
-
-    def get_coin_evaluate(self, ticker):
-        """ticker 코인 평가금액
-        """
-        evaluate = 0
-        for item in balances:
-            if item['currency'] == ticker:
-                evaluate = round(float(item['balance']) * static.chart.get_coin("%s-%s" %(config.FIAT, currency)).get_trade_price(), 0)
-                break
-        return evaluate
-
-    def get_coin_purchase(self, ticker):
-        """ticker 코인 매수금액
-        """
-        purchase = 0
-        for item in balances:
-            if item['currency'] == ticker:
-                purchase = round(float(item['balance']) * float(item["avg_buy_price"]), 0)
-                break
-        return purchase
-    
-    def get_coin_valuate(self, ticker):
-        """ticker 코인 평가손익
-        """
-        evaluate = 0
-        purchase = 0
-        valuate = 0
-        for item in balances:
-            if item['currency'] == ticker:
-                evaluate = round(item['balance'] * static.chart.get_coin("%s-%s" %(config.FIAT, currency)).get_trade_price(), 0)
-                purchase = round(item['balance'] * float(item["avg_buy_price"]), 0)
-                valuate = evaluate - purchase
-                break
-        return valuate
-
-    def get_coin_yield(self, ticker):
-        """ticker 코인 수익률
-        """
-        evaluate = 0
-        purchase = 0
-        valuate = 0
-        for item in balances:
-            if item['currency'] == ticker:
-                evaluate = round(item['balance'] * static.chart.get_coin("%s-%s" %(config.FIAT, currency)).get_trade_price(), 0)
-                purchase = round(item['balance'] * float(item["avg_buy_price"]), 0)
-                valuate = evaluate - purchase
-                coin_yield = valuate / purchase * 100
-                break
-        return coin_yield
 
 if __name__ == '__main__':
 
@@ -666,18 +611,11 @@ if __name__ == '__main__':
     static.upbit = aiopyupbit.Upbit(
         config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
 
-    # # Upbit account
-    # static.account = Account(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
-    # static.account.sync_start()
-
+    # Upbit account
     import time
-    time.sleep(1)
-    cash = static.account.get_cash()
-    bp = static.account.get_buy_price()
-    tp = static.account.get_trade_price()
-    print("cash", cash)
-    print("buy price", bp)
-    print("trade price", tp)
+    time.sleep(3)
+    static.account = Account(config.UPBIT["ACCESS_KEY"], config.UPBIT["SECRET_KEY"])
+    static.account.sync_start()
 
     while(True):
         import time
