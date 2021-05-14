@@ -41,7 +41,6 @@ class CandleSender(multiprocessing.Process):
             try:
                 if not self.__in_queue.empty():
                     data = self.__in_queue.get()
-                await asyncio.sleep(0.5)
                 df = await aiopyupbit.get_ohlcv(ticker=data['code'], 
                                                 interval="minutes1", 
                                                 count=data['count'])
@@ -79,7 +78,7 @@ class CandleChartWidget(QWidget):
         self.canvas = MyMplCanvas(self, width=5, height=3, dpi=100)
         self.ani = animation.FuncAnimation(self.canvas.fig, 
                                            self.animate, 
-                                           interval=500)
+                                           interval=1000)
         vbox = QVBoxLayout()
         vbox.addWidget(self.canvas)
         hbox = QHBoxLayout()
@@ -99,6 +98,7 @@ class CandleChartWidget(QWidget):
     def animate(self, t):
         self.canvas.axes.clear()
         self.get_chart()
+
 
     # chart update
     def get_chart(self):
@@ -148,9 +148,9 @@ class CandleChartWidget(QWidget):
             self.__out_queue.get_nowait()
 
     # TODO CandleSender 안꺼지는데 추가좀
-    def closeEvent(self,ev):
+    def closeEvent(self, ev) -> bool:
         self.candle_sender.terminate()
-    
+        return super().close()
         
 
 
