@@ -41,6 +41,7 @@ class CandleSender(multiprocessing.Process):
             try:
                 if not self.__in_queue.empty():
                     data = self.__in_queue.get()
+                await asyncio.sleep(0.5)
                 df = await aiopyupbit.get_ohlcv(ticker=data['code'], 
                                                 interval="minutes1", 
                                                 count=data['count'])
@@ -147,9 +148,9 @@ class CandleChartWidget(QWidget):
             self.__out_queue.get_nowait()
 
     # TODO CandleSender 안꺼지는데 추가좀
-    def close(self) -> bool:
+    def closeEvent(self,ev):
         self.candle_sender.terminate()
-        return super().close()
+    
         
 
 
