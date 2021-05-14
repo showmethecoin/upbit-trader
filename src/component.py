@@ -561,6 +561,7 @@ class Account:
         self._access_key = _access_key
         self._secret_key = _secret_key
         #self._upbit = pyupbit.Upbit(_access_key, _secret_key)
+        self.coins = []
         self.cash = 0.0
         self.locked_cash = 0.0
         self.total_purchase = 0
@@ -572,21 +573,30 @@ class Account:
     def _sync_thread(self) -> None:
         while self.sync_status:
             try:
+                import time
+                time.sleep(1)
+                self.cash = 0.0
+                self.locked_cash = 0.0
+                self.total_purchase = 0
+                self.total_evaluate = 0
+                self.total_loss = 0
+                self.total_yield = 0.0
                 total_purchase = 0
                 total_evaluate = 0
 
                 balances = asyncio.run(static.upbit.get_balances())
+                self.coins.clear()
 
                 for item in balances:
-                    currency = str(item["currency"])
-                    balance = float(item["balance"])
-                    locked = float(item["locked"])
+                    currency = item['currency']
+                    self.coins.append(currency)
+                    balance = float(item['balance'])
+                    locked = float(item['locked'])
                     avg_buy_price = float(item['avg_buy_price'])
 
                     if currency == 'KRW':
-                        self.cash = balance
-                        self.locked_cash = locked
-                        #print("cash: ", self.cash)
+                        self.cash = round(balance, 0)
+                        self.locked_cash = round(locked, 0)
                     elif currency == 'XYM':
                         continue
                     else:
@@ -600,8 +610,8 @@ class Account:
                         coin.account['yield'] = round(coin.account['loss'] / coin.account['pur'] * 100, 2)
                         total_purchase += coin.account['pur']
                         total_evaluate += coin.account['eval']
-                        #print(static.chart.coins['KRW-' + currency].account)
-
+                        #print(currency, static.chart.coins['KRW-' + currency].account)
+                #print()
                 self.total_purchase = total_purchase
                 self.total_evaluate = total_evaluate
                 self.total_loss = total_evaluate - total_purchase
@@ -659,7 +669,7 @@ class Account:
         """
         return self.total_loss
 
-    def get_total_yeild(self) -> float:
+    def get_total_yield(self) -> float:
         """총 수익률
         """
         return self.total_yield
