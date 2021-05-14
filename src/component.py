@@ -441,11 +441,15 @@ class WebsocketManager(multiprocessing.Process):
 
 
 class RealtimeManager:
-    def __init__(self, codes: list) -> None:
+    def __init__(self, 
+                 codes: list,
+                 ping_interval:int=60) -> None:
         """RealtimeManager 생성자
         """
         # Public
         self.codes = [x['market'] for x in codes]
+        self.sort_status = {'method': None,
+                            'ordered': None}
         self.coins = {code['market']: Coin(code) for code in codes}
         self.uri = "wss://api.upbit.com/websocket/v1"
         self.request = json.dumps([
@@ -454,9 +458,10 @@ class RealtimeManager:
             {"type": "orderbook", "codes": self.codes, "isOnlyRealtime": True},
             {"format": "SIMPLE"}
         ])
-        self.ping_interval = config.SERVER["PING_INTERVAL"]
+        self.ping_interval = ping_interval
         self.alive = False
         # Private
+        self.__origin_coins = self.coins
         self.__queue = multiprocessing.Queue()
 
     def get_coin(self, code: str) -> Coin:
@@ -469,6 +474,50 @@ class RealtimeManager:
             Coin: 코드에 해당하는 Coin 인스턴스
         """
         return self.coins[code]
+
+    def sort(self, target: str):
+        if target == 'code':
+            if self.sort_status['method'] != 'code':
+                self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_code())}
+                self.sort_status['method'] = 'code'
+                self.sort_status['ordered'] = 'ascending'
+            elif self.sort_status['ordered'] == 'ascending':
+                self.coins = self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_code(), reverse=True)}
+                self.sort_status['ordered'] = 'descending'
+            else:
+                self.coins = self.__origin_coins
+                self.sort_status['method'] = None
+                self.sort_status['ordered'] = None
+        elif target == 'value':
+            if self.sort_status['method'] != 'value':
+                self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_trade_price())}
+                self.sort_status['method'] = 'value'
+                self.sort_status['ordered'] = 'ascending'
+            elif self.sort_status['ordered'] == 'ascending':
+                self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_trade_price(), reverse=True)}
+                self.sort_status['ordered'] = 'descending'
+            else:
+                self.coins = self.__origin_coins
+                self.sort_status['method'] = None
+                self.sort_status['ordered'] = None
+        elif target == 'change':
+            if self.sort_status['method'] != 'change':
+                self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_signed_change_rate(), reverse=True)}
+                self.sort_status['method'] = 'change'
+                self.sort_status['ordered'] = 'ascending'
+            elif self.sort_status['ordered'] == 'ascending':
+                self.coins = {x: y for x, y in sorted(self.coins.items(),
+                                                   key=lambda x: x[1].get_signed_change_rate())}
+                self.sort_status['ordered'] = 'descending'
+            else:
+                self.coins = self.__origin_coins
+                self.sort_status['method'] = None
+                self.sort_status['ordered'] = None
 
     def start(self) -> None:
         """RealtimeManager 동기화 시작
@@ -615,13 +664,17 @@ class Account:
 
 
 if __name__ == '__main__':
-
+    import time
+    
     utils.set_windows_selector_event_loop_global()
 
+    static.config = config.Config()
+    static.config.load()
+    
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     codes = loop.run_until_complete(
-        aiopyupbit.get_tickers(fiat=config.FIAT, contain_name=True))
+        aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
     static.chart = RealtimeManager(codes=codes)
     static.chart.start()
 
@@ -636,5 +689,4 @@ if __name__ == '__main__':
     static.account.sync_start()
 
     while(True):
-        import time
         time.sleep(1)
