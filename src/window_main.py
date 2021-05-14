@@ -16,7 +16,7 @@ class MainWindow(QMainWindow):
         self.status = 0
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.resize(QSize(1400, 900))
+        self.resize(QSize(1500, 1000))
         # Set Titlebar button Click Event
         self.clicked_style = self.ui.home_btn.styleSheet()
         self.none_clicked_style = self.ui.user_btn.styleSheet()
@@ -49,6 +49,7 @@ class MainWindow(QMainWindow):
         self.ui.toplabel_title.mouseMoveEvent = moveWindow
 
     def close_btn_click(self):
+        self.ui.chart_widget.candle_sender.terminate()
         self.close()
         if static.chart != None:
             static.chart.stop()

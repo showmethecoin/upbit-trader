@@ -3,18 +3,16 @@
 import setuptools
 
 install_requires = [
-    'pyyaml>=5.3.1',
-    'pandas>=1.2.4',
-    'numpy>=1.20.0',
-    'matplotlib>=3.3.3',
-    'aiohttp>=3.7.3',
-    'apscheduler>=3.6.3',
-    'pymongo>=3.11.2',
-    'motor>=2.3.0',
-    'pyqt5>=5.15.2',
-    'mplfinance>=0.12.7a0',
+    'pyyaml>=5.4.1',
+    'numpy>=1.20.3',
+    'matplotlib>=3.4.2',
+    'apscheduler>=3.7.0',
+    'pymongo>=3.11.4',
+    'motor>=2.4.0',
+    'mplfinance>=0.12.7a17',
+    'pyqt5>=5.15.4',
     'aiopyupbit>=0.1.1',
-    'cx_freeze>=6.6'   
+    'cx_freeze>=6.6'
 ]
 
 with open("README.md", "r") as fh:
