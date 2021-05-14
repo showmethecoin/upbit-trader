@@ -1,29 +1,30 @@
 import numpy as np
 import pandas as pd
 import time
-import pyupbit
+import aiopyupbit
 import talib
 import datetime
-# import json
-# import asyncio
-import static
-from static import log
+import asyncio
+
 import component
 import db
 import config
+import static
+from static import log
 
+from db import DBHandler
 #목표가격을 얻는 함수 -> 금일 시가 + (전일 고가 - 전일 저가) / (0.1~1.0)
-def get_target_price(coin,range_data):
+async def get_target_price(coin,range_data):
     """목표가격을 얻는 함수
     Args:
         coin (str): 목표가를 구할 종목 코드
         range_data (float): 종목의 레인지 정보
     Returns:
         target: 목표가
-    """
+    """ 
     time.sleep(0.1)
-    #df = pyupbit.get_ohlcv(coin,interval='minute240',count=2)
-    df = pyupbit.get_ohlcv(coin,interval='minute60',count=2)
+    #df = await aiopyupbit.get_ohlcv(coin,interval='minute240',count=2)
+    df = await aiopyupbit.get_ohlcv(coin,interval='minute60',count=2)
     prio = df.iloc[-2]
     curr_open = prio['close']
     prio_high = prio['high']
@@ -33,24 +34,24 @@ def get_target_price(coin,range_data):
     return target
 
 #해당 종목을 매수하는 함수
-def buy_crypto_currency(coin, assigned):
+async def buy_crypto_currency(coin, assigned):
     #할당된 금액에서 수수료를 제외함으로써 실제 매수금 계산
     assigned /= 1.0005
-    orderbook = pyupbit.get_orderbook(coin)
+    orderbook = await aiopyupbit.get_orderbook(coin)
     buy_price = orderbook[0]['orderbook_units'][0]['ask_price']
     unit = assigned / float(buy_price)
-    static.upbit.buy_limit_order(coin, buy_price, unit)
+    await static.upbit.buy_limit_order(coin, buy_price, unit)
     print('종목 : ',coin)
     print('매수 신청 가격 : ',buy_price)
     print('매수 단위 : ',unit)
     print('매수 완료!')
 
 #해당 종목을 매도하고 총 매도금액을 리턴하는 함수
-def sell_crypto_currency(coin):
-    unit = static.upbit.get_balance(coin)
-    orderbook = pyupbit.get_orderbook(coin)
+async def sell_crypto_currency(coin):
+    unit = await static.upbit.get_balance(coin)
+    orderbook = await aiopyupbit.get_orderbook(coin)
     sell_price = orderbook[0]['orderbook_units'][0]['bid_price'] #시장가에 바로 팔 것인지
-    static.upbit.sell_limit_order(coin, sell_price, unit)
+    await static.upbit.sell_limit_order(coin, sell_price, unit)
     print('종목 : ',coin)
     print('매도 단위 : ',unit)
     print('판매 단가 : ',sell_price)
@@ -100,18 +101,20 @@ def get_total_ratio(res_df,range_dict,count):
         idx += 1
     return master_df
 
-def volatility_breakout_strategy(range_input=None,coin_list=None):
+async def volatility_breakout_strategy(range_input=None,coin_list=None):
     """변동성 돌파 전략
     Args:
         range_input (dict): {'KRW-BTC' : 0.6, 'KRW-XRP' : 0.1, 'KRW-BTT' : 0.9, ..}
         coin_list (list): ['KRW-BTC', 'KRW-XRP', 'KRW-BTT', ..]
     """
+    static.upbit = aiopyupbit.Upbit(static.config.upbit_access_key, static.config.upbit_secret_key)
+    
     #DB 설정
     if static.db == None:
-        static.db = db.DBHandler(ip=config.MONGO['IP'],
-                              port=config.MONGO['PORT'],
-                              id=config.MONGO['ID'],
-                              password=config.MONGO['PASSWORD'])
+        static.db = db.DBHandler(ip=static.config.mongo_ip,
+                              port=static.config.mongo_port,
+                              id=static.config.mongo_id,
+                              password=static.config.mongo_password)
     
     #투자할 종목들의 coin 객체를 저장
     coin_list = [x for x in static.chart.coins.values() if x.code in coin_list]
@@ -121,7 +124,7 @@ def volatility_breakout_strategy(range_input=None,coin_list=None):
     range_dict.update(range_input)
     
     #초기 목표가 설정 (pyupbit.get_ohlcv 사용해야 하는데 비동기식으로 돌아가게 구현 못해서 0.1초 차이 발생)
-    target_price = {x.code : get_target_price(x.code,range_dict[x.code]) for x in coin_list}
+    target_price = {x.code : await get_target_price(x.code,range_dict[x.code]) for x in coin_list}
     
     #구매 기록 df 초기화 (구매가를 저장)
     buy_data = {x.code : -1 for x in coin_list}
@@ -138,14 +141,14 @@ def volatility_breakout_strategy(range_input=None,coin_list=None):
     time_log = {x:False for x in range(0,24)}
 
     #원화, 종목별 초기 금액 저장
-    krw = static.upbit.get_balance('KRW')
+    krw = await static.upbit.get_balance('KRW')
     print(krw)
     assigned_krw = {x.code : krw/len(coin_list) for x in coin_list}
     for x in assigned_krw.items():
         print(x[0],x[1])
     
     #지정 사이클만큼 투자 진행
-    while count < 3:
+    while count < 0:
         #지정 종목에 대해 투자
         for coin in coin_list:
             now = datetime.datetime.now()
@@ -153,9 +156,9 @@ def volatility_breakout_strategy(range_input=None,coin_list=None):
             #unit 간격으로 목표가 정하고 수익률 계산
             #if now.hour in [1,5,9,13,17,21] and time_log[now.hour] == False:
             #if time_log[now.hour] == False: #돌아가고 있는 시간대가 아닌 경우에만 실행
-            if True:
-                #mid = datetime.datetime(now.year, now.month, now.day, now.hour) 
-                mid = datetime.datetime(now.year, now.month, now.day, now.hour,30) 
+            if True: #테스트 코드
+                #mid = datetime.datetime(now.year, now.month, now.day, now.hour) #정상 코드
+                mid = datetime.datetime(now.year, now.month, now.day, now.hour,24) #테스트 코드 (검사 종료할 minute)
                 if mid < now < mid + datetime.timedelta(seconds=1):
                     print('정보 업데이트 시작')
                     #수익률을 계산해서 해당 코인의 df에 저장
@@ -172,7 +175,10 @@ def volatility_breakout_strategy(range_input=None,coin_list=None):
                         #############################################################
                         #투자 결과를 DB에 삽입
                         res_dict = {}
-                        res_dict['time'] = tmp[0]
+                        print(now,mid)
+                        print('---------------------------------------')
+                        res_dict['_id'] = time.mktime(datetime.datetime.strptime(str(tmp[0]), static.BASE_TIME_FORMAT).timetuple())
+                        res_dict['time'] = str(tmp[0])
                         res_dict['time unit'] = unit
                         if buy_data[coin_data.code] > 0:
                             res_dict['buy price'] = buy_data[coin_data.code]
@@ -182,13 +188,13 @@ def volatility_breakout_strategy(range_input=None,coin_list=None):
                             res_dict['profit ratio'] = tmp[1]
                             # res_dict['profit_KRW'] = res_dict['total sell'] - res_dict['total buy']
                         res_dict['range'] = range_dict[coin_data.code]
-                        static.db.insert_item_one(data=res_dict,
-                                                  db_name='strategy',
-                                                  collection_name=coin_data.code)
+                        await static.db.insert_item_one(data=res_dict,
+                                                        db_name='strategy',
+                                                        collection_name=coin_data.code)
                         #############################################################
                         print(coin_data.code,cur_price)
                     #각 코인의 목표가 갱신
-                    target_price = {x.code : get_target_price(x.code,range_dict[x.code]) for x in coin_list}
+                    target_price = {x.code : await get_target_price(x.code,range_dict[x.code]) for x in coin_list}
                     print('구매가')
                     for x in coin_list:
                         print(x.code,buy_data[x.code])
@@ -229,7 +235,7 @@ def volatility_breakout_strategy(range_input=None,coin_list=None):
     master_df = get_total_ratio(res_df,range_dict,count)
 
     #엑셀 파일에 시트 추가 (전체정보 -> 종목별 정보)
-    with pd.ExcelWriter('C:\\Users\\roe96\\Desktop\\학교\\4학년\\파이썬공부\\변동성전략테스트.xlsx') as writer: # pylint: disable=abstract-class-instantiated
+    with pd.ExcelWriter('./변동성전략테스트.xlsx') as writer: # pylint: disable=abstract-class-instantiated
         master_df.to_excel(writer,sheet_name='Total',index=False)
         for x in res_df.items():
             x[1].to_excel(writer,sheet_name=x[0],index=False)
@@ -241,50 +247,6 @@ def volatility_breakout_strategy(range_input=None,coin_list=None):
     print(master_df)
     #exit()
 
-
-# 1. DB 설정 에러
-# 2. DB에 구체적 데이터 삽입 (매수, 매도를 요청하면 바로 되는게 아닌데 구체적 값을 기다렸다가 받아야 하나? (딜레이) )
-# 
-# 
-# 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #coin         : 종목이름
 #df           : 받아온 캔들봉이 담긴 data frame
 #krw          : 현재 보유 원화
@@ -292,16 +254,12 @@ def volatility_breakout_strategy(range_input=None,coin_list=None):
 #last_candle  : df에서 가장 최근 캔들봉이 담긴 인덱스 (받아온 캔들봉 개수 -1)
 
 #이동평균값을 구하는 함수 -> unit 동안의 주가 평균
-
-
 def get_avg(df, unit=5):
     close = df['close']
     ma = close.rolling(unit).mean()
     return ma[last_candle]
 
 #전환선, 기준선 값을 얻는 함수 -> 지정시간(last)부터 과거 unit 동안의 ( 최고가 + 최저가 ) / 2
-
-
 def get_high_low_avg(df, last, unit=9):
     maxi = df.loc[last-unit+1:last, 'high']
     mini = df.loc[last-unit+1:last, 'low']
@@ -315,15 +273,11 @@ def get_high_low_avg(df, last, unit=9):
     return (high + low) / 2
 
 #후행스팬 값을 얻는 함수 -> unit 전의 주가
-
-
 def get_lagging_span(df, unit=26):
     close = df.loc[last_candle-unit, ['close']]['close']
     return close
 
 #선행스팬1 값을 얻는 함수 -> unit 전의 ( 전환치 + 기준치 ) / 2
-
-
 def get_leading_span_1(df, unit=26):
     last = last_candle - unit
     new_df = df.loc[:last]
@@ -335,8 +289,6 @@ def get_leading_span_1(df, unit=26):
         return (line_9 + line_26) / 2
 
 #선행스팬2 값을 얻는 함수 -> unit_1 전의 unit_2 동안의 ( 최고가 + 최저가 ) / 2
-
-
 def get_leading_span_2(df, unit_1=26, unit_2=52):
     last = last_candle - unit_1
     new_df = df.loc[:last]
@@ -352,19 +304,20 @@ def get_leading_span_2(df, unit_1=26, unit_2=52):
     return (high + low) / 2
 
 #볼린저밴드 값을 얻는 함수 -> upper, middle, lower 각각의 data frame으로 리턴
-
-
 def get_bband_data(df, period=20):
     return talib.BBANDS(np.asarray(df['close']), timeperiod=period, nbdevup=2, nbdevdn=2, matype=0)
 
 #rsi 값을 얻는 함수  -> rsi data frame을 리턴
-
-
 def get_rsi_data(df, period=14):
     return talib.RSI(np.asarray(df['close']), period)
 
 #cci 값을 얻는 함수 -> cci data frame을 리턴
-
-
 def get_cci_data(df, period=14):
     return talib.CCI(df['high'], df['low'], df['close'], timeperiod=period)
+
+# if __name__ == '__strategy__':
+#     static.config = config.Config()
+#     static.config.load()
+#     static.upbit = aiopyupbit.Upbit(static.config.upbit_access_key, static.config.upbit_secret_key)
+#     # loop = asyncio.new_event_loop()
+#     # asyncio.set_event_loop(loop)

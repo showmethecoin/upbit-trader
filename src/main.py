@@ -10,7 +10,7 @@ import static
 from static import log
 import component
 import widget_login
-
+import prompt
 
 def init() -> bool:
     """초기화
@@ -45,8 +45,8 @@ def main() -> None:
     """프로그램 메인
     """
 
-    widget_login.gui_main()
-    #prompt.prompt_main()
+    #widget_login.gui_main()
+    prompt.prompt_main()
 
 
 if __name__ == '__main__':
