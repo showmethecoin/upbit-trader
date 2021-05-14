@@ -513,6 +513,7 @@ class Account:
         self._secret_key = _secret_key
         #self._upbit = pyupbit.Upbit(_access_key, _secret_key)
         self.cash = 0.0
+        self.locked_cash = 0.0
         self.total_purchase = 0
         self.total_evaluate = 0
         self.total_loss = 0
@@ -530,16 +531,20 @@ class Account:
                 for item in balances:
                     currency = str(item["currency"])
                     balance = float(item["balance"])
+                    locked = float(item["locked"])
+                    avg_buy_price = float(item['avg_buy_price'])
 
                     if currency == 'KRW':
                         self.cash = balance
+                        self.locked_cash = locked
                         #print("cash: ", self.cash)
                     else:
                         coin = static.chart.get_coin("%s-%s" %(config.FIAT, currency))
-                        coin.account['bal'] = float(item['balance'])
-                        coin.account['abp'] = float(item['avg_buy_price'])
-                        coin.account['pur'] = round(balance * float(item["avg_buy_price"]), 0)
-                        coin.account['eval'] = round(balance * coin.get_trade_price(), 0)
+                        coin.account['bal'] = balance
+                        coin.account['lock'] = locked
+                        coin.account['abp'] = avg_buy_price
+                        coin.account['pur'] = round((balance + locked) * avg_buy_price, 0)
+                        coin.account['eval'] = round((balance + locked) * coin.get_trade_price(), 0)
                         coin.account['loss'] = coin.account['eval'] - coin.account['pur']
                         coin.account['yield'] = round(coin.account['loss'] / coin.account['pur'] * 100, 2)
                         total_purchase += coin.account['pur']
@@ -549,7 +554,10 @@ class Account:
                 self.total_purchase = total_purchase
                 self.total_evaluate = total_evaluate
                 self.total_loss = total_evaluate - total_purchase
-                self.total_yield = self.total_loss / total_purchase * 100
+
+                if total_purchase != 0:
+                    self.total_yield = self.total_loss / total_purchase * 100
+
             except Exception as e:
                 print(e)
 
@@ -571,9 +579,19 @@ class Account:
         return self.sync_status
 
     def get_cash(self) -> float:
-        """총 보유 현금
+        """보유 현금
         """
         return self.cash
+
+    def get_locked_cash(self) -> float:
+        """매수 걸어 놓은 현금
+        """
+        return self.locked_cash
+
+    def get_total_cash(self) -> float:
+        """총 보유 현금
+        """
+        return self.cash + self.locked_cash
 
     def get_buy_price(self) -> float:
         """총 매수 비용
