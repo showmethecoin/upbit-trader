@@ -68,12 +68,12 @@ class OrderbookWidget(QWidget):
                                    0])
             self.bid_items[i][0].setFont(font)
             self.bid_items[i][0].setTextAlignment(Qt.AlignVCenter)
-            self.bid_items[i][0].setBackground(self.color_red)
+            self.bid_items[i][0].setBackground(self.color_green)
             self.tableBids.setItem(i, 0, self.bid_items[i][0])
             self.bid_items[i][1].setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.bid_items[i][1].setStyleSheet("""
                 QProgressBar {background-color : rgba(0, 0, 0, 0%);border : 1}
-                QProgressBar::Chunk {background-color : rgba(207,48,74, 100%);border : 1}
+                QProgressBar::Chunk {background-color : rgba(2, 192, 118, 100%);border : 1}
             """)
             self.tableBids.setCellWidget(i, 1, self.bid_items[i][1])
 
@@ -87,12 +87,12 @@ class OrderbookWidget(QWidget):
                                    0])
             self.ask_items[i][0].setFont(font)
             self.ask_items[i][0].setTextAlignment(Qt.AlignVCenter)
-            self.ask_items[i][0].setBackground(self.color_green)
+            self.ask_items[i][0].setBackground(self.color_red)
             self.tableAsks.setItem(i, 0, self.ask_items[i][0])
             self.ask_items[i][1].setAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.ask_items[i][1].setStyleSheet("""
                 QProgressBar {background-color : rgba(0, 0, 0, 0%);border : 1}
-                QProgressBar::Chunk {background-color : rgba(2, 192, 118, 100%);border : 1}
+                QProgressBar::Chunk {background-color : rgba(207,48,74, 100%);border : 1}
             """)
             self.tableAsks.setCellWidget(i, 1, self.ask_items[i][1])
 

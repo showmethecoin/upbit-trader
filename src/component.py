@@ -470,12 +470,12 @@ class RealtimeManager:
         if target == 'code':
             if self.sort_status['method'] != 'code':
                 self.coins = {x: y for x, y in sorted(self.coins.items(),
-                                                   key=lambda x: x[1].get_code())}
+                                                   key=lambda x: x[1].korean_name)}
                 self.sort_status['method'] = 'code'
                 self.sort_status['ordered'] = 'ascending'
             elif self.sort_status['ordered'] == 'ascending':
                 self.coins = self.coins = {x: y for x, y in sorted(self.coins.items(),
-                                                   key=lambda x: x[1].get_code(), reverse=True)}
+                                                   key=lambda x: x[1].korean_name, reverse=True)}
                 self.sort_status['ordered'] = 'descending'
             else:
                 self.coins = self.__origin_coins
@@ -484,12 +484,12 @@ class RealtimeManager:
         elif target == 'value':
             if self.sort_status['method'] != 'value':
                 self.coins = {x: y for x, y in sorted(self.coins.items(),
-                                                   key=lambda x: x[1].get_trade_price())}
+                                                   key=lambda x: x[1].get_trade_price(), reverse=True)}
                 self.sort_status['method'] = 'value'
                 self.sort_status['ordered'] = 'ascending'
             elif self.sort_status['ordered'] == 'ascending':
                 self.coins = {x: y for x, y in sorted(self.coins.items(),
-                                                   key=lambda x: x[1].get_trade_price(), reverse=True)}
+                                                   key=lambda x: x[1].get_trade_price())}
                 self.sort_status['ordered'] = 'descending'
             else:
                 self.coins = self.__origin_coins
