@@ -49,7 +49,6 @@ class MainWindow(QMainWindow):
         self.ui.toplabel_title.mouseMoveEvent = moveWindow
 
     def close_btn_click(self):
-        self.ui.chart_widget.candle_sender.terminate()
         self.close()
         if static.chart != None:
             static.chart.stop()
