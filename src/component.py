@@ -557,10 +557,11 @@ class RealtimeManager:
 
 
 class Account:
-    def __init__(self, _access_key, _secret_key) -> None:
-        self._access_key = _access_key
-        self._secret_key = _secret_key
-        #self._upbit = pyupbit.Upbit(_access_key, _secret_key)
+    def __init__(self, access_key:str, secret_key:str) -> None:
+        self.access_key = access_key
+        self.secret_key = secret_key
+        self.upbit = aiopyupbit.Upbit(self.access_key, self.secret_key)
+        
         self.coins = []
         self.cash = 0.0
         self.locked_cash = 0.0
@@ -569,7 +570,7 @@ class Account:
         self.total_loss = 0
         self.total_yield = 0.0
         self.sync_status = False
-
+    
     def _sync_thread(self) -> None:
         while self.sync_status:
             try:
@@ -584,7 +585,7 @@ class Account:
                 total_purchase = 0
                 total_evaluate = 0
 
-                balances = asyncio.run(static.upbit.get_balances())
+                balances = asyncio.run(self.upbit.get_balances())
                 self.coins.clear()
 
                 for item in balances:
@@ -689,10 +690,6 @@ if __name__ == '__main__':
         aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
     static.chart = RealtimeManager(codes=codes)
     static.chart.start()
-
-    # User upbit connection
-    static.upbit = aiopyupbit.Upbit(
-        static.config.upbit_access_key, static.config.upbit_secret_key)
 
     # Upbit account
     import time

@@ -11,6 +11,7 @@ from PyQt5.QtGui import *
 from PyQt5 import uic
 
 import utils
+import component
 from window_main import MainWindow
 import static
 import config
@@ -79,9 +80,11 @@ class LoginWidget(QWidget):
 
     # Change to Main
     def change_page(self):
-        static.upbit = aiopyupbit.Upbit(self.lineEdit_access.text(), self.lineEdit_secret.text())
-        result, message = asyncio.run(static.upbit.check_authentication())
+        static.account = component.Account(access_key=self.lineEdit_access.text(),
+                                           secret_key=self.lineEdit_secret.text())
+        result, message = asyncio.run(static.account.upbit.check_authentication())
         if result:
+            static.account.sync_start()
             if(self.checkBox_save_user.isChecked()):
                 self.save_config()
             self.secondWindow = MainWindow()
@@ -105,6 +108,7 @@ class LoginWidget(QWidget):
     def load_config(self):
         self.lineEdit_access.setText(static.config.upbit_access_key)
         self.lineEdit_secret.setText(static.config.upbit_secret_key)
+        
 
 
 def gui_main():

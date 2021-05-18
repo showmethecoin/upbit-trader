@@ -278,8 +278,6 @@ if __name__ == '__main__':
     static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
     
-    static.upbit = aiopyupbit.Upbit(static.config.upbit_access_key, static.config.upbit_secret_key)
-
     # Upbit account
     static.account = component.Account(static.config.upbit_access_key, static.config.upbit_secret_key)
     static.account.sync_start()
