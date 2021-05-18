@@ -14,7 +14,7 @@ import component
 from widget_orderbook import OrderbookWorker
 
 
-class ChartWorker(QThread):
+class CoinListWorker(QThread):
     dataSent = pyqtSignal(object)
 
     def __init__(self):
@@ -46,6 +46,7 @@ class CoinlistWidget(QWidget):
         # self.coin_list.setSortingEnabled(True)
         self.coin_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         
+        # 동적으로 row관리
         count_codes = len(static.chart.codes)
         self.coin_list.setRowCount(count_codes)
         font = QFont()
@@ -62,7 +63,7 @@ class CoinlistWidget(QWidget):
             self.coin_list.setItem(i, 1, self.items[i][1])
             self.coin_list.setItem(i, 2, self.items[i][2])
 
-        self.cw = ChartWorker()
+        self.cw = CoinListWorker()
         self.cw.dataSent.connect(self.updataData)
         self.cw.start()
 

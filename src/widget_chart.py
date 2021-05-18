@@ -30,7 +30,7 @@ class CandleWorker(QThread):
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self.__loop())
     
-    def terminate(self) -> None:
+    def close(self) -> None:
         self.alive = False
         return super().terminate()
     
