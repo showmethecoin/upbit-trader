@@ -188,8 +188,7 @@ def print_holding_list() -> None:
         try:
             print_program_title()
             print('\t│ Code  Count                 Avg Buy         Purchase        Evaluate        Loss            Yield')
-            print(f'\t│ KRW   {static.account.get_total_cash():<21}')
-            
+            print(f'\t│ KRW   {int(static.account.get_total_cash()):<21,}')
             for code, data in static.account.coins.items():
                 balance = data['balance']
                 locked = data['locked']
@@ -198,17 +197,14 @@ def print_holding_list() -> None:
                 evaluate = data['evaluate']
                 loss = data['loss']
                 coin_yield = data['yield']
-
-                print(f'\t| {code:<5} {balance + locked:<21} {avg_buy_price:<15} {purchase:<15.0f} {evaluate:<15.0f} {loss:<15.0f} {coin_yield:<7.2f}%')
-            
+                print(f'\t| {code:<5} {balance + locked:<21,} {(lambda x: x if x < 100 else int(x))(avg_buy_price):<15,} {int(purchase):<15,} {int(evaluate):<15,} {int(loss):<15,} {coin_yield:<7.2f}%')
             print(f'\t│\n\t│ Total Purchase: {static.account.get_buy_price():.0f}')
             print(f'\t│ Total Evaluate: {static.account.get_evaluate_price():.0f}')
             print(f'\t│ Total Loss    : {static.account.get_total_loss():.0f}')
-            print(
-                f'\t│ Total Yield   : {static.account.get_total_yield():.2f} %')
+            print(f'\t│ Total Yield   : {static.account.get_total_yield():.2f} %')
 
             print('\t[CTRL + C] Exit to menu')
-            time.sleep(5)
+            time.sleep(1)
         #except KeyboardInterrupt:
             #break
         except Exception as e:

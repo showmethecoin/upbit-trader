@@ -567,13 +567,13 @@ class Account:
         while self.sync_status:
             try:
                 time.sleep(0.25)
-                self.coins = {}
-                self.cash = 0.0
-                self.locked_cash = 0.0
-                self.total_purchase = 0
-                self.total_evaluate = 0
-                self.total_loss = 0
-                self.total_yield = 0.0
+                coins = {}
+                cash = 0
+                locked_cash = 0
+                total_purchase = 0
+                total_evaluate = 0
+                total_loss = 0
+                total_yield = 0
 
                 for item in asyncio.run(self.upbit.get_balances()):
                     currency = item['currency']
@@ -581,8 +581,8 @@ class Account:
                     balance = float(item['balance'])
                     locked = float(item['locked'])
                     if currency == 'KRW':
-                        self.cash = round(balance, 0)
-                        self.locked_cash = round(locked, 0)
+                        cash = round(balance, 0)
+                        locked_cash = round(locked, 0)
                     elif currency == 'XYM':
                         continue
                     else:
@@ -599,13 +599,21 @@ class Account:
                         data['evaluate'] = evaluate
                         data['loss'] = loss
                         data['yield'] = round(loss / purchase * 100, 2)
-                        self.coins[currency] = data
-                        self.total_purchase += purchase
-                        self.total_evaluate += evaluate
+                        coins[currency] = data
+                        total_purchase += purchase
+                        total_evaluate += evaluate
                         
-                self.total_loss = self.total_evaluate - self.total_purchase
-                if self.total_purchase != 0:
-                    self.total_yield = self.total_loss / self.total_purchase * 100
+                total_loss = total_evaluate - total_purchase
+                if total_purchase != 0:
+                    total_yield = total_loss / total_purchase * 100
+                
+                self.coins = coins
+                self.cash = cash
+                self.locked_cash = locked_cash
+                self.total_purchase = total_purchase
+                self.total_evaluate = total_evaluate
+                self.total_loss = total_loss
+                self.total_yield = total_yield
 
             except Exception as e:
                 import traceback
