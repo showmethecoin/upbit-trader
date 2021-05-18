@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import json
 import uuid
+import time
 import asyncio
 import threading
 import multiprocessing
@@ -71,15 +72,6 @@ class Coin:
             'tbs': 0,
             'obu': [],
             'st': 'SNAPSHOT'
-        }
-        self.account = {
-            'bal': 0.0,
-            'lock': 0.0,
-            'abp': 0,
-            'eval': 0,
-            'pur': 0,
-            'loss': 0,
-            'yield': 0.0
         }
 
     def get_code(self, fiat=True) -> str:
@@ -562,7 +554,7 @@ class Account:
         self.secret_key = secret_key
         self.upbit = aiopyupbit.Upbit(self.access_key, self.secret_key)
         
-        self.coins = []
+        self.coins = {}
         self.cash = 0.0
         self.locked_cash = 0.0
         self.total_purchase = 0
@@ -570,31 +562,24 @@ class Account:
         self.total_loss = 0
         self.total_yield = 0.0
         self.sync_status = False
-    
+                
     def _sync_thread(self) -> None:
         while self.sync_status:
             try:
-                import time
-                time.sleep(1)
+                time.sleep(0.25)
+                self.coins = {}
                 self.cash = 0.0
                 self.locked_cash = 0.0
                 self.total_purchase = 0
                 self.total_evaluate = 0
                 self.total_loss = 0
                 self.total_yield = 0.0
-                total_purchase = 0
-                total_evaluate = 0
 
-                balances = asyncio.run(self.upbit.get_balances())
-                self.coins.clear()
-
-                for item in balances:
+                for item in asyncio.run(self.upbit.get_balances()):
                     currency = item['currency']
-                    self.coins.append(currency)
+                    avg_buy_price = float(item['avg_buy_price'])
                     balance = float(item['balance'])
                     locked = float(item['locked'])
-                    avg_buy_price = float(item['avg_buy_price'])
-
                     if currency == 'KRW':
                         self.cash = round(balance, 0)
                         self.locked_cash = round(locked, 0)
@@ -602,25 +587,29 @@ class Account:
                         continue
                     else:
                         coin = static.chart.get_coin("%s-%s" %(static.FIAT, currency))
-                        coin.account['bal'] = balance
-                        coin.account['lock'] = locked
-                        coin.account['abp'] = avg_buy_price
-                        coin.account['pur'] = round((balance + locked) * avg_buy_price, 0)
-                        coin.account['eval'] = round((balance + locked) * coin.get_trade_price(), 0)
-                        coin.account['loss'] = coin.account['eval'] - coin.account['pur']
-                        coin.account['yield'] = round(coin.account['loss'] / coin.account['pur'] * 100, 2)
-                        total_purchase += coin.account['pur']
-                        total_evaluate += coin.account['eval']
-                        #print(currency, static.chart.coins['KRW-' + currency].account)
-                #print()
-                self.total_purchase = total_purchase
-                self.total_evaluate = total_evaluate
-                self.total_loss = total_evaluate - total_purchase
-
-                if total_purchase != 0:
-                    self.total_yield = self.total_loss / total_purchase * 100
+                        purchase = round((balance + locked) * avg_buy_price, 0)
+                        evaluate = round((balance + locked) * coin.get_trade_price(), 0)
+                        loss = evaluate - purchase
+                        data = {}
+                        data['currency'] = currency
+                        data['balance'] = balance
+                        data['locked'] = locked
+                        data['avg_buy_price'] = avg_buy_price
+                        data['purchase'] = purchase
+                        data['evaluate'] = evaluate
+                        data['loss'] = loss
+                        data['yield'] = round(loss / purchase * 100, 2)
+                        self.coins[currency] = data
+                        self.total_purchase += purchase
+                        self.total_evaluate += evaluate
+                        
+                self.total_loss = self.total_evaluate - self.total_purchase
+                if self.total_purchase != 0:
+                    self.total_yield = self.total_loss / self.total_purchase * 100
 
             except Exception as e:
+                import traceback
+                print(traceback.format_exc())
                 print(e)
 
     def sync_start(self) -> None:

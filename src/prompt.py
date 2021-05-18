@@ -188,24 +188,18 @@ def print_holding_list() -> None:
         try:
             print_program_title()
             print('\t│ Code  Count                 Avg Buy         Purchase        Evaluate        Loss            Yield')
+            print(f'\t│ KRW   {static.account.get_total_cash():<21}')
             
-            for currency in static.account.coins:
-                if currency == 'KRW':
-                    print(f'\t│ {currency:<5} {static.account.get_total_cash():<21}')
-                elif currency == 'XYM':
-                    continue
-                else:
-                    coin = static.chart.get_coin("%s-%s" %(static.FIAT, currency))
-                    balance = coin.account['bal']
-                    locked = coin.account['lock']
-                    avg_buy_price = coin.account['abp']
-                    purchase = coin.account['pur']
-                    evaluate = coin.account['eval']
-                    loss = coin.account['loss']
-                    coin_yield = coin.account['yield']
+            for code, data in static.account.coins.items():
+                balance = data['balance']
+                locked = data['locked']
+                avg_buy_price = data['avg_buy_price']
+                purchase = data['purchase']
+                evaluate = data['evaluate']
+                loss = data['loss']
+                coin_yield = data['yield']
 
-                    print(
-                        f'\t| {currency:<5} {balance + locked:<21} {avg_buy_price:<15} {purchase:<15.0f} {evaluate:<15.0f} {loss:<15.0f} {coin_yield:<7.2f}%')
+                print(f'\t| {code:<5} {balance + locked:<21} {avg_buy_price:<15} {purchase:<15.0f} {evaluate:<15.0f} {loss:<15.0f} {coin_yield:<7.2f}%')
             
             print(f'\t│\n\t│ Total Purchase: {static.account.get_buy_price():.0f}')
             print(f'\t│ Total Evaluate: {static.account.get_evaluate_price():.0f}')
