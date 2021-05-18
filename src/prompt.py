@@ -192,6 +192,8 @@ def print_holding_list() -> None:
             for currency in static.account.coins:
                 if currency == 'KRW':
                     print(f'\t│ {currency:<5} {static.account.get_total_cash():<21}')
+                elif currency == 'XYM':
+                    continue
                 else:
                     coin = static.chart.get_coin("%s-%s" %(static.FIAT, currency))
                     balance = coin.account['bal']
