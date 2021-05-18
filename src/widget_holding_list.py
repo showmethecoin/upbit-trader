@@ -38,7 +38,6 @@ class HoldingListWidget(QWidget):
 
         self.count_codes = len(static.account.coins)
         print(self.count_codes)
-        self.hold_list.setRowCount(10)
 
         self.hw = HoldingListWorker()
         self.hw.dataSent.connect(self.updataData)
@@ -50,8 +49,7 @@ class HoldingListWidget(QWidget):
         self.color_white = QBrush(QColor(255, 255, 255))
 
         self.hold_list.clearContents()
-        if len(data) > 10 : 
-            self.hold_list.setRowCount(len(data))
+        self.hold_list.setRowCount(len(data))
 
         font = QFont()
         font.setBold(True)
