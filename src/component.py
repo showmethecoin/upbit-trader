@@ -662,6 +662,9 @@ class Account:
         """
         return self.total_evaluate
 
+    def get_total_holding_price(self) ->float:
+        return self.cash + self.locked_cash + self.total_evaluate
+
     def get_total_loss(self) -> float:
         """총 손익 가격
         """

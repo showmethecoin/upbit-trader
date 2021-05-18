@@ -15,6 +15,7 @@ from widget_chart import CandleChartWidget
 from widget_orderbook import OrderbookWidget
 from widget_coin_list import CoinlistWidget
 from widget_holding_list import HoldingListWidget
+from widget_userinfo import UserinfoWidget
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -2161,11 +2162,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_13.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_13.setSpacing(0)
         self.verticalLayout_13.setObjectName("verticalLayout_13")
-        self.userinfo_widget = QtWidgets.QWidget(self.frame_4)
+        self.userinfo_widget = UserinfoWidget(self.frame_4)
         self.userinfo_widget.setObjectName("userinfo_widget")
-        self.label_2 = QtWidgets.QLabel(self.userinfo_widget)
-        self.label_2.setGeometry(QtCore.QRect(150, 180, 60, 16))
-        self.label_2.setObjectName("label_2")
+        # self.label_2 = QtWidgets.QLabel(self.userinfo_widget)
+        # self.label_2.setGeometry(QtCore.QRect(150, 180, 60, 16))
+        # self.label_2.setObjectName("label_2")
         self.verticalLayout_13.addWidget(self.userinfo_widget)
         self.verticalLayout_12.addWidget(self.frame_4)
         self.frame_5 = QtWidgets.QFrame(self.secondpage)
@@ -2429,7 +2430,7 @@ class Ui_MainWindow(object):
         self.minimize_btn.setToolTip(_translate("MainWindow", "Minimize"))
         self.maximize_btn.setToolTip(_translate("MainWindow", "Maximize"))
         self.close_btn.setToolTip(_translate("MainWindow", "Close"))
-        self.label_2.setText(_translate("MainWindow", "2"))
+        # self.label_2.setText(_translate("MainWindow", "2"))
         self.tableWidget_2.setSortingEnabled(False)
         item = self.tableWidget_2.verticalHeaderItem(0)
         item.setText(_translate("MainWindow", "New Row"))
