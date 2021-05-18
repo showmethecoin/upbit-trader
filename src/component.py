@@ -72,6 +72,15 @@ class Coin:
             'obu': [],
             'st': 'SNAPSHOT'
         }
+        self.account = {
+            'bal': 0.0,
+            'lock': 0.0,
+            'abp': 0,
+            'eval': 0,
+            'pur': 0,
+            'loss': 0,
+            'yield': 0.0
+        }
 
     def get_code(self, fiat=True) -> str:
         """코인 마켓 코드 반환
@@ -552,35 +561,64 @@ class Account:
         self._access_key = _access_key
         self._secret_key = _secret_key
         #self._upbit = pyupbit.Upbit(_access_key, _secret_key)
+        self.coins = []
         self.cash = 0.0
-        self.total_purchase = 0.0
-        self.total_avaluate = 0.0
+        self.locked_cash = 0.0
+        self.total_purchase = 0
+        self.total_evaluate = 0
+        self.total_loss = 0
+        self.total_yield = 0.0
         self.sync_status = False
 
     def _sync_thread(self) -> None:
         while self.sync_status:
             try:
+                import time
+                time.sleep(1)
+                self.cash = 0.0
+                self.locked_cash = 0.0
+                self.total_purchase = 0
+                self.total_evaluate = 0
+                self.total_loss = 0
+                self.total_yield = 0.0
                 total_purchase = 0
-                total_avaluate = 0
-                for item in asyncio.run(static.upbit.get_balances()):
-                    currency = item["currency"]
-                    balance = float(item["balance"])
+                total_evaluate = 0
+
+                balances = asyncio.run(static.upbit.get_balances())
+                self.coins.clear()
+
+                for item in balances:
+                    currency = item['currency']
+                    self.coins.append(currency)
+                    balance = float(item['balance'])
+                    locked = float(item['locked'])
+                    avg_buy_price = float(item['avg_buy_price'])
 
                     if currency == 'KRW':
-                        self.cash = balance
-                        #total_purchase += balance
-                        #total_avaluate += balance
+                        self.cash = round(balance, 0)
+                        self.locked_cash = round(locked, 0)
+                    elif currency == 'XYM':
+                        continue
                     else:
-                        purchase = round(
-                            balance * float(item["avg_buy_price"]), 0)
-                        avaluate = round(balance * static.chart.get_coin("%s-%s" %
-                                                                         (static.FIAT, currency)).get_trade_price(), 0)
-                        loss = avaluate - purchase
-                        total_purchase += purchase
-                        total_avaluate += avaluate
-
+                        coin = static.chart.get_coin("%s-%s" %(static.FIAT, currency))
+                        coin.account['bal'] = balance
+                        coin.account['lock'] = locked
+                        coin.account['abp'] = avg_buy_price
+                        coin.account['pur'] = round((balance + locked) * avg_buy_price, 0)
+                        coin.account['eval'] = round((balance + locked) * coin.get_trade_price(), 0)
+                        coin.account['loss'] = coin.account['eval'] - coin.account['pur']
+                        coin.account['yield'] = round(coin.account['loss'] / coin.account['pur'] * 100, 2)
+                        total_purchase += coin.account['pur']
+                        total_evaluate += coin.account['eval']
+                        #print(currency, static.chart.coins['KRW-' + currency].account)
+                #print()
                 self.total_purchase = total_purchase
-                self.total_avaluate = total_avaluate
+                self.total_evaluate = total_evaluate
+                self.total_loss = total_evaluate - total_purchase
+
+                if total_purchase != 0:
+                    self.total_yield = self.total_loss / total_purchase * 100
+
             except Exception as e:
                 print(e)
 
@@ -602,24 +640,39 @@ class Account:
         return self.sync_status
 
     def get_cash(self) -> float:
-        """총 보유 현금
+        """보유 현금
         """
         return self.cash
 
+    def get_locked_cash(self) -> float:
+        """매수 걸어 놓은 현금
+        """
+        return self.locked_cash
+
+    def get_total_cash(self) -> float:
+        """총 보유 현금
+        """
+        return self.cash + self.locked_cash
+
     def get_buy_price(self) -> float:
-        """총 구매 비용
+        """총 매수 비용
         """
         return self.total_purchase
 
-    def get_trade_price(self) -> float:
-        """총 현재 가격
+    def get_evaluate_price(self) -> float:
+        """총 평가 가격
         """
-        return self.total_avaluate
+        return self.total_evaluate
 
     def get_total_loss(self) -> float:
         """총 손익 가격
         """
-        return (self.total_avaluate - self.total_purchase)
+        return self.total_loss
+
+    def get_total_yield(self) -> float:
+        """총 수익률
+        """
+        return self.total_yield
 
 
 if __name__ == '__main__':
@@ -636,6 +689,16 @@ if __name__ == '__main__':
         aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
     static.chart = RealtimeManager(codes=codes)
     static.chart.start()
+
+    # User upbit connection
+    static.upbit = aiopyupbit.Upbit(
+        static.config.upbit_access_key, static.config.upbit_secret_key)
+
+    # Upbit account
+    import time
+    time.sleep(3)
+    static.account = Account(static.config.upbit_access_key, static.config.upbit_secret_key)
+    static.account.sync_start()
 
     while(True):
         time.sleep(1)
