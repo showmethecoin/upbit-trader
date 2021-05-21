@@ -62,7 +62,7 @@ def print_menu() -> None:
     print("\t1. Total Price")
     print("\t2. Individual Price")
     print("\t3. Holding List")
-    print("\t5. Volatility breakout strategy test")
+    print("\t4. Volatility breakout strategy test")
     print("\t8. Websocket Sync Start")
     print("\t9. Websocket Sync Stop")
     print("\t0. Exit or CTRL + C")
@@ -249,14 +249,13 @@ def prompt_main() -> None:
             print_individual_price()
         elif int(select) == 3:
             print_holding_list()
-        elif int(select) == 5:
+        elif int(select) == 4:
             print('전략함수 테스트 시작')
-            range_input = {'KRW-BTC':0.6,'KRW-XRP':0.3,'KRW-ETH':0.9,'KRW-NEO':0.4,'KRW-BTT':0.7,'KRW-CVC':0.9,'KRW-DMT':0.1,'KRW-RFR':0.2}
-            coin_list = ['KRW-MFT','KRW-BTC','KRW-ICX','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-NEO','KRW-BTT','KRW-CVC','KRW-DMT','KRW-RFR','KRW-DOGE','KRW-ATOM']
-            loop = asyncio.get_event_loop()             # 이벤트 루프를 얻음
-            loop.run_until_complete(strategy.volatility_breakout_strategy(range_input,coin_list))    # print_add가 끝날 때까지 이벤트 루프를 실행
+            k_input = {}#{'KRW-BTC':0.6,'KRW-XRP':0.3,'KRW-ETH':0.9,'KRW-NEO':0.4,'KRW-BTT':0.7,'KRW-CVC':0.9,'KRW-DMT':0.1,'KRW-RFR':0.2}
+            coin_list = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-NEO','KRW-DMT','KRW-RFR','KRW-CVC']
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(strategy.volatility_breakout_strategy(k_input,coin_list))
             loop.close()
-            # strategy.volatility_breakout_strategy(range_input,coin_list)
         elif int(select) == 8:
             if not static.chart.alive:
                 static.chart.start()
