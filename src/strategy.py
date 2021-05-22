@@ -25,25 +25,6 @@ async def get_best_k(coin):
     df = await aiopyupbit.get_ohlcv(coin,interval='minute60',count=20)
     df['noise']= 1 - abs(df['open']-df['close']) / (df['high']-df['low'])
     return df['noise'].mean()
-    # time.sleep(0.1)
-    # df = await aiopyupbit.get_ohlcv(coin,interval='minute60',count=7)
-    # best_k = 0
-    # max_ror = 1
-    # #0.1~0.9까지 k를 변화시키며 검사
-    # for k in np.arange(0.1, 1.0, 0.1):
-    #     df['range'] = (df['high'] - df['low']) * k
-    #     df['target'] = df['open'] + df['range'].shift(1)
-    #     df['ror'] = np.where(df['high'] > df['target'],
-    #                          df['close'] / df['target'] - static.FEES,
-    #                          1)
-    #     ror = df['ror'].cumprod()[0]
-    #     #최대 수익률 검사
-    #     if ror > max_ror:
-    #         max_ror = ror
-    #         best_k = k
-
-    # #최적의 k 리턴 (모든 종목이 손해인 경우 0 리턴)
-    # return round(best_k,1)
 
 async def get_target_price(coin,k_data):
     """목표가격을 얻는 함수
@@ -55,8 +36,8 @@ async def get_target_price(coin,k_data):
     """ 
     time.sleep(0.1)
     #목표가 구하는 데이터를 디비에서 꺼내오면? -> 데이터가 디비에 없을 수도 있는데?
-    df = await aiopyupbit.get_ohlcv(coin,interval='minute240',count=2)
-    # df = await aiopyupbit.get_ohlcv(coin,interval='minute60',count=2)
+    # df = await aiopyupbit.get_ohlcv(coin,interval='minute240',count=2)
+    df = await aiopyupbit.get_ohlcv(coin,interval='minute60',count=2)
     prio = df.iloc[-2]
     curr_open = prio['close']
     prio_high = prio['high']
@@ -119,19 +100,22 @@ def get_total_ratio(res_df,k_dict,count):
         master_df (dataFrame): 전체 누적수익률을 저장
     """
     #k별로 누적수익률 계산, 모든 종목의 누적 수익률을 저장하는 마스터 df 생성
-    k_list = ['0','0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9']
-    master_df = pd.DataFrame.from_records([{'currency':'','0':0.,'0.1':0.,'0.2':0.,'0.3':0.,'0.4':0.,'0.5':0.,'0.6':0.,'0.7':0.,'0.8':0.,'0.9':0.}])
+    k_list = ['0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9']
+    master_df = pd.DataFrame.from_records([{'currency':'','0.1':0.,'0.2':0.,'0.3':0.,'0.4':0.,'0.5':0.,'0.6':0.,'0.7':0.,'0.8':0.,'0.9':0.}])
     idx = 0
     for x in res_df.items():
         #종목은 해당되는 레인지만 저장하고, 전체는 모든 레인지를 보여주기 때문에 리스트를 따로 저장
         res_coin = ['누적수익률']
         res_total = [x[0]]
-        print('###################')
-        print(k_dict[x[0]])
-        print('###################')
         for y in k_list:
-            if y != str(k_dict[x[0]]):
-                res_total.append('NaN') #NaN : 해당 종목에서 사용하지 않는 레인지
+            flag = True
+            for z in x[1][y]:
+                if z != 'NaN' and x[1]['Time'][0] != '':
+                    flag = False
+                    break
+            if flag == True:
+                res_total.append('NaN')
+                res_coin.append('NaN')
                 continue
             tmp = []
             for k in range(count):
@@ -196,15 +180,15 @@ async def volatility_breakout_strategy(k_input=None,coin_list=None):
     #구매 기록 df 초기화 (구매 정보를 저장)
     buy_data = {x.code : {'buy_price' : -1, 'trade_uuid' : -1, 'trade_volume' : -1} for x in coin_list}
     
-    """#투자 기록 df 초기화 (시간별 수익률 저장)
-    res_df = {x.code : pd.DataFrame.from_records([{'Time':'',str(k_dict[x.code]):0}]) for x in coin_list}"""
+    #투자 기록 df 초기화 (시간별 수익률 저장)
+    res_df = {x.code : pd.DataFrame.from_records([{'Time':'','0.1':'','0.2':'','0.3':'','0.4':'','0.5':'','0.6':'','0.7':'','0.8':'','0.9':''}]) for x in coin_list}
     
     #투자 횟수 초기화 (몇번 투자 시도할 것인지)
     count = 0
 
     #투자 기간 정하기 (시간)
-    unit = 4
-    # unit = 1
+    # unit = 4
+    unit = 1
     time_log = {x:False for x in range(0,24)}
     
     #원화, 종목별 초기 금액 저장
@@ -214,19 +198,23 @@ async def volatility_breakout_strategy(k_input=None,coin_list=None):
     for x in assigned_krw.items():
         print(x[0],x[1])
     print('----------------------------------------')
+    
+    #res_df에 저장하기 위한 k_list
+    k_list = ['0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9']
+    
     # exit()
     #지정 사이클만큼 투자 진행
-    while count < 2:
+    while count < 0:
         #지정 종목에 대해 투자
         for coin in coin_list:
             now = datetime.datetime.now()
             print('현재시간 : ',now)
             #unit 간격으로 목표가 정하고 수익률 계산
-            if now.hour in [1,5,9,13,17,21] and time_log[now.hour] == False:
-            #if time_log[now.hour] == False: #돌아가고 있는 시간대가 아닌 경우에만 실행
-            #if True: #테스트 코드
-                mid = datetime.datetime(now.year, now.month, now.day, now.hour) #정상 코드
-                #mid = datetime.datetime(now.year, now.month, now.day, now.hour,40) #테스트 코드 (검사 종료할 minute)
+            #if now.hour in [1,5,9,13,17,21] and time_log[now.hour] == False:
+            # if time_log[now.hour] == False: #돌아가고 있는 시간대가 아닌 경우에만 실행
+            if True: #테스트 코드
+                # mid = datetime.datetime(now.year, now.month, now.day, now.hour) #정상 코드
+                mid = datetime.datetime(now.year, now.month, now.day, now.hour,9) #테스트 코드 (검사 종료할 minute)
                 if mid < now < mid + datetime.timedelta(seconds=1):
                     print('정보 업데이트 시작')
                     #수익률을 계산해서 해당 코인의 df에 저장
@@ -235,27 +223,44 @@ async def volatility_breakout_strategy(k_input=None,coin_list=None):
                         cur_price = coin_data.get_trade_price()
                         buy_fail = False
 
-                        #매수하지 않은 경우
-                        if buy_data[coin_data.code]['buy_price'] == -1:
-                            tmp.append('x')
-                            buy_fail = True
-                        else: 
-                            #매수 시도를 했지만 체결이 되지 않은 경우
-                            for x in await static.upbit.get_order(coin_data.code):
-                                if x['uuid'] == buy_data[coin_data.code]['trade_uuid']:
-                                    buy_fail = True
-                                    static.upbit.cancel_order(x['uuid'])
-                                    break
-                            #매수가 채결된 경우 수익률 계산 ((판매금액 / 구매 할당금액 - 1) * 100)
-                            if buy_fail == True:
-                                tmp.append('buy delayed')
+                        #k를 반올림해서 res_df에 저장
+                        tmp_k = round(k_dict[coin_data.code],1)
+                        if tmp_k >= 1 :
+                            tmp_k = 0.9
+                        elif tmp_k <= 0 :
+                            tmp_k = 0.1
+                        print('원래 : ',k_dict[coin_data.code])
+                        print('반올림 : ',tmp_k)
+                        for k in k_list:
+                            #현재 k에 대해서만 진행
+                            if k != str(tmp_k):
+                                print('검사 k : ',k,' 현재 k 아님')
+                                tmp.append('NaN')
+                                continue
+                            #매수하지 않은 경우
+                            if buy_data[coin_data.code]['buy_price'] == -1:
+                                print('매수 x')
+                                tmp.append('x')
+                                buy_fail = True
                             else:
-                                sell_price, sell_krw = await sell_crypto_currency(coin_data.code, buy_data[coin_data.code]['trade_volume'])
-                                tmp.append(((sell_krw/assigned_krw[coin_data.code])-1)*100)
-                                #tmp.append(((cur_price/buy_data[coin_data.code]['buy_price'])-1)*100)
-                        """res_df[coin_data.code].loc[count] = tmp"""
+                                #매수 시도를 했지만 체결이 되지 않은 경우
+                                for x in await static.upbit.get_order(coin_data.code):
+                                    if x['uuid'] == buy_data[coin_data.code]['trade_uuid']:
+                                        buy_fail = True
+                                        static.upbit.cancel_order(x['uuid'])
+                                        break
+                                #매수가 채결된 경우 수익률 계산 ((판매금액 / 구매 할당금액 - 1) * 100)
+                                if buy_fail == True:
+                                    tmp.append('buy delayed')
+                                else:
+                                    sell_price, sell_krw = await sell_crypto_currency(coin_data.code, buy_data[coin_data.code]['trade_volume'])
+                                    tmp.append(((sell_krw/assigned_krw[coin_data.code])-1)*100)
+                                    #tmp.append(((cur_price/buy_data[coin_data.code]['buy_price'])-1)*100)
+                        
+                        res_df[coin_data.code].loc[count] = tmp
 
                         #투자 결과를 DB에 삽입
+                        print('buy_fail : ',buy_fail)
                         res_dict = {}
                         print(now,mid)
                         print('---------------------------------------')
@@ -312,9 +317,9 @@ async def volatility_breakout_strategy(k_input=None,coin_list=None):
                         print(time_log[x],end=' ')
                     print('')
                     print('추가 횟수 : ',count)
-                    """for x in res_df.items():
+                    for x in res_df.items():
                         print(x[0])
-                        print(x[1])"""
+                        print(x[1])
                     time.sleep(0.5)
 
             #매수한 이력이 있으면 검사하지 않음
@@ -330,20 +335,21 @@ async def volatility_breakout_strategy(k_input=None,coin_list=None):
                 buy_data[coin.code]['trade_uuid'] = trade_uuid
                 buy_data[coin.code]['trade_volume'] = trade_volume
                 
-    """#전체 누적수익률 계산
-    master_df = get_total_ratio(res_df,k_dict,count)"""
+    #전체 누적수익률 계산
+    master_df = get_total_ratio(res_df,k_dict,count)
 
-    """#엑셀 파일에 시트 추가 (전체정보 -> 종목별 정보)
-    with pd.ExcelWriter('./변동성전략테스트.xlsx') as writer: # pylint: disable=abstract-class-instantiated
-        master_df.to_excel(writer,sheet_name='Total',index=False)
-        for x in res_df.items():
-            x[1].to_excel(writer,sheet_name=x[0],index=False)"""
-    
-    """for x in res_df.items():
+    for x in res_df.items():
         print(x[0])
         print(x[1])
     print('---------------------------------마스터 데이터프레임------------------------------------------')
-    print(master_df)"""
+    print(master_df)
+    
+    #엑셀 파일에 시트 추가 (전체정보 -> 종목별 정보)
+    with pd.ExcelWriter('./변동성전략테스트.xlsx') as writer: # pylint: disable=abstract-class-instantiated
+        master_df.to_excel(writer,sheet_name='Total',index=False)
+        for x in res_df.items():
+            x[1].to_excel(writer,sheet_name=x[0],index=False)
+    
     exit()
 #coin         : 종목이름
 #df           : 받아온 캔들봉이 담긴 data frame
