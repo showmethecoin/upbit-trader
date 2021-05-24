@@ -8,7 +8,8 @@ from PyQt5.QtWidgets import *
 import static
 import component
 from ui_main import Ui_MainWindow
-
+import utils
+import config
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -66,17 +67,24 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     import sys
+    import component
     import aiopyupbit
-    import utils
-    
+
     utils.set_windows_selector_event_loop_global()
 
+    static.config = config.Config()
+    static.config.load()
+    
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     codes = loop.run_until_complete(
         aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
     static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
+    
+    # Upbit account
+    static.account = component.Account(static.config.upbit_access_key, static.config.upbit_secret_key)
+    static.account.sync_start()
 
     app = QApplication(sys.argv)
     window = MainWindow()

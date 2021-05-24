@@ -1,6 +1,7 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import asyncio
+from PyQt5 import QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -31,11 +32,12 @@ class UserinfoWorker(QThread):
         while self.alive:
             try:
                 await asyncio.sleep(0.5)
-                
                 self.view.userdata1.setText(f'{int(static.account.get_cash()):,}')
                 self.view.userdata2.setText(f'{int(static.account.get_buy_price()):,}')
                 self.view.userdata3.setText(f'{int(static.account.get_evaluate_price()):,}')
                 self.view.userdata4.setText(f'{int(static.account.get_evaluate_price()):,}')
+                self.view.userdata5.setText(f'{int(static.account.get_total_loss()):,}')
+                self.view.userdata6.setText(f'{static.account.get_total_yield():.2f}')
                 
                 if int(static.account.get_total_loss()) < 0:
                     self.view.userdata5.setStyleSheet("Color : #CF304A")
@@ -43,21 +45,17 @@ class UserinfoWorker(QThread):
                     self.view.userdata5.setStyleSheet("Color : black")
                 else:
                     self.view.userdatat5.setStyleSheet("Color : #02C076")
-                self.view.userdata5.setText(f'{int(static.account.get_total_loss()):,}')
-                
-                if round(static.account.get_total_yield(), 2) < 0:
+
+                if static.account.get_total_yield() < 0:
                     self.view.userdata6.setStyleSheet("Color : #CF304A")
-                elif round(static.account.get_total_yield(), 2) == 0:
+                elif static.account.get_total_yield() == 0:
                     self.view.userdata6.setStyleSheet("Color : black")
                 else:
                     self.view.userdatat6.setStyleSheet("Color : #02C076")
-                self.view.userdata6.setText(f'{static.account.get_total_yield():.2f}')
-                
-                # 데이터 불러오고
-                # 바꾸고
 
             except Exception as e:
-                log.error(e)
+                #log.error(e)
+                pass
 
 
 class UserinfoWidget(QWidget):
@@ -65,10 +63,11 @@ class UserinfoWidget(QWidget):
         super().__init__(parent)
         self.uw = UserinfoWorker(uic.loadUi(utils.get_file_path("styles/ui/userinfo.ui"), self))
         self.uw.start()
-
+        
     # close thread
-    def closeEvent(self, event):
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.uw.close()
+        return super().closeEvent(a0)
         
 if __name__ == "__main__":
     import sys

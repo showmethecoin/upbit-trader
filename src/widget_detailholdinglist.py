@@ -9,10 +9,10 @@ from PyQt5 import uic
 
 import static
 import utils
-import config
 import asyncio
+import config
 
-class HoldingListWorker(QThread):
+class DetailholdinglistWorker(QThread):
     dataSent = pyqtSignal(object)
 
     def __init__(self):
@@ -30,60 +30,76 @@ class HoldingListWorker(QThread):
         self.alive = False
         return super().terminate()
 
-class HoldingListWidget(QWidget):
+class DetailholdinglistWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        uic.loadUi(utils.get_file_path("styles/ui/holding_list.ui"), self)
+        uic.loadUi(utils.get_file_path("styles/ui/detailholdinglist.ui"), self)
 
         #참고 QHeaderView Class
-        self.hold_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.detailholdinglist.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # self.hold_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        
-        self.hw = HoldingListWorker()
-        self.hw.dataSent.connect(self.updataData)
-        self.hw.start()
 
         self.color_red = QBrush(QColor(207, 48, 74))  # CF304A
         self.color_green = QBrush(QColor(2, 192, 118))  # 02C076
         self.color_white = QBrush(QColor(255, 255, 255))
 
+        self.dw = DetailholdinglistWorker()
+        self.dw.dataSent.connect(self.updataData)
+        self.dw.start()
+
     def updataData(self, data):
         # data는 static.account.coins
         # 테이블 설정
         # 테이블을 처음 설정할 경우 또는 설정된 table row갯수와 set해야되는 data갯수가 다를 경우
-        if self.hold_list.rowCount() == 0 or self.hold_list.rowCount() != len(data):
-            self.hold_list.clearContents() # 테이블 지우고
+        if self.detailholdinglist.rowCount() == 0 or self.detailholdinglist.rowCount() != len(data):
+            self.detailholdinglist.clearContents() # 테이블 지우고
             self.items = []
             # 동적으로 row관리
             count_codes = len(data)
-            self.hold_list.setRowCount(count_codes)
+            self.detailholdinglist.setRowCount(count_codes)
             font = QFont()
             font.setBold(True)
 
             for i in range(count_codes):
-                self.items.append([QTableWidgetItem(), QTableWidgetItem()])
+                self.items.append([QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem()])
                 self.items[i][0].setFont(font)
                 self.items[i][0].setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
                 self.items[i][1].setFont(font)
                 self.items[i][1].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                self.hold_list.setItem(i, 0, self.items[i][0])       
-                self.hold_list.setItem(i, 1, self.items[i][1])
-        # print(self.count_codes)
-        
+                self.items[i][2].setFont(font)
+                self.items[i][2].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                self.items[i][3].setFont(font)
+                self.items[i][3].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                self.items[i][4].setFont(font)
+                self.items[i][4].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                self.items[i][5].setFont(font)
+                self.items[i][5].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                self.detailholdinglist.setItem(i, 0, self.items[i][0])            
+                self.detailholdinglist.setItem(i, 1, self.items[i][1])
+                self.detailholdinglist.setItem(i, 2, self.items[i][2])
+                self.detailholdinglist.setItem(i, 3, self.items[i][3])
+                self.detailholdinglist.setItem(i, 4, self.items[i][4])
+                self.detailholdinglist.setItem(i, 5, self.items[i][5])
+
         for i, coin in enumerate(data):
             self.items[i][0].setText(static.chart.get_coin(f'{static.FIAT}-{coin}').korean_name + '(' + coin + ')')
-            self.items[i][1].setText(str(data[coin]['yield']))
+            self.items[i][1].setText(f"{data[coin]['balance']:.2f}")
+            self.items[i][2].setText(f"{data[coin]['avg_buy_price']:,}")
+            self.items[i][3].setText(f"{data[coin]['purchase']:,}")
+            self.items[i][4].setText(f"{data[coin]['evaluate']:,}")
+            self.items[i][5].setText(str(data[coin]['yield']))
             if data[coin]['yield'] < 0 :
-                self.items[i][1].setForeground(self.color_red)
+                self.items[i][5].setForeground(self.color_red)
             elif data[coin]['yield'] > 0 :
-                self.items[i][1].setForeground(self.color_green)
+                self.items[i][5].setForeground(self.color_green)
             else:
-                self.items[i][1].setForeground(self.color_white)         
-    
+                self.items[i][5].setForeground(self.color_white)  
+             
+    # close thread
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        self.hw.close()
+        self.dw.close()
         return super().closeEvent(a0)
-
+    
 if __name__ == "__main__":
     import sys
     import component
@@ -106,6 +122,6 @@ if __name__ == "__main__":
     static.account.sync_start()
 
     app = QApplication(sys.argv)
-    GUI = HoldingListWidget()
+    GUI = DetailholdinglistWidget()
     GUI.show()
     sys.exit(app.exec_())
