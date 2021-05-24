@@ -36,9 +36,6 @@ class HoldingListWidget(QWidget):
         self.hold_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # self.hold_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-        self.count_codes = len(static.account.coins)
-        print(self.count_codes)
-
         self.hw = HoldingListWorker()
         self.hw.dataSent.connect(self.updataData)
         self.hw.start()

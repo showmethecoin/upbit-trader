@@ -202,7 +202,6 @@ def print_holding_list() -> None:
             print(f'\t│ Total Evaluate: {static.account.get_evaluate_price():.0f}')
             print(f'\t│ Total Loss    : {static.account.get_total_loss():.0f}')
             print(f'\t│ Total Yield   : {static.account.get_total_yield():.2f} %')
-
             print('\t[CTRL + C] Exit to menu')
             time.sleep(1)
         #except KeyboardInterrupt:
