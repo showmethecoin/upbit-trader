@@ -2075,7 +2075,7 @@ QDoubleSpinBo
                      <widget class="QDoubleSpinBox" name="buy_price_1">
                       <property name="minimumSize">
                        <size>
-                        <width>63</width>
+                        <width>34</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -2144,7 +2144,7 @@ QDoubleSpinBo
                      <widget class="QDoubleSpinBox" name="buy_volume_1">
                       <property name="minimumSize">
                        <size>
-                        <width>63</width>
+                        <width>34</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -2165,7 +2165,7 @@ QDoubleSpinBo
                        <string/>
                       </property>
                       <property name="decimals">
-                       <number>2</number>
+                       <number>10</number>
                       </property>
                       <property name="minimum">
                        <double>0.000000000000000</double>
@@ -2299,6 +2299,9 @@ QDoubleSpinBo
                       </property>
                       <property name="showGroupSeparator" stdset="0">
                        <bool>true</bool>
+                      </property>
+                      <property name="decimals">
+                       <number>0</number>
                       </property>
                       <property name="maximum">
                        <double>1000000000000000019884624838656.000000000000000</double>
@@ -2489,7 +2492,7 @@ QPushButton:hover{
                     <item>
                      <widget class="QLabel" name="label_32">
                       <property name="text">
-                       <string>주문수량</string>
+                       <string>주문총액</string>
                       </property>
                      </widget>
                     </item>
@@ -2497,7 +2500,7 @@ QPushButton:hover{
                      <widget class="QDoubleSpinBox" name="buy_volume_2">
                       <property name="minimumSize">
                        <size>
-                        <width>63</width>
+                        <width>34</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -2518,7 +2521,7 @@ QPushButton:hover{
                        <string/>
                       </property>
                       <property name="decimals">
-                       <number>2</number>
+                       <number>0</number>
                       </property>
                       <property name="minimum">
                        <double>0.000000000000000</double>
@@ -2821,7 +2824,7 @@ QPushButton:hover{
                      <widget class="QDoubleSpinBox" name="buy_price_3">
                       <property name="minimumSize">
                        <size>
-                        <width>63</width>
+                        <width>34</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -2837,6 +2840,9 @@ QPushButton:hover{
                       </property>
                       <property name="showGroupSeparator" stdset="0">
                        <bool>true</bool>
+                      </property>
+                      <property name="decimals">
+                       <number>2</number>
                       </property>
                       <property name="maximum">
                        <double>1000000000000000.000000000000000</double>
@@ -2888,6 +2894,9 @@ QPushButton:hover{
                       </property>
                       <property name="showGroupSeparator" stdset="0">
                        <bool>true</bool>
+                      </property>
+                      <property name="decimals">
+                       <number>6</number>
                       </property>
                       <property name="maximum">
                        <double>1000000000000000.000000000000000</double>
@@ -2945,6 +2954,9 @@ QPushButton:hover{
                       </property>
                       <property name="showGroupSeparator" stdset="0">
                        <bool>true</bool>
+                      </property>
+                      <property name="decimals">
+                       <number>6</number>
                       </property>
                       <property name="maximum">
                        <double>1000000000000000.000000000000000</double>
@@ -3072,6 +3084,9 @@ QPushButton:hover{
                       </property>
                       <property name="showGroupSeparator" stdset="0">
                        <bool>true</bool>
+                      </property>
+                      <property name="decimals">
+                       <number>0</number>
                       </property>
                       <property name="maximum">
                        <double>1000000000000000019884624838656.000000000000000</double>
@@ -3327,7 +3342,7 @@ QPushButton:hover{
                     <item>
                      <widget class="QLabel" name="label_39">
                       <property name="text">
-                       <string>매수 가격</string>
+                       <string>매도 가격</string>
                       </property>
                      </widget>
                     </item>
@@ -3335,7 +3350,7 @@ QPushButton:hover{
                      <widget class="QDoubleSpinBox" name="sell_price_1">
                       <property name="minimumSize">
                        <size>
-                        <width>63</width>
+                        <width>34</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -3404,7 +3419,7 @@ QPushButton:hover{
                      <widget class="QDoubleSpinBox" name="sell_volume_1">
                       <property name="minimumSize">
                        <size>
-                        <width>63</width>
+                        <width>34</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -3425,7 +3440,7 @@ QPushButton:hover{
                        <string/>
                       </property>
                       <property name="decimals">
-                       <number>2</number>
+                       <number>6</number>
                       </property>
                       <property name="minimum">
                        <double>0.000000000000000</double>
@@ -3559,6 +3574,9 @@ QPushButton:hover{
                       </property>
                       <property name="showGroupSeparator" stdset="0">
                        <bool>true</bool>
+                      </property>
+                      <property name="decimals">
+                       <number>0</number>
                       </property>
                       <property name="maximum">
                        <double>1000000000000000019884624838656.000000000000000</double>
@@ -3743,7 +3761,7 @@ QPushButton:hover{
                     <item>
                      <widget class="QLabel" name="label_43">
                       <property name="text">
-                       <string>주문수량</string>
+                       <string>주문총액</string>
                       </property>
                      </widget>
                     </item>
@@ -3751,7 +3769,7 @@ QPushButton:hover{
                      <widget class="QDoubleSpinBox" name="sell_volume_2">
                       <property name="minimumSize">
                        <size>
-                        <width>63</width>
+                        <width>34</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -3772,7 +3790,7 @@ QPushButton:hover{
                        <string/>
                       </property>
                       <property name="decimals">
-                       <number>2</number>
+                       <number>0</number>
                       </property>
                       <property name="minimum">
                        <double>0.000000000000000</double>
@@ -4068,7 +4086,7 @@ QPushButton:hover{
                     <item>
                      <widget class="QLabel" name="label_46">
                       <property name="text">
-                       <string>매수 가격</string>
+                       <string>매도 가격</string>
                       </property>
                      </widget>
                     </item>
@@ -4076,7 +4094,7 @@ QPushButton:hover{
                      <widget class="QDoubleSpinBox" name="sell_price_3">
                       <property name="minimumSize">
                        <size>
-                        <width>63</width>
+                        <width>34</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -4092,6 +4110,9 @@ QPushButton:hover{
                       </property>
                       <property name="showGroupSeparator" stdset="0">
                        <bool>true</bool>
+                      </property>
+                      <property name="decimals">
+                       <number>2</number>
                       </property>
                       <property name="maximum">
                        <double>1000000000000000.000000000000000</double>
@@ -4143,6 +4164,9 @@ QPushButton:hover{
                       </property>
                       <property name="showGroupSeparator" stdset="0">
                        <bool>true</bool>
+                      </property>
+                      <property name="decimals">
+                       <number>6</number>
                       </property>
                       <property name="maximum">
                        <double>1000000000000000.000000000000000</double>
@@ -4206,6 +4230,9 @@ QPushButton:hover{
                       </property>
                       <property name="showGroupSeparator" stdset="0">
                        <bool>true</bool>
+                      </property>
+                      <property name="decimals">
+                       <number>6</number>
                       </property>
                       <property name="maximum">
                        <double>1000000000000000.000000000000000</double>
@@ -4333,6 +4360,9 @@ QPushButton:hover{
                       </property>
                       <property name="showGroupSeparator" stdset="0">
                        <bool>true</bool>
+                      </property>
+                      <property name="decimals">
+                       <number>0</number>
                       </property>
                       <property name="maximum">
                        <double>1000000000000000019884624838656.000000000000000</double>

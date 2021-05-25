@@ -6,12 +6,10 @@ import ui_styles
 import static
 import utils
 
-
 class TradeWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         uic.loadUi(utils.get_file_path("styles/ui/trade.ui"), self)
-        self.set_price('KRW-BTC')
 
         # BUY Radio Clicked Listener Initialize
         self.buy_designation_price.setChecked(True)
@@ -35,10 +33,42 @@ class TradeWidget(QWidget):
         self.buy_reset_2.clicked.connect(self.clicked_reset)
         self.buy_reset_3.clicked.connect(self.clicked_reset)
 
+        # BUY percent Cliked Listenr Initialize
+        self.buy_ten_1.clicked.connect(lambda: self.clicked_vol(10))
+        self.buy_twenty_fifth_1.clicked.connect(lambda: self.clicked_vol(25))
+        self.buy_fifty_1.clicked.connect(lambda: self.clicked_vol(50))
+        self.buy_hundred_1.clicked.connect(lambda: self.clicked_vol(100))
+
+        self.buy_ten_2.clicked.connect(lambda: self.clicked_vol(10))
+        self.buy_twenty_fifth_2.clicked.connect(lambda: self.clicked_vol(25))
+        self.buy_fifty_2.clicked.connect(lambda: self.clicked_vol(50))
+        self.buy_hundred_2.clicked.connect(lambda: self.clicked_vol(100))
+        
+        self.buy_ten_3.clicked.connect(lambda: self.clicked_vol(10))
+        self.buy_twenty_fifth_3.clicked.connect(lambda: self.clicked_vol(25))
+        self.buy_fifty_3.clicked.connect(lambda: self.clicked_vol(50))
+        self.buy_hundred_3.clicked.connect(lambda: self.clicked_vol(100))
+
         # SELL Reset-Button Clicked Listener Initialize
         self.sell_reset_1.clicked.connect(self.clicked_reset)
         self.sell_reset_2.clicked.connect(self.clicked_reset)
         self.sell_reset_3.clicked.connect(self.clicked_reset)
+
+        # SELL percent Cliked Listenr Initialize
+        self.sell_ten_1.clicked.connect(lambda: self.clicked_vol(10))
+        self.sell_twenty_fifth_1.clicked.connect(lambda: self.clicked_vol(25))
+        self.sell_fifty_1.clicked.connect(lambda: self.clicked_vol(50))
+        self.sell_hundred_1.clicked.connect(lambda: self.clicked_vol(100))
+        
+        self.sell_ten_2.clicked.connect(lambda: self.clicked_vol(10))
+        self.sell_twenty_fifth_2.clicked.connect(lambda: self.clicked_vol(25))
+        self.sell_fifty_2.clicked.connect(lambda: self.clicked_vol(50))
+        self.sell_hundred_2.clicked.connect(lambda: self.clicked_vol(100))
+
+        self.sell_ten_3.clicked.connect(lambda: self.clicked_vol(10))
+        self.sell_twenty_fifth_3.clicked.connect(lambda: self.clicked_vol(25))
+        self.sell_fifty_3.clicked.connect(lambda: self.clicked_vol(50))
+        self.sell_hundred_3.clicked.connect(lambda: self.clicked_vol(100))
 
         # BUY Price Changed Listener Initialize
         self.buy_price_1.setGroupSeparatorShown(True)
@@ -75,7 +105,42 @@ class TradeWidget(QWidget):
 
     def clicked_sell_reservation_pice(self):
         self.sell_stack.setCurrentIndex(2)
+    
+    def clicked_vol(self, num):
+        percent = num / 100.0
+        cash = static.account.cash + static.account.locked_cash
 
+        # BUY
+        if self.tabWidget.currentIndex() == 0:
+            idx = self.buy_stack.currentIndex()
+            # Designation
+            if idx == 0:
+                self.buy_total_price_1.setValue(cash * percent)
+            # Market
+            elif idx == 1:
+                self.buy_volume_2.setValue(cash * percent)
+            # Reservation
+            else:
+                self.buy_total_price_3.setValue(cash * percent)
+        # SELL
+        else:
+            idx = self.sell_stack.currentIndex()
+            coin = self.sell_ticker_1.text()
+            price = self.sell_price_1.value()
+            balance = 0.0
+            if coin in static.account.coins.keys():
+                balance = static.account.coins[coin]['balance']
+
+            # Designation
+            if idx == 0:
+                self.sell_total_price_1.setValue(price * balance * percent)
+            # Market
+            elif idx == 1:
+                self.sell_volume_2.setValue(price * balance * percent)
+            # Reservation
+            else:
+                self.sell_total_price_3.setValue(price * balance * percent)
+    
     def clicked_reset(self):
         # BUY
         if self.tabWidget.currentIndex() == 0:
@@ -153,15 +218,14 @@ class TradeWidget(QWidget):
         # BUY
         if self.tabWidget.currentIndex() == 0:
             idx = self.buy_stack.currentIndex()
-
             # Designation
             if idx == 0:
                 self.buy_total_price_1.setValue(
-                    self.buy_price_1.value() * self.buy_volume_1.value())
+                    round(self.buy_price_1.value() * self.buy_volume_1.value()))
             # Reservation
             else:
                 self.buy_total_price_3.setValue(
-                    self.buy_price_3.value() * self.buy_volume_3.value())
+                    round(self.buy_price_3.value() * self.buy_volume_3.value()))
 
         # SELL
         else:
@@ -170,13 +234,13 @@ class TradeWidget(QWidget):
             # Designation
             if idx == 0:
                 self.sell_total_price_1.setValue(
-                    self.sell_price_1.value() * self.sell_volume_1.value())
+                    round(self.sell_price_1.value() * self.sell_volume_1.value()))
             # Reservation
             else:
                 self.sell_total_price_3.setValue(
-                    self.sell_price_3.value() * self.sell_volume_3.value())
+                    round(self.sell_price_3.value() * self.sell_volume_3.value()))
 
-    # All Reset
+    # All page Reset
     def all_reset(self):
         self.buy_price_1.setValue(0.0)
         self.buy_volume_1.setValue(0.0)
@@ -199,12 +263,40 @@ class TradeWidget(QWidget):
     def set_price(self, ticker):
         if static.chart == None:
             return
-        price = static.chart.coins[ticker].get_trade_price()
+        # set market price 
+        market_price = static.chart.coins[ticker].get_trade_price()
+        
+        # set held cash
+        cash = str(static.account.cash + static.account.locked_cash)
+        self.buy_orderable_1.setText(cash)
+        self.buy_orderable_2.setText(cash)
+        self.buy_orderable_3.setText(cash)
+
+        # set coin name
+        coin = ticker.split("-")[1]
+        self.sell_ticker_1.setText(coin)
+        self.sell_ticker_2.setText(coin)
+        self.sell_ticker_3.setText(coin)
+
+        balance = "0.0"
+        
+        # set held coin 
+        if coin in static.account.coins.keys():
+            coin_val = static.account.coins[coin]['balance']
+            if 0.0 < coin_val < 1.0:
+                balance = str(format(static.account.coins[coin]['balance'], '.6f'))
+            else:
+                balance = str(format(static.account.coins[coin]['balance'], '.1f'))
+        self.sell_orderable_1.setText(balance)
+        self.sell_orderable_2.setText(balance)
+        self.sell_orderable_3.setText(balance)
+
+        # refresh price
         self.all_reset()
-        self.buy_price_1.setValue(price)
-        self.buy_price_3.setValue(price)
-        self.sell_price_1.setValue(price)
-        self.sell_price_3.setValue(price)
+        self.buy_price_1.setValue(market_price)
+        self.buy_price_3.setValue(market_price)
+        self.sell_price_1.setValue(market_price)
+        self.sell_price_3.setValue(market_price)
 
 
 if __name__ == "__main__":
