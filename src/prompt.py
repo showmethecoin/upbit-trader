@@ -63,6 +63,7 @@ def print_menu() -> None:
     print("\t2. Individual Price")
     print("\t3. Holding List")
     print("\t4. Volatility breakout strategy test")
+    print("\t5. RSI strategy test")
     print("\t8. Websocket Sync Start")
     print("\t9. Websocket Sync Stop")
     print("\t0. Exit or CTRL + C")
@@ -252,9 +253,14 @@ def prompt_main() -> None:
         elif int(select) == 4:
             print('전략함수 테스트 시작')
             k_input = {}#{'KRW-BTC':0.6,'KRW-XRP':0.3,'KRW-ETH':0.9,'KRW-NEO':0.4,'KRW-BTT':0.7,'KRW-CVC':0.9,'KRW-DMT':0.1,'KRW-RFR':0.2}
-            coin_list = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-NEO','KRW-DMT','KRW-RFR','KRW-CVC']
+            coin_list = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-VET','KRW-LINK','KRW-ENJ','KRW-ETC','KRW-PCI','KRW-DOGE']
             loop = asyncio.get_event_loop()
             loop.run_until_complete(strategy.volatility_breakout_strategy(k_input,coin_list))
+            loop.close()
+        elif int(select) == 5:
+            coin_list = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-VET','KRW-LINK','KRW-ENJ','KRW-ETC','KRW-PCI','KRW-DOGE']
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(strategy.rsi_strategy(coin_list,14))
             loop.close()
         elif int(select) == 8:
             if not static.chart.alive:
