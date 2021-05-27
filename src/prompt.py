@@ -258,7 +258,7 @@ def prompt_main() -> None:
             loop.run_until_complete(strategy.volatility_breakout_strategy(k_input,coin_list))
             loop.close()
         elif int(select) == 5:
-            coin_list = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-VET','KRW-LINK','KRW-ENJ','KRW-ETC','KRW-PCI','KRW-DOGE']
+            coin_list = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-VET','KRW-LINK','KRW-ENJ','KRW-ETC','KRW-PCI','KRW-DOGE','KRW-DMT','KRW-RFR']
             loop = asyncio.get_event_loop()
             loop.run_until_complete(strategy.rsi_strategy(coin_list,14))
             loop.close()

@@ -36,7 +36,7 @@ async def get_target_price(coin,k_data):
         target (float): 목표가
     """ 
     time.sleep(0.1)
-    #목표가 구하는 데이터를 디비에서 꺼내오면? -> 데이터가 디비에 없을 수도 있는데?
+    #목표가 구하는 데이터를 디비에서 꺼내오면?
     # df = await aiopyupbit.get_ohlcv(coin,interval='minute240',count=2)
     df = await aiopyupbit.get_ohlcv(coin,interval='minute60',count=2)
     prio = df.iloc[-2]
@@ -96,7 +96,7 @@ async def sell_crypto_currency(coin, volume):
 def get_total_ratio(res_df,count):
     """전체 누적 수익률을 계산
     Args:
-        res_df (dataFrame): 각 종목의 시간별 수익률을 저장하는 dataFrame
+        res_df (dataFrame): 각 종목의 시간별 수익률이 저장된 dataFrame
         count (int): 투자 횟수
     Returns:
         master_df (dataFrame): 전체 누적수익률을 저장
@@ -106,51 +106,47 @@ def get_total_ratio(res_df,count):
     master_df = pd.DataFrame.from_records([{'currency':'','0.1':0.,'0.2':0.,'0.3':0.,'0.4':0.,'0.5':0.,'0.6':0.,'0.7':0.,'0.8':0.,'0.9':0.}])
     idx = 0
     for x in res_df.items():
-        #종목은 해당되는 k만 저장하고, 전체는 모든 k를 보여주기 때문에 리스트를 따로 저장
+        #종목의 K별 누적수익률을 저장하는 리스트
         res_coin = ['누적수익률']
-        res_total = [x[0]]
-        print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         #0.1~0.9의 k를 돌며 검사
         for y in k_list:
-            flag = True
-
-            for z in x[1][y]:
-                print(z)
-                print('-------------------------------------')
-                if z != 'NaN' and x[1]['Time'][0] != '':
-                    flag = False
-                    break
-            if flag == True:
-                res_total.append('NaN')
-                res_coin.append('NaN')
-                continue
             tmp = []
-            print('NaN 아님')
-
+            is_x = False
+            #현재 K의 모든 투자 결과를 탐색하며 수익률 계산
             for k in range(count):
                 print('x[1][y][k] : ',x[1][y][k])
-                #구매하지 않은 경우 연산하지 않음
-                if x[1][y][k] != 'x' and x[1][y][k] != 'fail':
+                #구매하지 않은 경우
+                if x[1][y][k] == 'x':
+                    print('not buy')
+                    is_x = True
+                #해당 K가 아니거나, 구매에 실패했거나, 데이터가 없으면 NaN
+                elif x[1][y][k] != 'fail' and x[1][y][k] != 'NaN' and x[1][y][k] != '':
+                    print('NaN의 결과')
+                    continue
+                #정상적으로 매매가 완료된 경우 리스트에 삽입
+                else:
+                    print('저장 시도')
                     tmp.append((x[1][y][k]+100)/100)
-            #구매를 한 기록이 없으면 x 저장
+
+            #정상적으로 매매가 이루어진 데이터가 없는 경우
             if len(tmp) == 0:
-                res_coin.append('x')
-                res_total.append('x')
+                res = 'NaN'
+                if is_x == True:
+                    res = 'x'
+                res_coin.append(res)
+            #누적수익률 계산
             else:
-                #누적수익률 계산
-                data = (np.cumprod(tmp)[-1] - 1) * 100
-                res_coin.append(data)
-                res_total.append(data)
+                res_coin.append((np.cumprod(tmp)[-1] - 1) * 100)
         print('res coin')
         print(res_coin)
-        print('res total')
-        print(res_total)
         print('x')
         print(x[0])
         print(x[1])
         print('----------------')
+        #master data frame, 종목별 data frame에 계산한 누적수익률 저장
         x[1].loc[count] = res_coin
-        master_df.loc[idx] = res_total
+        res_coin[0] = x[0]
+        master_df.loc[idx] = res_coin
         idx += 1
     return master_df
 
@@ -215,8 +211,8 @@ async def volatility_breakout_strategy(k_input=None,coin_list=None):
     k_list = ['0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9']
     
     # exit()
-    #지정 사이클만큼 투자 진행
-    while count < 1:
+    #지정 횟수만큼 투자 진행
+    while count < 0:
         #지정 종목에 대해 투자
         for coin in coin_list:
             now = datetime.datetime.now()
@@ -457,6 +453,7 @@ async def rsi_strategy(coin_list,period):
                 #매수 진행
                 print('#################매수 진행#################')
                 cur_price = coin.get_trade_price()
+                # trade_uuid, trade_volume = await buy_crypto_currency(coin.code, 6000, cur_price)
                 trade_uuid, trade_volume = await buy_crypto_currency(coin.code, assigned_krw[coin.code], cur_price)
                 buy_data[coin.code]['buy_price'] = cur_price
                 buy_data[coin.code]['trade_uuid'] = trade_uuid
@@ -486,6 +483,7 @@ async def rsi_strategy(coin_list,period):
                     continue
                 print('#################매도 진행#################')
                 sell_price, sell_krw = await sell_crypto_currency(coin.code, buy_data[coin.code]['trade_volume'])
+                # profit_ratio = ((sell_krw/6000)-1)*100
                 profit_ratio = ((sell_krw/assigned_krw[coin.code])-1)*100
                 
                 #투자 결과를 DB에 삽입
@@ -498,6 +496,7 @@ async def rsi_strategy(coin_list,period):
                 res_dict['trade volume'] = buy_data[coin.code]['trade_volume']
                 res_dict['buy price'] = buy_data[coin.code]['buy_price']
                 res_dict['sell price'] = sell_price
+                # res_dict['total buy'] = 6000
                 res_dict['total buy'] = assigned_krw[coin.code]
                 res_dict['total sell'] = sell_krw
                 res_dict['profit ratio'] = profit_ratio
