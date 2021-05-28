@@ -2075,7 +2075,7 @@ QDoubleSpinBo
                      <widget class="QDoubleSpinBox" name="buy_price_1">
                       <property name="minimumSize">
                        <size>
-                        <width>34</width>
+                        <width>63</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -2144,7 +2144,7 @@ QDoubleSpinBo
                      <widget class="QDoubleSpinBox" name="buy_volume_1">
                       <property name="minimumSize">
                        <size>
-                        <width>34</width>
+                        <width>63</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -2498,7 +2498,7 @@ QPushButton:pressed {
                      <widget class="QDoubleSpinBox" name="buy_total_price_2">
                       <property name="minimumSize">
                        <size>
-                        <width>34</width>
+                        <width>63</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -2820,7 +2820,7 @@ QPushButton:pressed {
                      <widget class="QDoubleSpinBox" name="buy_price_3">
                       <property name="minimumSize">
                        <size>
-                        <width>34</width>
+                        <width>63</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -3348,7 +3348,7 @@ QPushButton:hover{
                      <widget class="QDoubleSpinBox" name="sell_price_1">
                       <property name="minimumSize">
                        <size>
-                        <width>34</width>
+                        <width>63</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -3417,7 +3417,7 @@ QPushButton:hover{
                      <widget class="QDoubleSpinBox" name="sell_volume_1">
                       <property name="minimumSize">
                        <size>
-                        <width>34</width>
+                        <width>63</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -3767,10 +3767,10 @@ QPushButton:hover{
                      </widget>
                     </item>
                     <item>
-                     <widget class="QDoubleSpinBox" name="sell_volume_2">
+                     <widget class="QDoubleSpinBox" name="sell_total_price_2">
                       <property name="minimumSize">
                        <size>
-                        <width>34</width>
+                        <width>63</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -4092,7 +4092,7 @@ QPushButton:pressed {
                      <widget class="QDoubleSpinBox" name="sell_price_3">
                       <property name="minimumSize">
                        <size>
-                        <width>34</width>
+                        <width>63</width>
                         <height>30</height>
                        </size>
                       </property>

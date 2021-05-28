@@ -2185,6 +2185,7 @@ class Ui_MainWindow(object):
         self.coinlist_widget.setChart(self.chart_widget)
         self.coinlist_widget.setOrder(self.orderbook_widget)
         self.coinlist_widget.setTrade(self.trade_widget)
+        self.orderbook_widget.setTrade(self.trade_widget)
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import asyncio
+import time
 
 import aiopyupbit
 from PyQt5 import QtCore
