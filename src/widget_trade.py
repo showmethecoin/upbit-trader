@@ -233,7 +233,7 @@ class TradeWidget(QWidget):
         if tab_number == 1:
             if self.sell_total_price_1.value() < 5000:
                 self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
-            if self.sell_price_1.value() != 0.0 and (self.sell_total_price_1.value() / self.sell.price_1.value()) > balance :
+            if self.sell_price_1.value() != 0.0 and (self.sell_total_price_1.value() / self.sell_price_1.value()) > balance :
                 self.show_messagebox('금액이 부족합니다.')
 
             print('Ticker : ', self.coin)
@@ -244,7 +244,7 @@ class TradeWidget(QWidget):
         elif tab_number == 2 :
             if self.sell_total_price_2.value() < 5000:
                 self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
-            if self.sell_price_2.value() != 0.0 and (self.sell_total_price_2.value() / self.sell.price_2.value()) > balance :
+            if self.sell_price_2.value() != 0.0 and (self.sell_total_price_2.value() / self.sell_price_2.value()) > balance :
                 self.show_messagebox('금액이 부족합니다.')
             print('Ticker : ', self.coin)
             print('Total KRW : ', self.sell_total_price_2.value())
@@ -252,7 +252,7 @@ class TradeWidget(QWidget):
         else:
             if self.sell_total_price_3.value() < 5000:
                 self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
-            if self.sell_price_3.value() != 0.0 and (self.sell_total_price_3.value() / self.sell.price_3.value()) > balance :
+            if self.sell_price_3.value() != 0.0 and (self.sell_total_price_3.value() / self.sell_price_3.value()) > balance :
                 self.show_messagebox('금액이 부족합니다.')
             print('Ticker : ', self.coin)
             print('Buy Price : ', self.sell_price_3.value())
