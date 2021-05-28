@@ -108,13 +108,13 @@ class OrderbookWidget(QWidget):
             bids_size = sum([x['bs'] for x in data])
             current_price = coin.get_trade_price()
             for i in range(len(data)):
-
+                # 00afef
                 self.bid_items[i][0].setText(
                     f"{(lambda x: x if x < 100 else int(x))(data[i]['bp']):,}")
                 # self.bid_items[i][0].setForeground(
                 #     (lambda x: self.color_yellow if x == current_price else self.color_white)(data[i]['bp']))
-                self.bid_items[i][0].setSelected(
-                    (lambda x: True if x == current_price else False)(data[i]['bp']))
+                # self.bid_items[i][0].setSelected(
+                #     (lambda x: True if x == current_price else False)(data[i]['bp']))
                 
                 self.bid_items[i][1].setRange(0, 100)
                 self.bid_items[i][1].setFormat(f"{data[i]['bs']:,.3f}")
@@ -123,8 +123,9 @@ class OrderbookWidget(QWidget):
                     f"{(lambda x: x if x < 100 else int(x))(data[9-i]['ap']):,}")
                 # self.ask_items[i][0].setForeground(
                 #     (lambda x: self.color_yellow if x == current_price else self.color_white)(data[9-i]['ap']))
-                self.ask_items[i][0].setSelected(
-                    (lambda x: True if x == current_price else False)(data[9-i]['ap']))
+                # self.ask_items[i][0].setSelected(
+                #     (lambda x: True if x == current_price else False)(data[9-i]['ap']))
+
                 self.ask_items[i][1].setRange(0, 100)
                 self.ask_items[i][1].setFormat(f"{data[9-i]['as']:,.3f}")
 
