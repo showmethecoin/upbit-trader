@@ -83,7 +83,7 @@ class DetailholdinglistWidget(QWidget):
 
         for i, coin in enumerate(data):
             self.items[i][0].setText(static.chart.get_coin(f'{static.FIAT}-{coin}').korean_name + '(' + coin + ')')
-            self.items[i][1].setText(f"{data[coin]['balance']:.2f}")
+            self.items[i][1].setText(f"{data[coin]['balance'] + data[coin]['locked']:,f}")
             self.items[i][2].setText(f"{data[coin]['avg_buy_price']:,}")
             self.items[i][3].setText(f"{data[coin]['purchase']:,}")
             self.items[i][4].setText(f"{data[coin]['evaluate']:,}")
