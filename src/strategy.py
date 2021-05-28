@@ -37,8 +37,8 @@ async def get_target_price(coin,k_data):
     """ 
     time.sleep(0.1)
     #목표가 구하는 데이터를 디비에서 꺼내오면?
-    # df = await aiopyupbit.get_ohlcv(coin,interval='minute240',count=2)
-    df = await aiopyupbit.get_ohlcv(coin,interval='minute60',count=2)
+    df = await aiopyupbit.get_ohlcv(coin,interval='minute240',count=2)
+    # df = await aiopyupbit.get_ohlcv(coin,interval='minute60',count=2)
     prio = df.iloc[-2]
     curr_open = prio['close']
     prio_high = prio['high']
@@ -99,12 +99,13 @@ def get_total_ratio(res_df,count):
         res_df (dataFrame): 각 종목의 시간별 수익률이 저장된 dataFrame
         count (int): 투자 횟수
     Returns:
-        master_df (dataFrame): 전체 누적수익률을 저장
+        master_df (dataFrame): 전체 누적수익률이 저장된 dataFrame
     """
     #k별로 누적수익률 계산, 모든 종목의 누적 수익률을 저장하는 마스터 df 생성
     k_list = ['0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9']
     master_df = pd.DataFrame.from_records([{'currency':'','0.1':0.,'0.2':0.,'0.3':0.,'0.4':0.,'0.5':0.,'0.6':0.,'0.7':0.,'0.8':0.,'0.9':0.}])
     idx = 0
+    #모든 종목의 dataFrame을 탐색
     for x in res_df.items():
         #종목의 K별 누적수익률을 저장하는 리스트
         res_coin = ['누적수익률']
@@ -119,8 +120,8 @@ def get_total_ratio(res_df,count):
                 if x[1][y][k] == 'x':
                     print('not buy')
                     is_x = True
-                #해당 K가 아니거나, 구매에 실패했거나, 데이터가 없으면 NaN
-                elif x[1][y][k] != 'fail' and x[1][y][k] != 'NaN' and x[1][y][k] != '':
+                #해당 K가 아니거나, 구매에 실패했으면 NaN
+                elif x[1][y][k] == 'buy delayed' or x[1][y][k] == 'NaN':
                     print('NaN의 결과')
                     continue
                 #정상적으로 매매가 완료된 경우 리스트에 삽입
@@ -193,8 +194,8 @@ async def volatility_breakout_strategy(k_input=None,coin_list=None):
     count = 0
 
     #투자 기간 정하기 (시간)
-    # term = 4
-    term = 1
+    term = 4
+    # term = 1
     term_hour = True
     term_day = False
     time_log = {x:False for x in range(0,24)}
@@ -212,14 +213,14 @@ async def volatility_breakout_strategy(k_input=None,coin_list=None):
     
     # exit()
     #지정 횟수만큼 투자 진행
-    while count < 0:
+    while count < 4:
         #지정 종목에 대해 투자
         for coin in coin_list:
             now = datetime.datetime.now()
             print('현재시간 : ',now,end=' ')
             #term 간격으로 목표가 정하고 수익률 계산
-            # if now.hour in [1,5,9,13,17,21] and time_log[now.hour] == False:
-            if time_log[now.hour] == False: #돌아가고 있는 시간대가 아닌 경우에만 실행
+            if now.hour in [1,5,9,13,17,21] and time_log[now.hour] == False:
+            # if time_log[now.hour] == False: #돌아가고 있는 시간대가 아닌 경우에만 실행
             # if True: #테스트 코드
                 mid = datetime.datetime(now.year, now.month, now.day, now.hour) #정상 코드
                 # mid = datetime.datetime(now.year, now.month, now.day, now.hour,33) #테스트 코드 (검사 종료할 minute)
@@ -430,7 +431,7 @@ async def rsi_strategy(coin_list,period):
             print(datetime.datetime.now(),'\t',int(rsi),'\t',coin.code)
 
             #매수 신호
-            if rsi <= 9:
+            if rsi <= 30:
                 print('@@@ 매수 신호 @@@')
                 #거래 기록이 있고 미체결 상태인 경우 취소 후 진행
                 if buy_data[coin.code]['trade_uuid'] != -1:
