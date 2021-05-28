@@ -42,14 +42,14 @@ class UserinfoWorker(QThread):
                 if int(static.account.get_total_loss()) < 0:
                     self.view.userdata5.setStyleSheet("Color : #CF304A")
                 elif int(static.account.get_total_loss()) == 0:
-                    self.view.userdata5.setStyleSheet("Color : black")
+                    self.view.userdata5.setStyleSheet("Color : white")
                 else:
                     self.view.userdatat5.setStyleSheet("Color : #02C076")
 
                 if static.account.get_total_yield() < 0:
                     self.view.userdata6.setStyleSheet("Color : #CF304A")
                 elif static.account.get_total_yield() == 0:
-                    self.view.userdata6.setStyleSheet("Color : black")
+                    self.view.userdata6.setStyleSheet("Color : white")
                 else:
                     self.view.userdatat6.setStyleSheet("Color : #02C076")
 

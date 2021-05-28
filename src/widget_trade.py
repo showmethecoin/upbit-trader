@@ -10,7 +10,8 @@ class TradeWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         uic.loadUi(utils.get_file_path("styles/ui/trade.ui"), self)
-
+        
+        self.coin = 'KRW-BTC'
         # BUY Radio Clicked Listener Initialize
         self.buy_designation_price.setChecked(True)
         self.buy_designation_price.clicked.connect(
@@ -70,6 +71,16 @@ class TradeWidget(QWidget):
         self.sell_fifty_3.clicked.connect(lambda: self.clicked_vol(50))
         self.sell_hundred_3.clicked.connect(lambda: self.clicked_vol(100))
 
+        # BUY Button Clicked Listenr Initialize
+        self.buy_buy_btn_1.clicked.connect(lambda: self.clicked_buy_button(1))
+        self.buy_buy_btn_2.clicked.connect(lambda: self.clicked_buy_button(2))
+        self.buy_buy_btn_3.clicked.connect(lambda: self.clicked_buy_button(3))
+
+        # SELL Button Clicked Listenr Initialize
+        self.sell_sell_btn_1.clicked.connect(lambda: self.clicked_sell_button(1))
+        self.sell_sell_btn_2.clicked.connect(lambda: self.clicked_sell_button(2))
+        self.sell_sell_btn_3.clicked.connect(lambda: self.clicked_sell_button(3))
+
         # BUY Price Changed Listener Initialize
         self.buy_price_1.setGroupSeparatorShown(True)
         self.buy_price_1.textChanged.connect(self.changed_price)
@@ -118,7 +129,7 @@ class TradeWidget(QWidget):
                 self.buy_total_price_1.setValue(cash * percent)
             # Market
             elif idx == 1:
-                self.buy_volume_2.setValue(cash * percent)
+                self.buy_total_price_2.setValue(cash * percent)
             # Reservation
             else:
                 self.buy_total_price_3.setValue(cash * percent)
@@ -153,7 +164,7 @@ class TradeWidget(QWidget):
                 self.buy_total_price_1.setValue(0.0)
             # Market
             elif idx == 1:
-                self.buy_volume_2.setValue(0.0)
+                self.buy_total_price_2.setValue(0.0)
             # Reservation
             else:
                 self.buy_price_3.setValue(0.0)
@@ -178,6 +189,83 @@ class TradeWidget(QWidget):
                 self.sell_volume_3.setValue(0.0)
                 self.sell_total_price_3.setValue(0.0)
                 self.sell_monitor_price_3.setValue(0.0)
+
+    def clicked_buy_button(self, tab_number):
+        cash = static.account.cash
+        
+        if tab_number == 1:
+            if self.buy_total_price_1.value() < 5000:
+                self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
+            if self.buy_total_price_1.value() > cash :
+                self.show_messagebox('금액이 부족합니다.')
+            
+            print('Ticker : ', self.coin)
+            print('Buy Price : ', self.buy_price_1.value())
+            print('Total KRW : ', self.buy_total_price_1.value())
+
+        elif tab_number == 2 :
+            if self.buy_total_price_2.value() < 5000:
+                self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
+            if self.buy_total_price_2.value() > cash :
+                self.show_messagebox('금액이 부족합니다.')
+            
+            print('Ticker : ', self.coin)
+            print('Total KRW : ', self.buy_total_price_2.value())
+        else:
+            if self.buy_total_price_3.value() < 5000:
+                self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
+            if self.buy_total_price_3.value() > cash :
+                self.show_messagebox('금액이 부족합니다.')
+            
+            print('Ticker : ', self.coin)
+            print('Buy Price : ', self.buy_price_3.value())
+            print('Monitoring Price : ', self.buy_monitor_price_3.value())
+            print('Total KRW : ', self.buy_total_price_3.value())
+    
+    def clicked_sell_button(self, tab_number):
+        coin = self.coin.split('-')[1]
+        if coin not in static.account.coins.keys():
+            self.show_messagebox('보유한 코인이 없습니다.')
+            return
+        balance = static.account.coins[coin]['balance']
+
+        # TAB 1 
+        if tab_number == 1:
+            if self.sell_total_price_1.value() < 5000:
+                self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
+            if self.sell_price_1.value() != 0.0 and (self.sell_total_price_1.value() / self.sell.price_1.value()) > balance :
+                self.show_messagebox('금액이 부족합니다.')
+
+            print('Ticker : ', self.coin)
+            print('Buy Price : ', self.sell_price_1.value())
+            print('Total KRW : ', self.sell_total_price_1.value())
+        
+        # TAB 2 
+        elif tab_number == 2 :
+            if self.sell_total_price_2.value() < 5000:
+                self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
+            if self.sell_price_2.value() != 0.0 and (self.sell_total_price_2.value() / self.sell.price_2.value()) > balance :
+                self.show_messagebox('금액이 부족합니다.')
+            print('Ticker : ', self.coin)
+            print('Total KRW : ', self.sell_total_price_2.value())
+    
+        else:
+            if self.sell_total_price_3.value() < 5000:
+                self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
+            if self.sell_price_3.value() != 0.0 and (self.sell_total_price_3.value() / self.sell.price_3.value()) > balance :
+                self.show_messagebox('금액이 부족합니다.')
+            print('Ticker : ', self.coin)
+            print('Buy Price : ', self.sell_price_3.value())
+            print('Monitoring Price : ', self.sell_monitor_price_3.value())
+            print('Total KRW : ', self.sell_total_price_3.value())
+    
+    def show_messagebox(self, message):
+        self.msg = QMessageBox()
+        self.msg.setIcon(QMessageBox.Critical)
+        self.msg.autoFillBackground()
+        self.msg.setWindowTitle('Authentication error')
+        self.msg.setText(f'Error : {message}')
+        self.msg.show()
 
     # Change Event Function
     def changed_price(self):
@@ -245,7 +333,7 @@ class TradeWidget(QWidget):
         self.buy_price_1.setValue(0.0)
         self.buy_volume_1.setValue(0.0)
         self.buy_total_price_1.setValue(0.0)
-        self.buy_volume_2.setValue(0.0)
+        self.buy_total_price_2.setValue(0.0)
         self.buy_price_3.setValue(0.0)
         self.buy_volume_3.setValue(0.0)
         self.buy_total_price_3.setValue(0.0)
@@ -273,6 +361,7 @@ class TradeWidget(QWidget):
         self.buy_orderable_3.setText(cash)
 
         # set coin name
+        self.coin = ticker
         coin = ticker.split("-")[1]
         self.sell_ticker_1.setText(coin)
         self.sell_ticker_2.setText(coin)

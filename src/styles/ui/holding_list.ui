@@ -137,7 +137,7 @@
      </column>
      <column>
       <property name="text">
-       <string>수익율(%)</string>
+       <string>수익률(%)</string>
       </property>
      </column>
     </widget>

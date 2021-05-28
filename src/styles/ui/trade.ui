@@ -2366,9 +2366,7 @@ QPushButton:pressed {
 	/*background-color: rgb(60, 60, 60);*/
 	background-color: #a20826;
 }
-QPushButton:hover{
-	background-color: #aa0a29;
-}
+
 </string>
                       </property>
                       <property name="text">
@@ -2497,7 +2495,7 @@ QPushButton:hover{
                      </widget>
                     </item>
                     <item>
-                     <widget class="QDoubleSpinBox" name="buy_volume_2">
+                     <widget class="QDoubleSpinBox" name="buy_total_price_2">
                       <property name="minimumSize">
                        <size>
                         <width>34</width>
@@ -2709,9 +2707,7 @@ QPushButton:hover{
 QPushButton:pressed {	
 	background-color: #a20826;
 }
-QPushButton:hover{
-	background-color: #aa0a29;
-}</string>
+</string>
                       </property>
                       <property name="text">
                        <string>매수</string>
@@ -2956,7 +2952,7 @@ QPushButton:hover{
                        <bool>true</bool>
                       </property>
                       <property name="decimals">
-                       <number>6</number>
+                       <number>10</number>
                       </property>
                       <property name="maximum">
                        <double>1000000000000000.000000000000000</double>
@@ -3145,9 +3141,11 @@ QPushButton:hover{
 QPushButton:pressed {	
 	background-color: #a20826;
 }
+/*
 QPushButton:hover{
 	background-color: #aa0a29;
-}</string>
+}
+*/</string>
                       </property>
                       <property name="text">
                        <string>매수</string>
@@ -3641,9 +3639,12 @@ QPushButton:pressed {
 	/*background-color: rgb(60, 60, 60);*/
 	background-color: #124ca0;
 }
+/*
 QPushButton:hover{
 	background-color: #0e4799;
 }
+*/
+
 </string>
                       </property>
                       <property name="text">
@@ -3978,9 +3979,6 @@ QPushButton:hover{
 QPushButton:pressed {	
 	/*background-color: rgb(60, 60, 60);*/
 	background-color: #124ca0;
-}
-QPushButton:hover{
-	background-color: #0e4799;
 }</string>
                       </property>
                       <property name="text">
@@ -4422,9 +4420,7 @@ QPushButton:pressed {
 	/*background-color: rgb(60, 60, 60);*/
 	background-color: #124ca0;
 }
-QPushButton:hover{
-	background-color: #0e4799;
-}</string>
+</string>
                       </property>
                       <property name="text">
                        <string>매도</string>
