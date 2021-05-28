@@ -145,3 +145,4 @@ cython_debug/
 **/.idea
 *.sh
 *.bat
+*.xlsx
