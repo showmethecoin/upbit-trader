@@ -3,6 +3,7 @@
 import json
 import uuid
 import time
+import math
 import asyncio
 import threading
 import multiprocessing
@@ -587,8 +588,8 @@ class Account:
                         continue
                     else:
                         coin = static.chart.get_coin("%s-%s" %(static.FIAT, currency))
-                        purchase = round((balance + locked) * avg_buy_price, 0)
-                        evaluate = round((balance + locked) * coin.get_trade_price(), 0)
+                        purchase = (balance + locked) * avg_buy_price
+                        evaluate = (balance + locked) * coin.get_trade_price()
                         loss = evaluate - purchase
                         data = {}
                         data['currency'] = currency
@@ -598,7 +599,7 @@ class Account:
                         data['purchase'] = purchase
                         data['evaluate'] = evaluate
                         data['loss'] = loss
-                        data['yield'] = round(loss / purchase * 100, 2)
+                        data['yield'] = loss / purchase * 100
                         coins[currency] = data
                         total_purchase += purchase
                         total_evaluate += evaluate

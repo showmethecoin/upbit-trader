@@ -72,7 +72,7 @@ class HoldingListWidget(QWidget):
         
         for i, coin in enumerate(data):
             self.items[i][0].setText(static.chart.get_coin(f'{static.FIAT}-{coin}').korean_name + '(' + coin + ')')
-            self.items[i][1].setText(str(data[coin]['yield']))
+            self.items[i][1].setText(f"{data[coin]['yield']:,.2f} %")
             if data[coin]['yield'] < 0 :
                 self.items[i][1].setForeground(self.color_red)
             elif data[coin]['yield'] > 0 :

@@ -1,5 +1,6 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
+import math
 import asyncio
 from PyQt5 import QtGui
 from PyQt5.QtCore import *
@@ -33,10 +34,10 @@ class UserinfoWorker(QThread):
             try:
                 await asyncio.sleep(0.5)
                 self.view.userdata1.setText(f'{int(static.account.get_cash()):,}')
-                self.view.userdata2.setText(f'{int(static.account.get_buy_price()):,}')
-                self.view.userdata3.setText(f'{int(static.account.get_evaluate_price()):,}')
-                self.view.userdata4.setText(f'{int(static.account.get_evaluate_price()):,}')
-                self.view.userdata5.setText(f'{int(static.account.get_total_loss()):,}')
+                self.view.userdata2.setText(f'{math.ceil(static.account.get_buy_price()):,}')
+                self.view.userdata3.setText(f'{math.floor(static.account.get_evaluate_price()):,}')
+                self.view.userdata4.setText(f'{round(static.account.get_evaluate_price() + static.account.get_cash()):,}')
+                self.view.userdata5.setText(f'{round(static.account.get_total_loss()):,}')
                 self.view.userdata6.setText(f'{static.account.get_total_yield():.2f}')
                 
                 if int(static.account.get_total_loss()) < 0:

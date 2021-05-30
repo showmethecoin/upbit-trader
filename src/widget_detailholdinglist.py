@@ -1,6 +1,9 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import time
+import math
+import asyncio
+
 from PyQt5 import QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -9,7 +12,6 @@ from PyQt5 import uic
 
 import static
 import utils
-import asyncio
 import config
 
 class DetailholdinglistWorker(QThread):
@@ -83,11 +85,11 @@ class DetailholdinglistWidget(QWidget):
 
         for i, coin in enumerate(data):
             self.items[i][0].setText(static.chart.get_coin(f'{static.FIAT}-{coin}').korean_name + '(' + coin + ')')
-            self.items[i][1].setText(f"{data[coin]['balance'] + data[coin]['locked']:,f}")
-            self.items[i][2].setText(f"{data[coin]['avg_buy_price']:,}")
-            self.items[i][3].setText(f"{data[coin]['purchase']:,}")
-            self.items[i][4].setText(f"{data[coin]['evaluate']:,}")
-            self.items[i][5].setText(str(data[coin]['yield']))
+            self.items[i][1].setText(f"{data[coin]['balance'] + data[coin]['locked']:,.8f}")
+            self.items[i][2].setText(f"{(lambda x: x if x < 100 else math.ceil(x))(data[coin]['avg_buy_price']):,}")
+            self.items[i][3].setText(f"{math.ceil(data[coin]['purchase']):,}")
+            self.items[i][4].setText(f"{math.floor(data[coin]['evaluate']):,}")
+            self.items[i][5].setText(f"{data[coin]['yield']:,.2f}")
             if data[coin]['yield'] < 0 :
                 self.items[i][5].setForeground(self.color_red)
             elif data[coin]['yield'] > 0 :
