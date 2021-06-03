@@ -22,11 +22,9 @@ class HoldingListWorker(QThread):
     def run(self):
         self.alive = True
         while self.alive:
-            time.sleep(1)
-            if len(static.account.coins) != 0:
-                self.dataSent.emit(static.account.coins)
-            else:
-                self.dataSent.emit('tableclear')
+            time.sleep(0.5)
+            self.dataSent.emit(static.account.coins)
+
     def close(self):
         self.alive = False
         return super().terminate()
@@ -49,14 +47,13 @@ class HoldingListWidget(QWidget):
         self.color_white = QBrush(QColor(255, 255, 255))
 
     def updataData(self, data):
-        if data == 'tableclear':
-            self.hold_list.clearContents()
-        else:
             # data는 static.account.coins
             # 테이블 설정
             # 테이블을 처음 설정할 경우 또는 설정된 table row갯수와 set해야되는 data갯수가 다를 경우
-            if self.hold_list.rowCount() == 0 or self.hold_list.rowCount() != len(data):
+            if self.hold_list.rowCount() != len(data):
                 self.hold_list.clearContents() # 테이블 지우고
+                if len(data) == 0: 
+                    return
                 self.items = []
                 # 동적으로 row관리
                 count_codes = len(data)
@@ -73,7 +70,7 @@ class HoldingListWidget(QWidget):
                     self.hold_list.setItem(i, 0, self.items[i][0])       
                     self.hold_list.setItem(i, 1, self.items[i][1])
             # print(self.count_codes)
-            
+        
             for i, coin in enumerate(data):
                 self.items[i][0].setText(static.chart.get_coin(f'{static.FIAT}-{coin}').korean_name + '(' + coin + ')')
                 self.items[i][1].setText(f"{data[coin]['yield']:,.2f} %")

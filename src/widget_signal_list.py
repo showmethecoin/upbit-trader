@@ -1,14 +1,12 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import math
+
 import asyncio
-from PyQt5 import QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import uic
 import utils
-from static import log
 import static
 import config
 
