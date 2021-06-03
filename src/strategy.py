@@ -213,7 +213,7 @@ async def volatility_breakout_strategy(k_input=None,coin_list=None):
     
     # exit()
     #지정 횟수만큼 투자 진행
-    while count < 4:
+    while count < 5:
         #지정 종목에 대해 투자
         for coin in coin_list:
             now = datetime.datetime.now()
@@ -413,11 +413,21 @@ async def rsi_strategy(coin_list,period):
     remain = len(coin_list)
 
     #구매 기록 df 초기화 (구매 정보를 저장)
-    buy_data = {x.code : {'buy_price' : -1, 'trade_uuid' : -1, 'trade_volume' : -1} for x in coin_list}
-    
+    buy_data = {x.code : {'buy_price' : -1, 'trade_uuid' : -1, 'trade_volume' : -1, 'buy_rsi' : -1} for x in coin_list}
+    print('------------------------------------------')
+    print('초기 buy_data')
+    for x in buy_data.items():
+        print(x[0],x[1])
     #원화, 종목별 초기 금액 저장
     krw = await static.upbit.get_balance('KRW')
     assigned_krw = {x.code : krw/remain for x in coin_list}
+    print('------------------------------------------')
+    print('초기 할당 원화')
+    for x in assigned_krw.items():
+        print(x[0],x[1])
+    print('------------------------------------------')
+    print('투자 대상 종목 수 : ',remain)
+    print('------------------------------------------')
     
     while True:
         for coin in coin_list:
@@ -428,55 +438,125 @@ async def rsi_strategy(coin_list,period):
             rsi = get_rsi_data(df, period)
             rsi = rsi[-1]
 
-            print(datetime.datetime.now(),'\t',int(rsi),'\t',coin.code)
+            # print(datetime.datetime.now(),'\t',int(rsi),'\t',coin.code)
+
 
             #매수 신호
             if rsi <= 30:
-                print('@@@ 매수 신호 @@@')
-                #거래 기록이 있고 미체결 상태인 경우 취소 후 진행
+                cur_price = coin.get_trade_price()
+                print(coin.code,': 매수 신호, rsi : ',rsi)
+                
                 if buy_data[coin.code]['trade_uuid'] != -1:
                     buy_fail = False
                     print('거래내역 있음')
                     print(buy_data[coin.code])
-                    #매수 시도를 했지만 체결이 되지 않은 경우
-                    for x in await static.upbit.get_order(coin.code):
-                        #매체결 매수 기록 검사
+                    #이미 매수를 시도했지만 체결이 되지 않은 경우
+                    unfinished_list = await static.upbit.get_order(coin.code)
+                    for x in unfinished_list:
+                        #미체결 매수 기록 검사
                         if x['uuid'] == buy_data[coin.code]['trade_uuid']:
-                            buy_fail = True
-                            await static.upbit.cancel_order(x['uuid'])
+                            #미체결 매수 기록이 있지만 현재 매수하려는 호가가 더 낮은 경우에만 거래 취소
+                            if buy_data[coin.code]['buy_price'] < cur_price:
+                                buy_fail = True
+                                print('미체결 저장된 데이터')
+                                print(buy_data[coin.code])
+                                print('취소 결과')
+                                await static.upbit.cancel_order(x['uuid'])
+
+                                #구매기록 초기화
+                                buy_data[coin.code]['buy_price'] = -1
+                                buy_data[coin.code]['trade_uuid'] = -1
+                                buy_data[coin.code]['trade_volume'] = -1                
+                                buy_data[coin.code]['buy_rsi'] = -1
+
+                                #투자 대상 코인 개수 변경
+                                remain += 1
+
+                                #종목별 할당금액 업데이트
+                                krw = await static.upbit.get_balance('KRW')
+                                for x in coin_list:
+                                    if buy_data[x.code]['trade_uuid'] == -1:
+                                        assigned_krw[x.code] = krw/remain
+                                print('미체결 종목 거래 취소, buy_data, remain, assigned krw 업데이트 완료')
+                                print('------------------------------------------')
+                                print('새로 할당 원화')
+                                for x in assigned_krw.items():
+                                    print(x[0],x[1])
+                                print('------------------------------------------')
+                                print('미체결 취소 후 buy_data')
+                                for x in buy_data.items():
+                                    print(x[0],x[1])
+                                print('------------------------------------------')
+                                print('투자 대상 종목 수 : ',remain)
+                                print('------------------------------------------')
                             break
-                
-                    #거래 기록이 있고 체결된 경우 매수하지 않음
+                            
+                    #미체결 거래를 취소한 경우에만 매수 진행
                     if buy_fail == False:
-                        print('이미 매수함')
                         continue
                 
                 #매수 진행
                 print('#################매수 진행#################')
-                cur_price = coin.get_trade_price()
-                # trade_uuid, trade_volume = await buy_crypto_currency(coin.code, 6000, cur_price)
                 trade_uuid, trade_volume = await buy_crypto_currency(coin.code, assigned_krw[coin.code], cur_price)
                 buy_data[coin.code]['buy_price'] = cur_price
                 buy_data[coin.code]['trade_uuid'] = trade_uuid
                 buy_data[coin.code]['trade_volume'] = trade_volume
-
+                buy_data[coin.code]['buy_rsi'] = rsi
+                print('------------------------------------------')
+                print('매수 후 buy_data')
+                for x in buy_data.items():
+                    print(x[0],x[1])
+                print('------------------------------------------')
                 #투자 대상 코인 개수 변경
                 remain -= 1
-
+                print('투자 대상 종목 수 : ',remain)
+                print('------------------------------------------')
+                
             #매도 신호
-            elif rsi >= 90:
-                print('@@@ 매도 신호 @@@')
+            elif rsi >= 70:
+                print(coin.code,': 매도 신호, rsi : ',rsi)
                 #매수 기록이 없는 경우 매도하지 않음
                 if buy_data[coin.code]['trade_uuid'] == -1:
-                    print('매수 기록 없음')
+                    #print('매수 기록 없음')
                     continue
                 
                 #매수 시도를 했지만 체결이 되지 않은 경우
                 buy_fail = False
-                for x in await static.upbit.get_order(coin.code):
+                unfinished_list = await static.upbit.get_order(coin.code)
+                for x in unfinished_list:
+                    #미체결 매수 기록이 있으면 거래를 취소
                     if x['uuid'] == buy_data[coin.code]['trade_uuid']:
                         buy_fail = True
+                        print('미체결 저장된 데이터')
+                        print(buy_data[coin.code])
+                        print('취소 결과')
                         await static.upbit.cancel_order(x['uuid'])
+                        
+                        #구매기록 초기화
+                        buy_data[coin.code]['buy_price'] = -1
+                        buy_data[coin.code]['trade_uuid'] = -1
+                        buy_data[coin.code]['trade_volume'] = -1                
+                        buy_data[coin.code]['buy_rsi'] = -1
+                        
+                        #투자 대상 코인 개수 변경
+                        remain += 1
+                        #종목별 할당금액 업데이트
+                        krw = await static.upbit.get_balance('KRW')
+                        for x in coin_list:
+                            if buy_data[x.code]['trade_uuid'] == -1:
+                                assigned_krw[x.code] = krw/remain
+                        print('미체결 종목 거래 있음. 취소 후 buy_data, remain, assigned krw 업데이트 완료')
+                        print('------------------------------------------')
+                        print('새로 할당 원화')
+                        for x in assigned_krw.items():
+                            print(x[0],x[1])
+                        print('------------------------------------------')
+                        print('미체결 취소 후 buy_data')
+                        for x in buy_data.items():
+                            print(x[0],x[1])
+                        print('------------------------------------------')       
+                        print('투자 대상 종목 수 : ',remain)
+                        print('------------------------------------------')
                         break
                 #매수 기록이 있고 미체결인 경우 매도하지 않음
                 if buy_fail == True:
@@ -497,28 +577,49 @@ async def rsi_strategy(coin_list,period):
                 res_dict['trade volume'] = buy_data[coin.code]['trade_volume']
                 res_dict['buy price'] = buy_data[coin.code]['buy_price']
                 res_dict['sell price'] = sell_price
-                # res_dict['total buy'] = 6000
                 res_dict['total buy'] = assigned_krw[coin.code]
                 res_dict['total sell'] = sell_krw
                 res_dict['profit ratio'] = profit_ratio
                 res_dict['profit KRW'] = res_dict['total sell'] - res_dict['total buy']
+                res_dict['buy RSI'] = buy_data[coin.code]['buy_rsi']
+                res_dict['sell RSI'] = rsi
+                
                 await static.db.insert_item_one(data=res_dict,
                                                 db_name='strategy_rsi',
                                                 collection_name=coin.code)
-                
+                print('------------------------------------------')
+                print('DB 삽입 완료')
+                for x in res_dict.items():
+                    print(x[0],x[1])
+                print('------------------------------------------')
                 #구매기록 초기화
                 buy_data[coin.code]['buy_price'] = -1
                 buy_data[coin.code]['trade_uuid'] = -1
                 buy_data[coin.code]['trade_volume'] = -1                
-                
+                buy_data[coin.code]['buy_rsi'] = -1
+
                 #투자 대상 코인 개수 변경
                 remain += 1
                 
                 #종목별 할당금액 업데이트
                 krw = await static.upbit.get_balance('KRW')
                 for x in coin_list:
-                    if buy_data['trade_uuid'] == -1:
+                    if buy_data[x.code]['trade_uuid'] == -1:
                         assigned_krw[x.code] = krw/remain
+                print('------------------------------------------')
+                print('새로 할당 원화')
+                for x in assigned_krw.items():
+                    print(x[0],x[1])
+                print('------------------------------------------')
+                print('매도 후 buy_data')
+                for x in buy_data.items():
+                    print(x[0],x[1])
+                print('------------------------------------------')
+                print('투자 대상 종목 수 : ',remain)
+                print('------------------------------------------')
+                
+# 20 매수 80 매도 : 너무 욕심같음 80전에 최고점 찍고 내려와버려서 오히려 손해나는 경우가 있음
+# 20 매수 70 매도 : 실험중
 
 
 
