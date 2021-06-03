@@ -63,7 +63,7 @@ def print_menu() -> None:
     print("\t2. Individual Price")
     print("\t3. Holding List")
     print("\t4. Volatility breakout strategy test")
-    print("\t5. RSI strategy test")
+    print("\t5. Various indicator strategy test")
     print("\t8. Websocket Sync Start")
     print("\t9. Websocket Sync Stop")
     print("\t0. Exit or CTRL + C")
@@ -260,7 +260,8 @@ def prompt_main() -> None:
         elif int(select) == 5:
             coin_list = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-VET','KRW-LINK','KRW-ENJ','KRW-ETC','KRW-PCI','KRW-DOGE']
             loop = asyncio.get_event_loop()
-            loop.run_until_complete(strategy.rsi_strategy(coin_list,14))
+            # loop.run_until_complete(strategy.test())
+            loop.run_until_complete(strategy.various_indicator_strategy(coin_list,14))
             loop.close()
         elif int(select) == 8:
             if not static.chart.alive:

@@ -15,6 +15,32 @@ from static import log
 
 from db import DBHandler
 
+buy_signal = []
+sell_signal = []
+async def test():
+    # coin_list = await aiopyupbit.get_tickers(fiat="KRW")
+    coin_list = ['KRW-WAVES']
+    for coin in coin_list:
+        time.sleep(0.1)
+        signal = 0
+        df = await aiopyupbit.get_ohlcv(coin,interval='minute1',count=200)
+        # exit()
+        df['volume_avg'] = get_avg(df,5,'volume')
+        df['rsi'] = get_rsi_data(df,14)
+        for x in zip(df['rsi'],df['volume'],df['volume_avg']):
+            if x[0] == 'nan' or x[2] == 'nan':
+                continue
+            if x[0] <= 35 and x[1] < x[2]:
+                signal += 1
+        print(coin,' signal : ',signal)
+        
+    exit()
+def send_buy_signal(coin,buy_price):
+    buy_signal.append({'ticker':coin,'req_price':buy_price})
+
+def send_sell_signal(coin,sell_price):
+    buy_signal.append({'ticker':coin,'req_price':sell_price})
+
 async def get_best_k(coin):
     """백테스팅을 통해 최적의 k를 찾는 함수
     Args:
@@ -389,8 +415,8 @@ async def volatility_breakout_strategy(k_input=None,coin_list=None):
     exit()
 
 
-async def rsi_strategy(coin_list,period):
-    """RSI 기반 투자 전략 (9 이하 매수, 90 이상 매도)
+async def various_indicator_strategy(coin_list,period):
+    """rsi, 거래량 기반 투자 전략
     Args:
         coin_list (list): ['KRW-BTC', 'KRW-XRP', 'KRW-BTT', ..]
         period (int): rsi 기간 설정 값
@@ -407,216 +433,196 @@ async def rsi_strategy(coin_list,period):
                               password=static.config.mongo_password)
     
     #투자할 종목들의 coin 객체를 저장
+    coin_list = await aiopyupbit.get_tickers(fiat='KRW')
     coin_list = [x for x in static.chart.coins.values() if x.code in coin_list]
-    
-    #투자 대상 코인 개수
-    remain = len(coin_list)
 
     #구매 기록 df 초기화 (구매 정보를 저장)
-    buy_data = {x.code : {'buy_price' : -1, 'trade_uuid' : -1, 'trade_volume' : -1, 'buy_rsi' : -1} for x in coin_list}
+    buy_data = {x.code : {'buy_price' : -1, 'buy_rsi' : -1} for x in coin_list}
     print('------------------------------------------')
     print('초기 buy_data')
     for x in buy_data.items():
         print(x[0],x[1])
-    #원화, 종목별 초기 금액 저장
-    krw = await static.upbit.get_balance('KRW')
-    assigned_krw = {x.code : krw/remain for x in coin_list}
-    print('------------------------------------------')
-    print('초기 할당 원화')
-    for x in assigned_krw.items():
-        print(x[0],x[1])
-    print('------------------------------------------')
-    print('투자 대상 종목 수 : ',remain)
-    print('------------------------------------------')
-    
+
     while True:
         for coin in coin_list:
             time.sleep(0.1)
+            
+            is_changed = False
+
+            #현재가 저장
+            cur_price = coin.get_trade_price()
             
             #200개의 캔들봉을 얻은 후 rsi 데이터 저장
             df = await aiopyupbit.get_ohlcv(coin.code,count = 200,interval = 'minute1')
             rsi = get_rsi_data(df, period)
             rsi = rsi[-1]
 
-            # print(datetime.datetime.now(),'\t',int(rsi),'\t',coin.code)
+            print(datetime.datetime.now(),'\t',int(rsi),'\t',coin.code)
 
-
-            #매수 신호
-            if rsi <= 30:
-                cur_price = coin.get_trade_price()
-                print(coin.code,': 매수 신호, rsi : ',rsi)
+            #매수 signal
+            avg_volume = get_avg(df,5,'volume')[0]
+            if rsi <= 35 and df.loc[0]['volume'] < avg_volume:
+                print(coin.code,': 매수 신호, rsi : ',rsi,' 현재 거래량 : ',df.loc[0]['volume'],' 5분 평균 거래량 : ',avg_volume)
                 
-                if buy_data[coin.code]['trade_uuid'] != -1:
-                    buy_fail = False
-                    print('거래내역 있음')
-                    print(buy_data[coin.code])
-                    #이미 매수를 시도했지만 체결이 되지 않은 경우
-                    unfinished_list = await static.upbit.get_order(coin.code)
-                    for x in unfinished_list:
-                        #미체결 매수 기록 검사
-                        if x['uuid'] == buy_data[coin.code]['trade_uuid']:
-                            #미체결 매수 기록이 있지만 현재 매수하려는 호가가 더 낮은 경우에만 거래 취소
-                            if buy_data[coin.code]['buy_price'] < cur_price:
-                                buy_fail = True
-                                print('미체결 저장된 데이터')
-                                print(buy_data[coin.code])
-                                print('취소 결과')
-                                await static.upbit.cancel_order(x['uuid'])
-
-                                #구매기록 초기화
-                                buy_data[coin.code]['buy_price'] = -1
-                                buy_data[coin.code]['trade_uuid'] = -1
-                                buy_data[coin.code]['trade_volume'] = -1                
-                                buy_data[coin.code]['buy_rsi'] = -1
-
-                                #투자 대상 코인 개수 변경
-                                remain += 1
-
-                                #종목별 할당금액 업데이트
-                                krw = await static.upbit.get_balance('KRW')
-                                for x in coin_list:
-                                    if buy_data[x.code]['trade_uuid'] == -1:
-                                        assigned_krw[x.code] = krw/remain
-                                print('미체결 종목 거래 취소, buy_data, remain, assigned krw 업데이트 완료')
-                                print('------------------------------------------')
-                                print('새로 할당 원화')
-                                for x in assigned_krw.items():
-                                    print(x[0],x[1])
-                                print('------------------------------------------')
-                                print('미체결 취소 후 buy_data')
-                                for x in buy_data.items():
-                                    print(x[0],x[1])
-                                print('------------------------------------------')
-                                print('투자 대상 종목 수 : ',remain)
-                                print('------------------------------------------')
-                            break
-                            
-                    #미체결 거래를 취소한 경우에만 매수 진행
-                    if buy_fail == False:
-                        continue
-                
+                if buy_data[coin.code]['buy_price'] != -1:
+                    print('이미 매수')
+                    continue
+                is_changed = True
                 #매수 진행
                 print('#################매수 진행#################')
-                trade_uuid, trade_volume = await buy_crypto_currency(coin.code, assigned_krw[coin.code], cur_price)
+                send_buy_signal(coin.code,cur_price)
                 buy_data[coin.code]['buy_price'] = cur_price
-                buy_data[coin.code]['trade_uuid'] = trade_uuid
-                buy_data[coin.code]['trade_volume'] = trade_volume
                 buy_data[coin.code]['buy_rsi'] = rsi
                 print('------------------------------------------')
                 print('매수 후 buy_data')
                 for x in buy_data.items():
                     print(x[0],x[1])
                 print('------------------------------------------')
-                #투자 대상 코인 개수 변경
-                remain -= 1
-                print('투자 대상 종목 수 : ',remain)
-                print('------------------------------------------')
-                
-            #매도 신호
-            elif rsi >= 70:
-                print(coin.code,': 매도 신호, rsi : ',rsi)
-                #매수 기록이 없는 경우 매도하지 않음
-                if buy_data[coin.code]['trade_uuid'] == -1:
-                    #print('매수 기록 없음')
-                    continue
-                
-                #매수 시도를 했지만 체결이 되지 않은 경우
-                buy_fail = False
-                unfinished_list = await static.upbit.get_order(coin.code)
-                for x in unfinished_list:
-                    #미체결 매수 기록이 있으면 거래를 취소
-                    if x['uuid'] == buy_data[coin.code]['trade_uuid']:
-                        buy_fail = True
-                        print('미체결 저장된 데이터')
-                        print(buy_data[coin.code])
-                        print('취소 결과')
-                        await static.upbit.cancel_order(x['uuid'])
-                        
-                        #구매기록 초기화
-                        buy_data[coin.code]['buy_price'] = -1
-                        buy_data[coin.code]['trade_uuid'] = -1
-                        buy_data[coin.code]['trade_volume'] = -1                
-                        buy_data[coin.code]['buy_rsi'] = -1
-                        
-                        #투자 대상 코인 개수 변경
-                        remain += 1
-                        #종목별 할당금액 업데이트
-                        krw = await static.upbit.get_balance('KRW')
-                        for x in coin_list:
-                            if buy_data[x.code]['trade_uuid'] == -1:
-                                assigned_krw[x.code] = krw/remain
-                        print('미체결 종목 거래 있음. 취소 후 buy_data, remain, assigned krw 업데이트 완료')
-                        print('------------------------------------------')
-                        print('새로 할당 원화')
-                        for x in assigned_krw.items():
-                            print(x[0],x[1])
-                        print('------------------------------------------')
-                        print('미체결 취소 후 buy_data')
-                        for x in buy_data.items():
-                            print(x[0],x[1])
-                        print('------------------------------------------')       
-                        print('투자 대상 종목 수 : ',remain)
-                        print('------------------------------------------')
-                        break
-                #매수 기록이 있고 미체결인 경우 매도하지 않음
-                if buy_fail == True:
-                    print('매수 기록 미체결')
-                    continue
-                print('#################매도 진행#################')
-                sell_price, sell_krw = await sell_crypto_currency(coin.code, buy_data[coin.code]['trade_volume'])
-                # profit_ratio = ((sell_krw/6000)-1)*100
-                profit_ratio = ((sell_krw/assigned_krw[coin.code])-1)*100
-                
-                #투자 결과를 DB에 삽입
-                res_dict = {}
-                now = datetime.datetime.now()
-                now = datetime.datetime(now.year, now.month, now.day, now.hour, now.minute, now.second)
-                res_dict['_id'] = time.mktime(datetime.datetime.strptime(str(now),
-                                              static.BASE_TIME_FORMAT).timetuple())
-                res_dict['time'] = str(now)
-                res_dict['trade volume'] = buy_data[coin.code]['trade_volume']
-                res_dict['buy price'] = buy_data[coin.code]['buy_price']
-                res_dict['sell price'] = sell_price
-                res_dict['total buy'] = assigned_krw[coin.code]
-                res_dict['total sell'] = sell_krw
-                res_dict['profit ratio'] = profit_ratio
-                res_dict['profit KRW'] = res_dict['total sell'] - res_dict['total buy']
-                res_dict['buy RSI'] = buy_data[coin.code]['buy_rsi']
-                res_dict['sell RSI'] = rsi
-                
-                await static.db.insert_item_one(data=res_dict,
-                                                db_name='strategy_rsi',
-                                                collection_name=coin.code)
-                print('------------------------------------------')
-                print('DB 삽입 완료')
-                for x in res_dict.items():
-                    print(x[0],x[1])
-                print('------------------------------------------')
-                #구매기록 초기화
-                buy_data[coin.code]['buy_price'] = -1
-                buy_data[coin.code]['trade_uuid'] = -1
-                buy_data[coin.code]['trade_volume'] = -1                
-                buy_data[coin.code]['buy_rsi'] = -1
+            
+            #매도 검사
+            if buy_data[coin.code]['buy_price'] > 0:
+                profit_ratio = ((cur_price/buy_data[coin.code]['buy_price'])-1)*100
+                if profit_ratio >= 1 or profit_ratio <= -1:
+                    is_changed = True
+                    #매도 signal
+                    send_sell_signal(coin.code,cur_price)
 
-                #투자 대상 코인 개수 변경
-                remain += 1
+                    #투자 결과를 DB에 삽입
+                    res_dict = {}
+                    now = datetime.datetime.now()
+                    now = datetime.datetime(now.year, now.month, now.day, now.hour, now.minute, now.second)
+                    res_dict['_id'] = time.mktime(datetime.datetime.strptime(str(now),
+                                                static.BASE_TIME_FORMAT).timetuple())
+                    res_dict['time'] = str(now)
+                    res_dict['buy price'] = buy_data[coin.code]['buy_price']
+                    res_dict['sell price'] = cur_price
+                    res_dict['buy RSI'] = buy_data[coin.code]['buy_rsi']
+                    res_dict['profit ratio'] = profit_ratio
+                    await static.db.insert_item_one(data=res_dict,
+                                                    db_name='strategy_various_indicator',
+                                                    collection_name=coin.code)
+                    print('------------------------------------------')
+                    print('DB 삽입 완료')
+                    for x in res_dict.items():
+                        print(x[0],x[1])
+                    print('------------------------------------------')
+
+                    #구매기록 초기화
+                    buy_data[coin.code]['buy_price'] = -1
+                    buy_data[coin.code]['buy_rsi'] = -1
+
+            if is_changed == True:
+                print('*********매수 시그널 리스트*********')
+                for x in buy_signal:
+                    print(x)
+                print('*********매도 시그널 리스트*********')
+                for x in sell_signal:
+                    print(x)
+            # #매도 신호
+            # elif rsi >= 70:
+            #     print(coin.code,': 매도 신호, rsi : ',rsi)
+            #     #매수 기록이 없는 경우 매도하지 않음
+            #     if buy_data[coin.code]['trade_uuid'] == -1:
+            #         #print('매수 기록 없음')
+            #         continue
                 
-                #종목별 할당금액 업데이트
-                krw = await static.upbit.get_balance('KRW')
-                for x in coin_list:
-                    if buy_data[x.code]['trade_uuid'] == -1:
-                        assigned_krw[x.code] = krw/remain
-                print('------------------------------------------')
-                print('새로 할당 원화')
-                for x in assigned_krw.items():
-                    print(x[0],x[1])
-                print('------------------------------------------')
-                print('매도 후 buy_data')
-                for x in buy_data.items():
-                    print(x[0],x[1])
-                print('------------------------------------------')
-                print('투자 대상 종목 수 : ',remain)
-                print('------------------------------------------')
+            #     #매수 시도를 했지만 체결이 되지 않은 경우
+            #     buy_fail = False
+            #     unfinished_list = await static.upbit.get_order(coin.code)
+            #     for x in unfinished_list:
+            #         #미체결 매수 기록이 있으면 거래를 취소
+            #         if x['uuid'] == buy_data[coin.code]['trade_uuid']:
+            #             buy_fail = True
+            #             print('미체결 저장된 데이터')
+            #             print(buy_data[coin.code])
+            #             print('취소 결과')
+            #             await static.upbit.cancel_order(x['uuid'])
+                        
+            #             #구매기록 초기화
+            #             buy_data[coin.code]['buy_price'] = -1
+            #             buy_data[coin.code]['trade_uuid'] = -1
+            #             buy_data[coin.code]['trade_volume'] = -1                
+            #             buy_data[coin.code]['buy_rsi'] = -1
+                        
+            #             #투자 대상 코인 개수 변경
+            #             remain += 1
+            #             #종목별 할당금액 업데이트
+            #             krw = await static.upbit.get_balance('KRW')
+            #             for x in coin_list:
+            #                 if buy_data[x.code]['trade_uuid'] == -1:
+            #                     assigned_krw[x.code] = krw/remain
+            #             print('미체결 종목 거래 있음. 취소 후 buy_data, remain, assigned krw 업데이트 완료')
+            #             print('------------------------------------------')
+            #             print('새로 할당 원화')
+            #             for x in assigned_krw.items():
+            #                 print(x[0],x[1])
+            #             print('------------------------------------------')
+            #             print('미체결 취소 후 buy_data')
+            #             for x in buy_data.items():
+            #                 print(x[0],x[1])
+            #             print('------------------------------------------')       
+            #             print('투자 대상 종목 수 : ',remain)
+            #             print('------------------------------------------')
+            #             break
+            #     #매수 기록이 있고 미체결인 경우 매도하지 않음
+            #     if buy_fail == True:
+            #         print('매수 기록 미체결')
+            #         continue
+            #     print('#################매도 진행#################')
+            #     sell_price, sell_krw = await sell_crypto_currency(coin.code, buy_data[coin.code]['trade_volume'])
+            #     # profit_ratio = ((sell_krw/6000)-1)*100
+            #     profit_ratio = ((sell_krw/assigned_krw[coin.code])-1)*100
+                
+            #     #투자 결과를 DB에 삽입
+            #     res_dict = {}
+            #     now = datetime.datetime.now()
+            #     now = datetime.datetime(now.year, now.month, now.day, now.hour, now.minute, now.second)
+            #     res_dict['_id'] = time.mktime(datetime.datetime.strptime(str(now),
+            #                                   static.BASE_TIME_FORMAT).timetuple())
+            #     res_dict['time'] = str(now)
+            #     res_dict['trade volume'] = buy_data[coin.code]['trade_volume']
+            #     res_dict['buy price'] = buy_data[coin.code]['buy_price']
+            #     res_dict['sell price'] = sell_price
+            #     res_dict['total buy'] = assigned_krw[coin.code]
+            #     res_dict['total sell'] = sell_krw
+            #     res_dict['profit ratio'] = profit_ratio
+            #     res_dict['profit KRW'] = res_dict['total sell'] - res_dict['total buy']
+            #     res_dict['buy RSI'] = buy_data[coin.code]['buy_rsi']
+            #     res_dict['sell RSI'] = rsi
+                
+            #     await static.db.insert_item_one(data=res_dict,
+            #                                     db_name='strategy_rsi',
+            #                                     collection_name=coin.code)
+            #     print('------------------------------------------')
+            #     print('DB 삽입 완료')
+            #     for x in res_dict.items():
+            #         print(x[0],x[1])
+            #     print('------------------------------------------')
+            #     #구매기록 초기화
+            #     buy_data[coin.code]['buy_price'] = -1
+            #     buy_data[coin.code]['trade_uuid'] = -1
+            #     buy_data[coin.code]['trade_volume'] = -1                
+            #     buy_data[coin.code]['buy_rsi'] = -1
+
+            #     #투자 대상 코인 개수 변경
+            #     remain += 1
+                
+            #     #종목별 할당금액 업데이트
+            #     krw = await static.upbit.get_balance('KRW')
+            #     for x in coin_list:
+            #         if buy_data[x.code]['trade_uuid'] == -1:
+            #             assigned_krw[x.code] = krw/remain
+            #     print('------------------------------------------')
+            #     print('새로 할당 원화')
+            #     for x in assigned_krw.items():
+            #         print(x[0],x[1])
+            #     print('------------------------------------------')
+            #     print('매도 후 buy_data')
+            #     for x in buy_data.items():
+            #         print(x[0],x[1])
+            #     print('------------------------------------------')
+            #     print('투자 대상 종목 수 : ',remain)
+            #     print('------------------------------------------')
                 
 # 20 매수 80 매도 : 너무 욕심같음 80전에 최고점 찍고 내려와버려서 오히려 손해나는 경우가 있음
 # 20 매수 70 매도 : 실험중
@@ -629,12 +635,11 @@ async def rsi_strategy(coin_list,period):
 #unit         : 분,일 등을 나타내는 단위
 #last_candle  : df에서 가장 최근 캔들봉이 담긴 인덱스 (받아온 캔들봉 개수 -1)
 
-#이동평균값을 구하는 함수 -> unit 동안의 주가 평균
-def get_avg(df, unit=5):
-    close = df['close']
-    ma = close.rolling(unit).mean()
-    return ma[last_candle]
-
+#이동평균값을 구하는 함수 -> unit 동안의 평균
+def get_avg(df, unit=5,column='close'):
+    return df[column].rolling(unit).mean()
+    # return ma[last_candle]
+    
 #전환선, 기준선 값을 얻는 함수 -> 지정시간(last)부터 과거 unit 동안의 ( 최고가 + 최저가 ) / 2
 def get_high_low_avg(df, last, unit=9):
     maxi = df.loc[last-unit+1:last, 'high']
