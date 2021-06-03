@@ -2361,6 +2361,41 @@ QPushButton:pressed {
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="signal_btn">
+               <property name="minimumSize">
+                <size>
+                 <width>65</width>
+                 <height>65</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>65</width>
+                 <height>65</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QPushButton {	
+	border: none;
+	background-color: rgb(40, 40, 40);	
+}
+QPushButton:hover {
+	background-color: rgb(33, 37, 43);
+}
+QPushButton:pressed {	
+	background-color: rgb(85, 170, 255);
+}</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>../icons/24x24/cil-rss.png</normaloff>../icons/24x24/cil-rss.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QFrame" name="frame">
                <property name="layoutDirection">
                 <enum>Qt::LeftToRight</enum>
@@ -2456,7 +2491,7 @@ QPushButton:pressed {
              <string notr="true"/>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="firstpage">
              <property name="font">
@@ -2581,19 +2616,19 @@ QPushButton:pressed {
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_13">
                  <property name="spacing">
-                  <number>-1</number>
+                  <number>0</number>
                  </property>
                  <property name="leftMargin">
-                  <number>12</number>
+                  <number>0</number>
                  </property>
                  <property name="topMargin">
-                  <number>12</number>
+                  <number>0</number>
                  </property>
                  <property name="rightMargin">
-                  <number>12</number>
+                  <number>0</number>
                  </property>
                  <property name="bottomMargin">
-                  <number>12</number>
+                  <number>0</number>
                  </property>
                  <item>
                   <widget class="QWidget" name="userinfo_widget" native="true"/>
@@ -2610,8 +2645,90 @@ QPushButton:pressed {
                  <enum>QFrame::Raised</enum>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
                  <item>
                   <widget class="QWidget" name="detailholdinglist_widget" native="true"/>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="thirdpage">
+             <layout class="QVBoxLayout" name="verticalLayout_9" stretch="2,4">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QFrame" name="frame_6">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_10">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QWidget" name="signal_list_widget" native="true"/>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame_7">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_14">
+                 <property name="spacing">
+                  <number>0</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QWidget" name="signal_select_widget" native="true"/>
                  </item>
                 </layout>
                </widget>

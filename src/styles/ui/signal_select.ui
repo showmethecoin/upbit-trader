@@ -6,14 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1352</width>
-    <height>459</height>
+    <width>689</width>
+    <height>376</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -27,25 +30,13 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QTableWidget" name="detailholdinglist">
+    <widget class="QTableWidget" name="signalselect">
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>
      <property name="selectionMode">
-      <enum>QAbstractItemView::SingleSelection</enum>
+      <enum>QAbstractItemView::NoSelection</enum>
      </property>
-     <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
-     </property>
-     <property name="rowCount">
-      <number>0</number>
-     </property>
-     <property name="columnCount">
-      <number>6</number>
-     </property>
-     <attribute name="horizontalHeaderVisible">
-      <bool>true</bool>
-     </attribute>
      <attribute name="horizontalHeaderHighlightSections">
       <bool>false</bool>
      </attribute>
@@ -57,32 +48,17 @@
      </attribute>
      <column>
       <property name="text">
-       <string>보유 코인</string>
+       <string>김</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>보유 수량</string>
+       <string>의</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>매수 평균가</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>매수 금액</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>평가 금액</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>평가 손익(%)</string>
+       <string>현</string>
       </property>
      </column>
     </widget>

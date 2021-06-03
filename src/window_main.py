@@ -25,6 +25,7 @@ class MainWindow(QMainWindow):
         self.ui.minimize_btn.clicked.connect(lambda: self.showMinimized())
         self.ui.home_btn.clicked.connect(self.home_btn_click)
         self.ui.user_btn.clicked.connect(self.user_btn_click)
+        self.ui.signal_btn.clicked.connect(self.signal_btn_click)
         self.setWindowFlag(Qt.FramelessWindowHint)
 
         # MouseLeftClick Event Listener
@@ -58,12 +59,20 @@ class MainWindow(QMainWindow):
         self.ui.qStackedWidget.setCurrentIndex(0)
         self.ui.home_btn.setStyleSheet(self.clicked_style)
         self.ui.user_btn.setStyleSheet(self.none_clicked_style)
+        self.ui.signal_btn.setStyleSheet(self.none_clicked_style)
 
     def user_btn_click(self):
         self.ui.qStackedWidget.setCurrentIndex(1)
         self.ui.user_btn.setStyleSheet(self.clicked_style)
         self.ui.home_btn.setStyleSheet(self.none_clicked_style)
+        self.ui.signal_btn.setStyleSheet(self.none_clicked_style)
 
+    def signal_btn_click(self):
+        self.ui.qStackedWidget.setCurrentIndex(2)
+        self.ui.signal_btn.setStyleSheet(self.clicked_style)
+        self.ui.user_btn.setStyleSheet(self.none_clicked_style)
+        self.ui.home_btn.setStyleSheet(self.none_clicked_style)
+    
 
 if __name__ == "__main__":
     import sys

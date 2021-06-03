@@ -27,7 +27,9 @@ class DetailholdinglistWorker(QThread):
             time.sleep(1)
             if len(static.account.coins) != 0:
                 self.dataSent.emit(static.account.coins)
-            
+            else:
+                self.dataSent.emit('tableclear')
+
     def close(self):
         self.alive = False
         return super().terminate()
@@ -50,52 +52,55 @@ class DetailholdinglistWidget(QWidget):
         self.dw.start()
 
     def updataData(self, data):
-        # data는 static.account.coins
-        # 테이블 설정
-        # 테이블을 처음 설정할 경우 또는 설정된 table row갯수와 set해야되는 data갯수가 다를 경우
-        if self.detailholdinglist.rowCount() == 0 or self.detailholdinglist.rowCount() != len(data):
-            self.detailholdinglist.clearContents() # 테이블 지우고
-            self.items = []
-            # 동적으로 row관리
-            count_codes = len(data)
-            self.detailholdinglist.setRowCount(count_codes)
-            font = QFont()
-            font.setBold(True)
+        if data == 'tableclear':
+            self.detailholdinglist.clearContents()
+        else:
+            # data는 static.account.coins
+            # 테이블 설정
+            # 테이블을 처음 설정할 경우 또는 설정된 table row갯수와 set해야되는 data갯수가 다를 경우
+            if self.detailholdinglist.rowCount() == 0 or self.detailholdinglist.rowCount() != len(data):
+                self.detailholdinglist.clearContents() # 테이블 지우고
+                self.items = []
+                # 동적으로 row관리
+                count_codes = len(data)
+                self.detailholdinglist.setRowCount(count_codes)
+                font = QFont()
+                font.setBold(True)
 
-            for i in range(count_codes):
-                self.items.append([QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem()])
-                self.items[i][0].setFont(font)
-                self.items[i][0].setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-                self.items[i][1].setFont(font)
-                self.items[i][1].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                self.items[i][2].setFont(font)
-                self.items[i][2].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                self.items[i][3].setFont(font)
-                self.items[i][3].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                self.items[i][4].setFont(font)
-                self.items[i][4].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                self.items[i][5].setFont(font)
-                self.items[i][5].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                self.detailholdinglist.setItem(i, 0, self.items[i][0])            
-                self.detailholdinglist.setItem(i, 1, self.items[i][1])
-                self.detailholdinglist.setItem(i, 2, self.items[i][2])
-                self.detailholdinglist.setItem(i, 3, self.items[i][3])
-                self.detailholdinglist.setItem(i, 4, self.items[i][4])
-                self.detailholdinglist.setItem(i, 5, self.items[i][5])
+                for i in range(count_codes):
+                    self.items.append([QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem()])
+                    self.items[i][0].setFont(font)
+                    self.items[i][0].setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+                    self.items[i][1].setFont(font)
+                    self.items[i][1].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    self.items[i][2].setFont(font)
+                    self.items[i][2].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    self.items[i][3].setFont(font)
+                    self.items[i][3].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    self.items[i][4].setFont(font)
+                    self.items[i][4].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    self.items[i][5].setFont(font)
+                    self.items[i][5].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    self.detailholdinglist.setItem(i, 0, self.items[i][0])            
+                    self.detailholdinglist.setItem(i, 1, self.items[i][1])
+                    self.detailholdinglist.setItem(i, 2, self.items[i][2])
+                    self.detailholdinglist.setItem(i, 3, self.items[i][3])
+                    self.detailholdinglist.setItem(i, 4, self.items[i][4])
+                    self.detailholdinglist.setItem(i, 5, self.items[i][5])
 
-        for i, coin in enumerate(data):
-            self.items[i][0].setText(static.chart.get_coin(f'{static.FIAT}-{coin}').korean_name + '(' + coin + ')')
-            self.items[i][1].setText(f"{data[coin]['balance'] + data[coin]['locked']:,.8f}")
-            self.items[i][2].setText(f"{(lambda x: x if x < 100 else math.ceil(x))(data[coin]['avg_buy_price']):,}")
-            self.items[i][3].setText(f"{math.ceil(data[coin]['purchase']):,}")
-            self.items[i][4].setText(f"{math.floor(data[coin]['evaluate']):,}")
-            self.items[i][5].setText(f"{data[coin]['yield']:,.2f}")
-            if data[coin]['yield'] < 0 :
-                self.items[i][5].setForeground(self.color_red)
-            elif data[coin]['yield'] > 0 :
-                self.items[i][5].setForeground(self.color_green)
-            else:
-                self.items[i][5].setForeground(self.color_white)  
+            for i, coin in enumerate(data):
+                self.items[i][0].setText(static.chart.get_coin(f'{static.FIAT}-{coin}').korean_name + '(' + coin + ')')
+                self.items[i][1].setText(f"{data[coin]['balance'] + data[coin]['locked']:,.8f}")
+                self.items[i][2].setText(f"{(lambda x: x if x < 100 else math.ceil(x))(data[coin]['avg_buy_price']):,}")
+                self.items[i][3].setText(f"{math.ceil(data[coin]['purchase']):,}")
+                self.items[i][4].setText(f"{math.floor(data[coin]['evaluate']):,}")
+                self.items[i][5].setText(f"{data[coin]['yield']:,.2f}")
+                if data[coin]['yield'] < 0 :
+                    self.items[i][5].setForeground(self.color_red)
+                elif data[coin]['yield'] > 0 :
+                    self.items[i][5].setForeground(self.color_green)
+                else:
+                    self.items[i][5].setForeground(self.color_white)  
              
     # close thread
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:

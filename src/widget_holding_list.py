@@ -25,7 +25,8 @@ class HoldingListWorker(QThread):
             time.sleep(1)
             if len(static.account.coins) != 0:
                 self.dataSent.emit(static.account.coins)
-            
+            else:
+                self.dataSent.emit('tableclear')
     def close(self):
         self.alive = False
         return super().terminate()
@@ -48,37 +49,40 @@ class HoldingListWidget(QWidget):
         self.color_white = QBrush(QColor(255, 255, 255))
 
     def updataData(self, data):
-        # data는 static.account.coins
-        # 테이블 설정
-        # 테이블을 처음 설정할 경우 또는 설정된 table row갯수와 set해야되는 data갯수가 다를 경우
-        if self.hold_list.rowCount() == 0 or self.hold_list.rowCount() != len(data):
-            self.hold_list.clearContents() # 테이블 지우고
-            self.items = []
-            # 동적으로 row관리
-            count_codes = len(data)
-            self.hold_list.setRowCount(count_codes)
-            font = QFont()
-            font.setBold(True)
+        if data == 'tableclear':
+            self.hold_list.clearContents()
+        else:
+            # data는 static.account.coins
+            # 테이블 설정
+            # 테이블을 처음 설정할 경우 또는 설정된 table row갯수와 set해야되는 data갯수가 다를 경우
+            if self.hold_list.rowCount() == 0 or self.hold_list.rowCount() != len(data):
+                self.hold_list.clearContents() # 테이블 지우고
+                self.items = []
+                # 동적으로 row관리
+                count_codes = len(data)
+                self.hold_list.setRowCount(count_codes)
+                font = QFont()
+                font.setBold(True)
 
-            for i in range(count_codes):
-                self.items.append([QTableWidgetItem(), QTableWidgetItem()])
-                self.items[i][0].setFont(font)
-                self.items[i][0].setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-                self.items[i][1].setFont(font)
-                self.items[i][1].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                self.hold_list.setItem(i, 0, self.items[i][0])       
-                self.hold_list.setItem(i, 1, self.items[i][1])
-        # print(self.count_codes)
-        
-        for i, coin in enumerate(data):
-            self.items[i][0].setText(static.chart.get_coin(f'{static.FIAT}-{coin}').korean_name + '(' + coin + ')')
-            self.items[i][1].setText(f"{data[coin]['yield']:,.2f} %")
-            if data[coin]['yield'] < 0 :
-                self.items[i][1].setForeground(self.color_red)
-            elif data[coin]['yield'] > 0 :
-                self.items[i][1].setForeground(self.color_green)
-            else:
-                self.items[i][1].setForeground(self.color_white)         
+                for i in range(count_codes):
+                    self.items.append([QTableWidgetItem(), QTableWidgetItem()])
+                    self.items[i][0].setFont(font)
+                    self.items[i][0].setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+                    self.items[i][1].setFont(font)
+                    self.items[i][1].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    self.hold_list.setItem(i, 0, self.items[i][0])       
+                    self.hold_list.setItem(i, 1, self.items[i][1])
+            # print(self.count_codes)
+            
+            for i, coin in enumerate(data):
+                self.items[i][0].setText(static.chart.get_coin(f'{static.FIAT}-{coin}').korean_name + '(' + coin + ')')
+                self.items[i][1].setText(f"{data[coin]['yield']:,.2f} %")
+                if data[coin]['yield'] < 0 :
+                    self.items[i][1].setForeground(self.color_red)
+                elif data[coin]['yield'] > 0 :
+                    self.items[i][1].setForeground(self.color_green)
+                else:
+                    self.items[i][1].setForeground(self.color_white)         
     
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.hw.close()
