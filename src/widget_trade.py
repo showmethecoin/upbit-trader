@@ -324,15 +324,6 @@ class TradeWidget(QWidget):
         else:
             self.volume_changed = True
 
-            # Designation
-            if idx == 0 and self.sell_price_1.value() != 0.0:
-                self.sell_volume_1.setValue(
-                    round(self.sell_total_price_1.value() / self.sell_price_1.value(), 8))
-            # Reservation
-            elif self.sell_price_3.value() != 0.0:
-                self.sell_volume_3.setValue(
-                    round(self.sell_total_price_3.value() / self.sell_price_3.value(), 8))
-
     def set_execute_info(self, data, idx):
         table = self.info_table_1
 
@@ -378,9 +369,9 @@ class TradeWidget(QWidget):
 
             # MARKET AND SIDE
             if info['side'] == 'bid':
-                self.items[i][1].setText(info['market']+"\n매도")
+                self.items[i][1].setText(info['market']+"\n매수")
             elif info['side'] == 'ask':
-                self.items[i][1].setText(info['market'] + "\n매수")
+                self.items[i][1].setText(info['market'] + "\n매도")
             
             # PRICE AND KRW
             if info['price'] != None:
@@ -479,6 +470,10 @@ class TradeWidget(QWidget):
             self.sell_orderable_1.setText(balance)
             self.sell_orderable_2.setText(balance)
             self.sell_orderable_3.setText(balance)
+        else:
+            self.sell_orderable_1.setText("0.0")
+            self.sell_orderable_2.setText("0.0")
+            self.sell_orderable_3.setText("0.0")
 
         # Set trade price
         market_price = static.chart.coins[ticker].get_trade_price()
