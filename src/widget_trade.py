@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 import math
 import asyncio
+import time
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 import ui_styles
@@ -9,6 +12,25 @@ import static
 import utils
 from static import log
 
+class TradeWorker(QThread):
+    dataSent = pyqtSignal(object, int)
+    def __init__(self, code):
+        super().__init__()
+        self.alive = False
+        self.code = code
+    
+    def run(self):
+        self.alive = True
+        while self.alive:
+            time.sleep(0.5)
+            wait = asyncio.run(static.account.upbit.get_order(ticker_or_uuid= self.code))
+            done = asyncio.run(static.account.upbit.get_order(ticker_or_uuid= self.code, state = 'done'))
+            self.dataSent.emit(wait, 1)
+            self.dataSent.emit(done, 2)
+    
+    def close(self) -> None:
+        self.alive = False
+        return super().terminate()
 
 class TradeWidget(QWidget):
     def __init__(self, parent=None):
@@ -16,11 +38,15 @@ class TradeWidget(QWidget):
         uic.loadUi(utils.get_file_path("styles/ui/trade.ui"), self)
 
         self.coin = 'KRW-BTC'
+        self.info_table_1.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.info_table_2.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tw = TradeWorker(self.coin)
+        self.tw.dataSent.connect(self.set_execute_info)
+        self.tw.start()
         
-        
-        ''' Bid '''
-        # Bid Radio Clicked Listener Initialize
+        # BUY Radio Clicked Listener Initialize
         self.buy_designation_price.setChecked(True)
+        self.info_not_execution.setChecked(True)
         self.buy_designation_price.clicked.connect(
             self.clicked_buy_designation_price)
         self.buy_market_price.clicked.connect(self.clicked_buy_market_pice)
@@ -108,6 +134,11 @@ class TradeWidget(QWidget):
         # Volume changed signal
         self.volume_changed = True
 
+        # INFO Radio Button Clicked Listener Initialize
+        self.info_not_execution.clicked.connect(lambda: self.clicked_info_radio(0))
+        self.info_execution.clicked.connect(lambda: self.clicked_info_radio(1))
+
+    # Clicked Event Function
     def clicked_buy_designation_price(self):
         self.buy_stack.setCurrentIndex(0)
 
@@ -240,6 +271,9 @@ class TradeWidget(QWidget):
             self.show_messagebox(True, '매도주문이 정상완료되었습니다.')
         except Exception as e:
             self.show_messagebox(False, e.__str__())
+    
+    def clicked_info_radio(self, index):
+        self.info_stack.setCurrentIndex(index)
 
     def show_messagebox(self, condition, message):
         self.msg = QMessageBox()
@@ -290,6 +324,75 @@ class TradeWidget(QWidget):
         else:
             self.volume_changed = True
 
+            # Designation
+            if idx == 0 and self.sell_price_1.value() != 0.0:
+                self.sell_volume_1.setValue(
+                    round(self.sell_total_price_1.value() / self.sell_price_1.value(), 8))
+            # Reservation
+            elif self.sell_price_3.value() != 0.0:
+                self.sell_volume_3.setValue(
+                    round(self.sell_total_price_3.value() / self.sell_price_3.value(), 8))
+
+    def set_execute_info(self, data, idx):
+        table = self.info_table_1
+
+        if idx == 2:
+            table = self.info_table_2
+
+        if table.rowCount() != len(data):
+            table.clearContents() # 테이블 지우고
+            
+            # 찍을 데이터가 없는 경우
+            if len(data) == 0:
+                return
+            
+            self.items = []
+            # 동적으로 row관리
+            count_data = len(data)
+            table.setRowCount(count_data)
+            font = QFont()
+            font.setBold(True)
+
+            for i in range(count_data):
+                self.items.append([QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem()])
+                self.items[i][0].setFont(font)
+                self.items[i][0].setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.items[i][1].setFont(font)
+                self.items[i][1].setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.items[i][2].setFont(font)
+                self.items[i][2].setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                self.items[i][3].setFont(font)
+                self.items[i][3].setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+
+                table.setItem(i, 0, self.items[i][0])       
+                table.setItem(i, 1, self.items[i][1])
+                table.setItem(i, 2, self.items[i][2])       
+                table.setItem(i, 3, self.items[i][3])
+            table.verticalHeader().setDefaultSectionSize(60)
+        
+        for i, info in enumerate(data):
+            # DATE TIME
+            date = info['created_at'].split('T')[0]
+            time = info['created_at'].split('T')[1].split('+')[0]
+            self.items[i][0].setText(date +"\n" + time)
+
+            # MARKET AND SIDE
+            if info['side'] == 'bid':
+                self.items[i][1].setText(info['market']+"\n매도")
+            elif info['side'] == 'ask':
+                self.items[i][1].setText(info['market'] + "\n매수")
+            
+            # PRICE AND KRW
+            if info['price'] != None:
+                krw = int(float(info['price']) * float(info['volume']))
+                self.items[i][2].setText(info['price'] + "\n" + str(krw))
+            else:
+                self.items[i][2].setText(info['price'])
+            
+            # VOLUME
+            self.items[i][3].setText(info['volume'])
+    
+    # Calc Latest Total-Price
     def set_total_price(self):
         # Bid
         if self.tabWidget.currentIndex() == 0:
@@ -345,6 +448,20 @@ class TradeWidget(QWidget):
 
         # Set coin code
         self.coin = ticker
+
+        # worker thread update
+        self.tw.code = ticker
+        self.tw.close()
+        self.tw.wait()
+        self.tw = TradeWorker(self.coin)
+        self.tw.dataSent.connect(self.set_execute_info)
+        self.info_table_1.clearContents()
+        self.info_table_1.setRowCount(0)
+        self.info_table_2.clearContents()
+        self.info_table_2.setRowCount(0)
+        self.items = []
+        self.tw.start()
+
         coin = ticker.split("-")[1]
         self.sell_ticker_1.setText(coin)
         self.sell_ticker_2.setText(coin)
@@ -376,7 +493,9 @@ class TradeWidget(QWidget):
         self.buy_price_3.setValue(cur_price)
         self.sell_price_1.setValue(cur_price)
         self.sell_price_3.setValue(cur_price)
-        
+    
+    def closeEvent(self, event):
+        self.tw.close()
 
 
 if __name__ == "__main__":
