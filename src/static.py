@@ -3,7 +3,7 @@
 import utils
 
 MIN_TRADE_PRICE = 5000
-FEES = 0.005  # Upbit official fees ratio
+FEES = 0.0005  # Upbit official fees ratio
 FIAT = "KRW"  # KRW/BRC/ETH/USDT
 BASE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'  # Base time format
 UPBIT_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S' # Upbit time format
