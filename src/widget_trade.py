@@ -195,100 +195,106 @@ class TradeWidget(QWidget):
                 self.sell_monitor_price_3.setValue(0.0)
 
     def clicked_buy_button(self, tab_number):
-        cash = static.account.cash
-        ticker = self.coin   
-        # 지정가 매수
-        if tab_number == 1:
-            buy_price = self.buy_price_1.value()
-            buy_volume = self.buy_volume_1.value()
-            total_buy_price = self.buy_total_price_1.value()
-            if total_buy_price <= static.MIN_TRADE_PRICE:
-                self.show_messagebox(False, '주문 최소금액은 5000 KRW 입니다.')
+        try:
+            cash = static.account.cash
+            ticker = self.coin   
+            # 지정가 매수
+            if tab_number == 1:
+                buy_price = self.buy_price_1.value()
+                buy_volume = self.buy_volume_1.value()
+                total_buy_price = self.buy_total_price_1.value()
+                if total_buy_price <= static.MIN_TRADE_PRICE:
+                    self.show_messagebox(False, '주문 최소금액은 5000 KRW 입니다.')
+                    return
+                elif total_buy_price + math.ceil(total_buy_price * static.FEES) > cash:
+                    self.show_messagebox(False, '금액이 부족합니다.')
+                    return
+                ret = asyncio.run(static.account.upbit.buy_limit_order(ticker=ticker, 
+                                                                    price=buy_price, 
+                                                                    volume=buy_volume))
+            # 시장가 매수
+            elif tab_number == 2 :
+                total_buy_price = self.buy_total_price_2.value()
+                if total_buy_price <= static.MIN_TRADE_PRICE:
+                    self.show_messagebox(False, '주문 최소금액은 5000 KRW 입니다.')
+                    return
+                if total_buy_price + math.ceil(total_buy_price * static.FEES) > cash :
+                    self.show_messagebox(False, '금액이 부족합니다.')
+                    return
+                ret = asyncio.run(static.account.upbit.buy_market_order(ticker=ticker, 
+                                                                        price=total_buy_price))
+            # 예약-지정가 매수
+            # TODO 미구현
+            else:
+                self.show_messagebox(False, '미구현입니다')
                 return
-            elif total_buy_price + math.ceil(total_buy_price * static.FEES) > cash:
-                self.show_messagebox(False, '금액이 부족합니다.')
-                return
-            ret = asyncio.run(static.account.upbit.buy_limit_order(ticker=ticker, 
-                                                                   price=buy_price, 
-                                                                   volume=buy_volume))
-        # 시장가 매수
-        elif tab_number == 2 :
-            total_buy_price = self.buy_total_price_2.value()
-            if total_buy_price <= static.MIN_TRADE_PRICE:
-                self.show_messagebox(False, '주문 최소금액은 5000 KRW 입니다.')
-                return
-            if total_buy_price + math.ceil(total_buy_price * static.FEES) > cash :
-                self.show_messagebox(False, '금액이 부족합니다.')
-                return
-            ret = asyncio.run(static.account.upbit.buy_market_order(ticker=ticker, 
-                                                                    price=total_buy_price))
-        # 예약-지정가 매수
-        # TODO 미구현
-        else:
-            self.show_messagebox(False, '미구현입니다')
-            return
-            # buy_price = self.buy_price_3.value()
-            # monitoring_price = self.buy_monitor_price_3.value()
-            # buy_volume = self.buy_volume_3.value()
-            # total_buy_price = self.buy_total_price_3.value()
-            # if total_buy_price <= static.MIN_TRADE_PRICE:
-            #     self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
-            #     return
-            # if total_buy_price + math.upper(total_buy_price * static.FEES) > cash :
-            #     self.show_messagebox('금액이 부족합니다.')
-            #     return
-                
-        print(ret)
-        self.show_messagebox(True, '매수주문이 정상완료되었습니다.')
+                # buy_price = self.buy_price_3.value()
+                # monitoring_price = self.buy_monitor_price_3.value()
+                # buy_volume = self.buy_volume_3.value()
+                # total_buy_price = self.buy_total_price_3.value()
+                # if total_buy_price <= static.MIN_TRADE_PRICE:
+                #     self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
+                #     return
+                # if total_buy_price + math.upper(total_buy_price * static.FEES) > cash :
+                #     self.show_messagebox('금액이 부족합니다.')
+                #     return
+                    
+            print(ret)
+            self.show_messagebox(True, '매수주문이 정상완료되었습니다.')
+        except Exception as e:
+            self.show_messagebox(False, e.__str__())
     
     def clicked_sell_button(self, tab_number):
-        coin = self.coin.split('-')[1]
-        if coin not in static.account.coins.keys():
-            self.show_messagebox(False, '보유한 코인이 없습니다.')
-            return
-        balance = static.account.coins[coin]['balance']
-        ticker = self.coin
-        # 지정가 매도
-        if tab_number == 1:
-            sell_price = self.sell_price_1.value()
-            sell_volume = self.sell_volume_1.value()
-            total_sell_price = self.sell_total_price_1.value()
-            if total_sell_price <= static.MIN_TRADE_PRICE:
-                self.show_messagebox(False, '주문 최소금액은 5000 KRW 입니다.')
+        try:
+            coin = self.coin.split('-')[1]
+            if coin not in static.account.coins.keys():
+                self.show_messagebox(False, '보유한 코인이 없습니다.')
                 return
-            elif self.sell_price_1.value() != 0.0 and (total_sell_price / sell_price) > balance :
-                self.show_messagebox(False, '금액이 부족합니다.')
-                return 
-            ret = asyncio.run(static.account.upbit.sell_limit_order(ticker=ticker, 
-                                                                    price=sell_price, 
-                                                                    volume=sell_volume))
-        # 시장가 매도
-        elif tab_number == 2 :
-            sell_volume = self.sell_total_price_2.value()
-            if sell_volume * static.chart.get_coin(ticker).get_trade_price() <= static.MIN_TRADE_PRICE:
-                self.show_messagebox(False, '주문 최소금액은 5000 KRW 입니다.')
+            balance = static.account.coins[coin]['balance']
+            ticker = self.coin
+            # 지정가 매도
+            if tab_number == 1:
+                sell_price = self.sell_price_1.value()
+                sell_volume = self.sell_volume_1.value()
+                total_sell_price = self.sell_total_price_1.value()
+                if total_sell_price <= static.MIN_TRADE_PRICE:
+                    self.show_messagebox(False, '주문 최소금액은 5000 KRW 입니다.')
+                    return
+                elif self.sell_price_1.value() != 0.0 and (total_sell_price / sell_price) > balance :
+                    self.show_messagebox(False, '금액이 부족합니다.')
+                    return 
+                ret = asyncio.run(static.account.upbit.sell_limit_order(ticker=ticker, 
+                                                                        price=sell_price, 
+                                                                        volume=sell_volume))
+            # 시장가 매도
+            elif tab_number == 2 :
+                sell_volume = self.sell_total_price_2.value()
+                if sell_volume * static.chart.get_coin(ticker).get_trade_price() <= static.MIN_TRADE_PRICE:
+                    self.show_messagebox(False, '주문 최소금액은 5000 KRW 입니다.')
+                    return
+                # TODO 개수 바꿔야함
+                ret = asyncio.run(static.account.upbit.sell_market_order(ticker=ticker, 
+                                                                        volume=sell_volume))
+                
+            # 예약 지정가 매도
+            # TODO 미구현
+            else:
+                self.show_messagebox(False, '미구현입니다')
                 return
-            # TODO 개수 바꿔야함
-            ret = asyncio.run(static.account.upbit.sell_market_order(ticker=ticker, 
-                                                                     volume=sell_volume))
-            
-        # 예약 지정가 매도
-        # TODO 미구현
-        else:
-            self.show_messagebox(False, '미구현입니다')
-            return
-            # if self.sell_total_price_3.value() < static.MIN_TRADE_PRICE:
-            #     self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
-            #     return
-            # if self.sell_price_3.value() != 0.0 and (self.sell_total_price_3.value() / self.sell_price_3.value()) > balance :
-            #     self.show_messagebox('금액이 부족합니다.')
-            #     return
-            # print('Ticker : ', self.coin)
-            # print('Sell Price : ', self.sell_price_3.value())
-            # print('Monitoring Price : ', self.sell_monitor_price_3.value())
-            # print('Total KRW : ', self.sell_total_price_3.value())
-        print(ret)
-        self.show_messagebox(True, '매도주문이 정상완료되었습니다.')
+                # if self.sell_total_price_3.value() < static.MIN_TRADE_PRICE:
+                #     self.show_messagebox('주문 최소금액은 5000 KRW 입니다.')
+                #     return
+                # if self.sell_price_3.value() != 0.0 and (self.sell_total_price_3.value() / self.sell_price_3.value()) > balance :
+                #     self.show_messagebox('금액이 부족합니다.')
+                #     return
+                # print('Ticker : ', self.coin)
+                # print('Sell Price : ', self.sell_price_3.value())
+                # print('Monitoring Price : ', self.sell_monitor_price_3.value())
+                # print('Total KRW : ', self.sell_total_price_3.value())
+            print(ret)
+            self.show_messagebox(True, '매도주문이 정상완료되었습니다.')
+        except Exception as e:
+            self.show_messagebox(False, e.__str__())
         
     def show_messagebox(self, condition, message):
         self.msg = QMessageBox()
