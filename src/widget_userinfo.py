@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import math
 import asyncio
+from ui_userinfo import Ui_Form
+from widget_piechart import PieChartWidget
 from PyQt5 import QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -62,7 +64,9 @@ class UserinfoWorker(QThread):
 class UserinfoWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.uw = UserinfoWorker(uic.loadUi(utils.get_file_path("styles/ui/userinfo.ui"), self))
+        self.view = Ui_Form()
+        self.view.setupUi(self)
+        self.uw = UserinfoWorker(self.view)
         self.uw.start()
         
     # close thread
