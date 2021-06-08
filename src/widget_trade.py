@@ -44,7 +44,8 @@ class TradeWidget(QWidget):
         self.tw.dataSent.connect(self.set_execute_info)
         self.tw.start()
         
-        # BUY Radio Clicked Listener Initialize
+        ''' Bid '''
+        # Bid Radio Clicked Listener Initialize
         self.buy_designation_price.setChecked(True)
         self.info_not_execution.setChecked(True)
         self.buy_designation_price.clicked.connect(
@@ -157,12 +158,12 @@ class TradeWidget(QWidget):
     def clicked_sell_reservation_pice(self):
         self.sell_stack.setCurrentIndex(2)
 
-    def clicked_vol(self, ratio):
+    def clicked_vol(self, ratio):   
         cash = static.account.get_total_cash()
         # Bid
         if self.tabWidget.currentIndex() == 0:
             total_order_price = cash * ratio
-            total_order_price -= round(total_order_price * static.FEES)
+            total_order_price -= math.ceil(total_order_price * static.FEES)
             idx = self.buy_stack.currentIndex()
             if idx == 0:
                 self.buy_total_price_1.setValue(total_order_price)
@@ -172,18 +173,23 @@ class TradeWidget(QWidget):
                 self.buy_total_price_3.setValue(total_order_price)
         # Ask
         else:
+            self.volume_changed = False
             coin = self.sell_ticker_1.text()
             if coin in static.account.coins.keys():
                 price = self.sell_price_1.value()
                 balance = static.account.coins[coin]['balance']
                 idx = self.sell_stack.currentIndex()
+                volume = balance * ratio
                 if idx == 0:
-                    self.sell_total_price_1.setValue(price * balance * ratio)
+                    # TODO 여기다 시팔
+                    self.sell_total_price_1.setValue(price * volume)
+                    self.sell_volume_1.setValue(volume)
                 elif idx == 1:
                     # TODO 텍스트를 주문 총액에서 수량으로 변경 필요
-                    self.sell_total_price_2.setValue(balance * ratio)
+                    self.sell_total_price_2.setValue(volume)
                 else:
-                    self.sell_total_price_3.setValue(price * balance * ratio)                
+                    self.sell_total_price_3.setValue(price * volume) 
+                    self.sell_volume_1.setValue(volume)           
 
     def clicked_reset(self):
         # Bid
@@ -376,7 +382,7 @@ class TradeWidget(QWidget):
             # PRICE AND KRW
             if info['price'] != None:
                 krw = int(float(info['price']) * float(info['volume']))
-                self.items[i][2].setText(info['price'] + "\n" + str(krw))
+                self.items[i][2].setText(f'{info["price"]}\n{krw}')
             else:
                 self.items[i][2].setText(info['price'])
             
