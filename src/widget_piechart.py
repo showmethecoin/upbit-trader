@@ -39,14 +39,14 @@ class PieWorker(QThread):
 
             # Data Screening
             for i in datas:
-                if len(labels) < 7 or i[1] == 'KRW':
+                if sum != 0.0 and len(labels) < 7 or i[1] == 'KRW':
                     labels.append(i[1] + " : " + str(round(i[0]/sum * 100)) + "%")
                     frequency.append(i[0])
                 else:
                     remain[0] += i[0]
             
             # If there are any remaining coins
-            if remain[0] != 0:
+            if sum != 0.0 and remain[0] != 0:
                 labels.append(remain[1] + " : " + str(round(remain[0]/sum * 100)) + "%")
                 frequency.append(remain[0])
 

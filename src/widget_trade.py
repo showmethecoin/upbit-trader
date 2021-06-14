@@ -338,12 +338,13 @@ class TradeWidget(QWidget):
 
         if table.rowCount() != len(data):
             table.clearContents() # 테이블 지우고
+            table.setRowCount(0)
+            self.items = []
             
             # 찍을 데이터가 없는 경우
             if len(data) == 0:
                 return
             
-            self.items = []
             # 동적으로 row관리
             count_data = len(data)
             table.setRowCount(count_data)
@@ -368,6 +369,10 @@ class TradeWidget(QWidget):
             table.verticalHeader().setDefaultSectionSize(60)
         
         for i, info in enumerate(data):
+            # 테이블 개수와 맞지 않으면 업데이트x
+            if len(data) != len(self.items):
+                break
+
             # DATE TIME
             date = info['created_at'].split('T')[0]
             time = info['created_at'].split('T')[1].split('+')[0]
@@ -465,7 +470,7 @@ class TradeWidget(QWidget):
         self.sell_ticker_3.setText(coin)
 
         # Bid: Set own cash
-        cash = f'{int(static.account.cash + static.account.locked_cash):,}'
+        cash = str(int(static.account.cash))
         self.buy_orderable_1.setText(cash)
         self.buy_orderable_2.setText(cash)
         self.buy_orderable_3.setText(cash)

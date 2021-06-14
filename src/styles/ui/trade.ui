@@ -2690,7 +2690,10 @@ QPushButton:pressed {
               <set>QAbstractItemView::NoEditTriggers</set>
              </property>
              <property name="selectionMode">
-              <enum>QAbstractItemView::NoSelection</enum>
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
              </property>
              <attribute name="horizontalHeaderCascadingSectionResizes">
               <bool>false</bool>
@@ -2725,14 +2728,21 @@ QPushButton:pressed {
              </column>
              <column>
               <property name="text">
-               <string>체결가/체결액</string>
+               <string>주문가/주문액</string>
               </property>
              </column>
              <column>
               <property name="text">
-               <string>체결수량</string>
+               <string>미체결량</string>
               </property>
              </column>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton">
+             <property name="text">
+              <string>거래취소</string>
+             </property>
             </widget>
            </item>
           </layout>
