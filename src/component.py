@@ -587,6 +587,8 @@ class Account:
                     elif currency == 'XYM':
                         continue
                     else:
+                        if(currency == 'VTHO'):
+                            continue
                         coin = static.chart.get_coin("%s-%s" %(static.FIAT, currency))
                         purchase = (balance + locked) * avg_buy_price
                         evaluate = (balance + locked) * coin.get_trade_price()
