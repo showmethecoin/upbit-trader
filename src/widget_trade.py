@@ -42,7 +42,6 @@ class TradeWidget(QWidget):
         self.info_table_2.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tw = TradeWorker(self.coin)
         self.tw.dataSent.connect(self.set_execute_info)
-        self.tw.start()
         
         ''' Bid '''
         # Bid Radio Clicked Listener Initialize
@@ -453,16 +452,11 @@ class TradeWidget(QWidget):
 
         # worker thread update
         self.tw.code = ticker
-        self.tw.close()
-        self.tw.wait()
-        self.tw = TradeWorker(self.coin)
-        self.tw.dataSent.connect(self.set_execute_info)
         self.info_table_1.clearContents()
         self.info_table_1.setRowCount(0)
         self.info_table_2.clearContents()
         self.info_table_2.setRowCount(0)
         self.items = []
-        self.tw.start()
 
         coin = ticker.split("-")[1]
         self.sell_ticker_1.setText(coin)

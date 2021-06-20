@@ -48,7 +48,6 @@ class CoinlistWidget(QWidget):
         
         self.cw = CoinListWorker()
         self.cw.dataSent.connect(self.updataData)
-        self.cw.start()
 
         self.coin_list.cellClicked.connect(self.chkItemClicked)
         self.order = None
@@ -115,11 +114,7 @@ class CoinlistWidget(QWidget):
         if len(select_item) == 0:
             return
         code = f"KRW-{select_item[0].text().split('(')[1][:-1]}"
-        self.order.ow.close()
-        self.order.ow.wait()
-        self.order.ow = OrderbookWorker(code)
-        self.order.ow.dataSent.connect(self.order.updateData)
-        self.order.ow.start()
+        self.order.ow.ticker = code
         self.chart.set_coin(code)
         self.trade.set_price(code)
 

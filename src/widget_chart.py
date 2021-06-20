@@ -84,7 +84,6 @@ class CandleChartWidget(QWidget):
         # Canvas Initialize
         self.canvas = MyMplCanvas(self, width=5, height=3, dpi=100)
         self.cw = CandleWorker(self.canvas, 'KRW-BTC', 15)
-        self.cw.start()
 
         # Assign Element Location
         vbox = QVBoxLayout()

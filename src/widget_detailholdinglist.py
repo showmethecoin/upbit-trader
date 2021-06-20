@@ -46,7 +46,6 @@ class DetailholdinglistWidget(QWidget):
 
         self.dw = DetailholdinglistWorker()
         self.dw.dataSent.connect(self.updataData)
-        self.dw.start()
 
     def updataData(self, data):
         # data는 static.account.coins

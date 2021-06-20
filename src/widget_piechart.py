@@ -21,25 +21,25 @@ class PieWorker(QThread):
         self.alive = True
         while self.alive:
             time.sleep(1)
-            #datas = [[5500,'BTC'], [5900,'NEO'], [5330, 'ETH'], [6000, 'XRP'], [7320, 'OMG'], [4890, 'ADA'], [5100, 'POWR'], [5700,'CVC'], [5100,'GAS'], [4700,'TT']]
+            self.draw_piechart()
+    
+    def draw_piechart(self):
+        cash =int(static.account.cash + static.account.locked_cash)
+        sum = cash
+        datas = [[cash, 'KRW']]
+        for i in static.account.coins:
+            datas.append([int(static.account.coins[i]['evaluate']), i])
+            sum += int(static.account.coins[i]['evaluate'])
+        
+        # Sorrt Coin and KRW
+        datas.sort(reverse=True)
+        remain = [0,'Other Coins']
+        
+        labels = []
+        frequency = []
 
-            cash =int(static.account.cash + static.account.locked_cash)
-            sum = cash
-            datas = [[cash, 'KRW']]
-            for i in static.account.coins:
-                datas.append([int(static.account.coins[i]['evaluate']), i])
-                sum += int(static.account.coins[i]['evaluate'])
-            
-            # Sorrt Coin and KRW
-            datas.sort(reverse=True)
-            remain = [0,'Other Coins']
-            
-            labels = []
-            frequency = []
-
-            if sum == 0:
-                continue
-            # Data Screening
+        if sum != 0:
+        # Data Screening
             for i in datas:
                 if len(labels) < 7 or i[1] == 'KRW':
                     labels.append(i[1] + " : " + str(round(i[0]/sum * 100)) + "%")
@@ -54,27 +54,30 @@ class PieWorker(QThread):
 
             self.canvas.axes.clear()
             self.canvas.axes2.clear()
+        else:
+            labels.append("KRW : 100%")
+            frequency.append(100)
 
-            # Donut Chart
-            pie = self.canvas.axes.pie(frequency, ## 파이차트 출력
-                    startangle=90, ## 시작점을 90도(degree)로 지정
-                    counterclock=False, ## 시계 방향으로 그린다.
-                    #autopct=lambda p : str(round(p)) + "%", ## 퍼센티지 출력
-                    wedgeprops=dict(width=0.5) ## 중간의 반지름 0.5만큼 구멍을 뚫어준다.
-                    )
-            
-            # Pie Chart
-            # pie = self.axes.pie(frequency, startangle=260, counterclock=False, explode=explode)
+        # Donut Chart
+        pie = self.canvas.axes.pie(frequency, ## 파이차트 출력
+                startangle=90, ## 시작점을 90도(degree)로 지정
+                counterclock=False, ## 시계 방향으로 그린다.
+                #autopct=lambda p : str(round(p)) + "%", ## 퍼센티지 출력
+                wedgeprops=dict(width=0.5) ## 중간의 반지름 0.5만큼 구멍을 뚫어준다.
+                )
+        
+        # Pie Chart
+        # pie = self.axes.pie(frequency, startangle=260, counterclock=False, explode=explode)
 
-            # Set Chart Percentage text
-            # for t in pie[2]:
-            #     t.set_color("white")
-            #     t.set_fontweight('bold')
+        # Set Chart Percentage text
+        # for t in pie[2]:
+        #     t.set_color("white")
+        #     t.set_fontweight('bold')
 
-            # Set Legend
-            self.canvas.axes2.legend(pie[0],labels, loc = 'center',labelcolor='white',  borderpad=1, fontsize = 12)
-            self.canvas.axes2.axis('off')
-            self.canvas.draw_idle()
+        # Set Legend
+        self.canvas.axes2.legend(pie[0],labels, loc = 'center',labelcolor='white',  borderpad=1, fontsize = 12)
+        self.canvas.axes2.axis('off')
+        self.canvas.draw_idle()
             
 
     def close(self) -> None:
@@ -104,7 +107,7 @@ class PieChartWidget(QWidget):
         # Canvas Initialize
         self.canvas = MyMplCanvas(self, width=7, height=3, dpi=1000)
         self.pw = PieWorker(self.canvas)
-        self.pw.start()
+        self.pw.draw_piechart()
     
     # close thread
     def closeEvent(self, event):
