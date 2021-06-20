@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 import time
 import asyncio
-
 from PyQt5 import uic
+from PyQt5 import QtGui
 from PyQt5.QtWidgets import QAbstractItemDelegate, QHeaderView, QTableWidgetItem, QWidget, QApplication
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -14,7 +14,7 @@ import component
 from widget_orderbook import OrderbookWorker
 
 
-class ChartWorker(QThread):
+class CoinListWorker(QThread):
     dataSent = pyqtSignal(object)
 
     def __init__(self):
@@ -46,25 +46,8 @@ class CoinlistWidget(QWidget):
         # self.coin_list.setSortingEnabled(True)
         self.coin_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         
-        count_codes = len(static.chart.codes)
-        self.coin_list.setRowCount(count_codes)
-        font = QFont()
-        font.setBold(True)
-        self.items = []
-        for i in range(count_codes):
-            self.items.append([QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem()])
-            self.items[i][0].setFont(font)
-            self.items[i][0].setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-            self.items[i][1].setFont(font)
-            self.items[i][1].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.items[i][2].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)  
-            self.coin_list.setItem(i, 0, self.items[i][0])            
-            self.coin_list.setItem(i, 1, self.items[i][1])
-            self.coin_list.setItem(i, 2, self.items[i][2])
-
-        self.cw = ChartWorker()
+        self.cw = CoinListWorker()
         self.cw.dataSent.connect(self.updataData)
-        self.cw.start()
 
         self.coin_list.cellClicked.connect(self.chkItemClicked)
         self.order = None
@@ -75,6 +58,29 @@ class CoinlistWidget(QWidget):
         self.color_white = QBrush(QColor(255, 255, 255))
 
     def updataData(self, data):
+        # 테이블 설정
+        # 테이블을 처음 설정할 경우 또는 설정된 table row갯수와 set해야되는 data갯수가 다를 경우
+        if self.coin_list.rowCount() == 0 or self.coin_list.rowCount() != len(static.chart.codes):
+            self.coin_list.clearContents() # 테이블 지우고
+            self.items = []
+            # 동적으로 row관리
+            count_codes = len(static.chart.codes)
+            self.coin_list.setRowCount(count_codes)
+            font = QFont()
+            font.setBold(True)
+
+            for i in range(count_codes):
+                self.items.append([QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem()])
+                self.items[i][0].setFont(font)
+                self.items[i][0].setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+                self.items[i][1].setFont(font)
+                self.items[i][1].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                self.items[i][2].setFont(font)
+                self.items[i][2].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)  
+                self.coin_list.setItem(i, 0, self.items[i][0])       
+                self.coin_list.setItem(i, 1, self.items[i][1])
+                self.coin_list.setItem(i, 2, self.items[i][2])
+
         for i, coin in enumerate(data):
             change_rate = coin.get_signed_change_rate()
             self.items[i][0].setText(f'{coin.korean_name}({coin.code[4:]})')
@@ -90,8 +96,9 @@ class CoinlistWidget(QWidget):
                 self.items[i][1].setForeground(self.color_white)
                 self.items[i][2].setForeground(self.color_white)
                 
-    def closeEvent(self):
-        self.cw.close()
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.dw.close()
+        return super().closeEvent(a0)
 
     def setOrder(self, order):
         self.order = order
@@ -107,11 +114,7 @@ class CoinlistWidget(QWidget):
         if len(select_item) == 0:
             return
         code = f"KRW-{select_item[0].text().split('(')[1][:-1]}"
-        self.order.ow.close()
-        self.order.ow.wait()
-        self.order.ow = OrderbookWorker(code)
-        self.order.ow.dataSent.connect(self.order.updateData)
-        self.order.ow.start()
+        self.order.ow.ticker = code
         self.chart.set_coin(code)
         self.trade.set_price(code)
 

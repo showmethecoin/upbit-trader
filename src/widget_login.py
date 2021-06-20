@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import asyncio
+import time
 
 import aiopyupbit
 from PyQt5 import QtCore
@@ -11,6 +12,7 @@ from PyQt5.QtGui import *
 from PyQt5 import uic
 
 import utils
+import component
 from window_main import MainWindow
 import static
 import config
@@ -79,22 +81,24 @@ class LoginWidget(QWidget):
 
     # Change to Main
     def change_page(self):
-        static.upbit = aiopyupbit.Upbit(self.lineEdit_access.text(), self.lineEdit_secret.text())
-        result, message = asyncio.run(static.upbit.check_authentication())
-        if result:
-            if(self.checkBox_save_user.isChecked()):
-                self.save_config()
-            self.secondWindow = MainWindow()
-            self.secondWindow.show()
-            self.close()
-        else:
-            # show Error Message Box
+        try:
+            static.account = component.Account(access_key=self.lineEdit_access.text(),
+                                            secret_key=self.lineEdit_secret.text())
+            result, _ = asyncio.run(static.account.upbit.check_authentication())
+            if result:
+                static.account.sync_start()
+                if(self.checkBox_save_user.isChecked()):
+                    self.save_config()
+                self.secondWindow = MainWindow()
+                self.secondWindow.show()
+                self.close()
+        except Exception as e:
             self.msg.setIcon(QMessageBox.Critical)
             self.msg.autoFillBackground()
             self.msg.setWindowTitle('Authentication error')
-            self.msg.setText(f'Error : {message}')
+            self.msg.setText(f'{e}')
             self.msg.show()
-
+            
     # Save config
     def save_config(self):
         static.config.upbit_access_key = self.lineEdit_access.text()
@@ -105,6 +109,7 @@ class LoginWidget(QWidget):
     def load_config(self):
         self.lineEdit_access.setText(static.config.upbit_access_key)
         self.lineEdit_secret.setText(static.config.upbit_secret_key)
+        
 
 
 def gui_main():

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import multiprocessing
+import time
+from PyQt5.QtCore import QSize, QThread, pyqtSignal
 
 from PyQt5.QtWidgets import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -12,18 +14,15 @@ from mplfinance.original_flavor import candlestick2_ohlc
 import aiopyupbit
 
 import utils
+from static import log
 
-class CandleSender(multiprocessing.Process):
-    def __init__(self,
-                 in_queue:multiprocessing.Queue,
-                 out_queue: multiprocessing.Queue):
-        # Public
-        self.alive = False
-        # Private
-        self.__in_queue = in_queue
-        self.__out_queue = out_queue
-        
+class CandleWorker(QThread):
+    def __init__(self, canvas, code, count):
         super().__init__()
+        self.alive = False
+        self.canvas = canvas
+        self.code = code
+        self.count = count
         
     def run(self) -> None:
         self.alive = True
@@ -31,23 +30,32 @@ class CandleSender(multiprocessing.Process):
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self.__loop())
     
-    def terminate(self) -> None:
+    def close(self) -> None:
         self.alive = False
         return super().terminate()
     
     async def __loop(self):
-        data = self.__in_queue.get()
         while self.alive:
             try:
-                if not self.__in_queue.empty():
-                    data = self.__in_queue.get()
-                df = await aiopyupbit.get_ohlcv(ticker=data['code'], 
+                await asyncio.sleep(0.5)
+                df = await aiopyupbit.get_ohlcv(ticker=self.code, 
                                                 interval="minutes1", 
-                                                count=data['count'])
-                self.__out_queue.put(df)
-            except:
-                pass
-        
+                                                count=self.count)
+                # clear chart
+                self.canvas.axes.clear()
+                # set chart
+                candlestick2_ohlc(self.canvas.axes, 
+                            df['open'], 
+                            df['high'],
+                            df['low'], 
+                            df['close'], 
+                            width=0.5, 
+                            colorup='#02C076', 
+                            colordown='#CF304A')
+                # draw chart
+                self.canvas.draw_idle()
+            except Exception as e:
+                log.error(e)
 
 class MyMplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=12, height=8, dpi=100):
@@ -55,12 +63,10 @@ class MyMplCanvas(FigureCanvas):
         plt.rcParams['axes.edgecolor'] = 'ffffff'
         plt.rcParams['xtick.color'] = 'ffffff'
         plt.rcParams['ytick.color'] = 'ffffff'
-
         self.fig = Figure(figsize=(width, height))
         self.fig.set_facecolor('#31363b')
         self.fig.set_edgecolor('#ffffff')
         self.axes = self.fig.add_subplot(111)
-
         FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
 
@@ -69,16 +75,17 @@ class CandleChartWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.idx = 0
+        # Button Initialize
         self.expansion_button = QPushButton("+", self)
         self.reduction_button = QPushButton("-", self)
         self.expansion_button.clicked.connect(self.on_expansion)
         self.reduction_button.clicked.connect(self.on_reduction)
-        self.count = 15
-        self.code = 'KRW-BTC'
+
+        # Canvas Initialize
         self.canvas = MyMplCanvas(self, width=5, height=3, dpi=100)
-        self.ani = animation.FuncAnimation(self.canvas.fig, 
-                                           self.animate, 
-                                           interval=1000)
+        self.cw = CandleWorker(self.canvas, 'KRW-BTC', 15)
+
+        # Assign Element Location
         vbox = QVBoxLayout()
         vbox.addWidget(self.canvas)
         hbox = QHBoxLayout()
@@ -86,73 +93,24 @@ class CandleChartWidget(QWidget):
         hbox.addWidget(self.reduction_button)
         vbox.addLayout(hbox)
         self.setLayout(vbox)
-        
-        self.__in_queue = multiprocessing.Queue()
-        self.__out_queue = multiprocessing.Queue()
-        self.candle_sender = CandleSender(in_queue=self.__in_queue,
-                                          out_queue=self.__out_queue)
-        self.__in_queue.put({'code':self.code, 'count': self.count})
-        self.candle_sender.start()
-
-    # animation function
-    def animate(self, t):
-        self.canvas.axes.clear()
-        self.get_chart()
-
-
-    # chart update
-    def get_chart(self):
-        df = self.__out_queue.get()
-        if isinstance(df, type(None)):
-            df = self.before_df
-        else:
-            self.before_df = df
-        try:
-            candlestick2_ohlc(self.canvas.axes, 
-                            df['open'], 
-                            df['high'],
-                            df['low'], 
-                            df['close'], 
-                            width=0.5, 
-                            colorup='#02C076', 
-                            colordown='#CF304A')
-        except:
-            pass
-
+    
+    # expansion button clicked
     def on_expansion(self):
-        if self.count < 200:
-            self.count += 5
-        self.clear_in_queue()
-        self.__in_queue.put({'code':self.code, 'count': self.count})
-        self.clear_out_queue()
+        if self.cw.count < 200:
+            self.cw.count += 5
 
+    # reduction button clicked
     def on_reduction(self):
-        if self.count > 15:
-            self.count -= 5  
-        self.clear_in_queue()
-        self.__in_queue.put({'code':self.code, 'count': self.count})
-        self.clear_out_queue()
-        
+        if self.cw.count > 15:
+            self.cw.count -= 5  
+    
+    # changed Coin
     def set_coin(self, code):
-        self.code = code
-        self.clear_in_queue()
-        self.__in_queue.put({'code':self.code, 'count': self.count})
-        self.clear_out_queue()
+        self.cw.code = code
     
-    def clear_in_queue(self):
-        while not self.__in_queue.empty():
-            self.__in_queue.get_nowait()
-    
-    def clear_out_queue(self):
-        while not self.__out_queue.empty():
-            self.__out_queue.get_nowait()
-
-    # TODO CandleSender 안꺼지는데 추가좀
-    def closeEvent(self, ev) -> bool:
-        self.candle_sender.terminate()
-        return super().close()
-        
-
+    # close thread
+    def closeEvent(self, event):
+        self.cw.close()
 
 if __name__ == "__main__":
     import sys

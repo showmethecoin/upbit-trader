@@ -86,7 +86,7 @@
       <enum>QAbstractItemView::ScrollPerPixel</enum>
      </property>
      <property name="rowCount">
-      <number>30</number>
+      <number>0</number>
      </property>
      <property name="columnCount">
       <number>2</number>
@@ -118,6 +118,9 @@
      <attribute name="verticalHeaderCascadingSectionResizes">
       <bool>false</bool>
      </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>30</number>
+     </attribute>
      <attribute name="verticalHeaderHighlightSections">
       <bool>true</bool>
      </attribute>
@@ -127,36 +130,6 @@
      <attribute name="verticalHeaderStretchLastSection">
       <bool>false</bool>
      </attribute>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
-     <row/>
      <column>
       <property name="text">
        <string>보유종목</string>
@@ -164,7 +137,7 @@
      </column>
      <column>
       <property name="text">
-       <string>수익율(%)</string>
+       <string>수익률(%)</string>
       </property>
      </column>
     </widget>

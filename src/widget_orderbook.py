@@ -46,7 +46,6 @@ class OrderbookWidget(QWidget):
 
         self.ow = OrderbookWorker(ticker)
         self.ow.dataSent.connect(self.updateData)
-        self.ow.start()
 
         self.asksAnim = []
         self.bidsAnim = []
@@ -60,7 +59,8 @@ class OrderbookWidget(QWidget):
         
         font = QtGui.QFont()
         font.setBold(True)
-        
+        self.tableBids.cellClicked.connect(self.setBidsprice)
+        self.tableAsks.cellClicked.connect(self.setAsksprice)
         for i in range(self.tableBids.rowCount()):
             # 매도호가
             self.bid_items.append([QTableWidgetItem(), 
@@ -95,11 +95,21 @@ class OrderbookWidget(QWidget):
                 QProgressBar::Chunk {background-color : rgba(207,48,74, 100%);border : 1}
             """)
             self.tableAsks.setCellWidget(i, 1, self.ask_items[i][1])
-
+        
             anim = QPropertyAnimation(self.ask_items[i][1], b"value")
             anim.setDuration(100)
             self.asksAnim.append(anim)
+    def setTrade(self, trade):
+        self.trade = trade
 
+    def setAsksprice(self):
+        askprice = self.tableAsks.item(self.tableAsks.currentIndex().row(), 0).text()
+        self.trade.set_current_price(float(askprice.replace(',','')))
+       
+    def setBidsprice(self):
+        bidprice = self.tableBids.item(self.tableBids.currentIndex().row(), 0).text()
+        self.trade.set_current_price(float(bidprice.replace(',','')))
+        
 
     def updateData(self, coin):
         try:
@@ -108,11 +118,12 @@ class OrderbookWidget(QWidget):
             bids_size = sum([x['bs'] for x in data])
             current_price = coin.get_trade_price()
             for i in range(len(data)):
-
+                # 00afef
                 self.bid_items[i][0].setText(
                     f"{(lambda x: x if x < 100 else int(x))(data[i]['bp']):,}")
                 # self.bid_items[i][0].setForeground(
                 #     (lambda x: self.color_yellow if x == current_price else self.color_white)(data[i]['bp']))
+
                 self.bid_items[i][0].setSelected(
                     (lambda x: True if x == current_price else False)(data[i]['bp']))
                 
@@ -125,6 +136,7 @@ class OrderbookWidget(QWidget):
                 #     (lambda x: self.color_yellow if x == current_price else self.color_white)(data[9-i]['ap']))
                 self.ask_items[i][0].setSelected(
                     (lambda x: True if x == current_price else False)(data[9-i]['ap']))
+
                 self.ask_items[i][1].setRange(0, 100)
                 self.ask_items[i][1].setFormat(f"{data[9-i]['as']:,.3f}")
 
