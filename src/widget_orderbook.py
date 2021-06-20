@@ -3,7 +3,7 @@
 import time
 import asyncio
 
-from PyQt5 import uic
+from PyQt5 import QtGui, uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QPropertyAnimation, Qt, QThread, pyqtSignal
 
@@ -17,18 +17,18 @@ class OrderbookWorker(QThread):
 
     def __init__(self, ticker):
         super().__init__()
-        self.size = 10
         self.ticker = ticker
-        self.alive = True
+        self.alive = False
 
     def run(self):
+        self.alive = True
         while self.alive:
-            time.sleep(0.3)
-            if static.chart.coins[self.ticker] != None:
-                self.dataSent.emit(static.chart.coins[self.ticker])
+            time.sleep(0.25)
+            self.dataSent.emit(static.chart.coins[self.ticker])
 
     def close(self):
         self.alive = False
+        super().terminate()
 
 
 class OrderbookWidget(QWidget):
@@ -44,80 +44,113 @@ class OrderbookWidget(QWidget):
         self.tableAsks.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tableBids.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-        self.ticker = ticker
-
-        self.asksAnim = []
-        self.bidsAnim = []
-        for i in range(self.tableBids.rowCount()):
-            # 매도호가
-            item_0 = QTableWidgetItem(str(""))
-            item_0.setTextAlignment(Qt.AlignVCenter)
-            self.tableAsks.setItem(i, 0, item_0)
-
-            item_1 = QProgressBar(self.tableAsks)
-            item_1.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            item_1.setStyleSheet("""
-                QProgressBar {background-color : rgba(0, 0, 0, 0%);border : 1}
-                QProgressBar::Chunk {background-color : rgba(255, 0, 0, 50%);border : 1}
-            """)
-            self.tableAsks.setCellWidget(i, 1, item_1)
-            anim = QPropertyAnimation(item_1, b"value")
-            anim.setDuration(100)
-            self.asksAnim.append(anim)
-
-            # 매수호가
-            item_0 = QTableWidgetItem(str(""))
-            item_0.setTextAlignment(Qt.AlignVCenter)
-            self.tableBids.setItem(i, 0, item_0)
-
-            item_1 = QProgressBar(self.tableBids)
-            item_1.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            item_1.setStyleSheet("""
-                QProgressBar {background-color : rgba(0, 0, 0, 0%);border : 1}
-                QProgressBar::Chunk {background-color : rgba(0, 255, 0, 40%);border : 1}
-            """)
-            self.tableBids.setCellWidget(i, 1, item_1)
-            anim = QPropertyAnimation(item_1, b"value")
-            anim.setDuration(100)
-            self.bidsAnim.append(anim)
-
-        self.ow = OrderbookWorker(self.ticker)
+        self.ow = OrderbookWorker(ticker)
         self.ow.dataSent.connect(self.updateData)
         self.ow.start()
 
+        self.asksAnim = []
+        self.bidsAnim = []
+        self.bid_items = []
+        self.ask_items = []
+        
+        self.color_white = QtGui.QBrush(QtGui.QColor(255, 255, 255))
+        self.color_red = QtGui.QBrush(QtGui.QColor(207, 48, 74, 20))  # CF304A
+        self.color_green = QtGui.QBrush(QtGui.QColor(2, 192, 118, 20))  # 02C076
+        self.color_yellow = QtGui.QBrush(QtGui.QColor(255, 255, 0))
+        
+        font = QtGui.QFont()
+        font.setBold(True)
+        self.tableBids.cellClicked.connect(self.setBidsprice)
+        self.tableAsks.cellClicked.connect(self.setAsksprice)
+        for i in range(self.tableBids.rowCount()):
+            # 매도호가
+            self.bid_items.append([QTableWidgetItem(), 
+                                   QProgressBar(self.tableBids),
+                                   0])
+            self.bid_items[i][0].setFont(font)
+            self.bid_items[i][0].setTextAlignment(Qt.AlignVCenter)
+            self.bid_items[i][0].setBackground(self.color_green)
+            self.tableBids.setItem(i, 0, self.bid_items[i][0])
+            self.bid_items[i][1].setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.bid_items[i][1].setStyleSheet("""
+                QProgressBar {background-color : rgba(0, 0, 0, 0%);border : 1}
+                QProgressBar::Chunk {background-color : rgba(2, 192, 118, 100%);border : 1}
+            """)
+            self.tableBids.setCellWidget(i, 1, self.bid_items[i][1])
+
+            anim = QPropertyAnimation(self.bid_items[i][1], b"value")
+            anim.setDuration(100)
+            self.bidsAnim.append(anim)
+
+            # 매수호가
+            self.ask_items.append([QTableWidgetItem(), 
+                                   QProgressBar(self.tableAsks), 
+                                   0])
+            self.ask_items[i][0].setFont(font)
+            self.ask_items[i][0].setTextAlignment(Qt.AlignVCenter)
+            self.ask_items[i][0].setBackground(self.color_red)
+            self.tableAsks.setItem(i, 0, self.ask_items[i][0])
+            self.ask_items[i][1].setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.ask_items[i][1].setStyleSheet("""
+                QProgressBar {background-color : rgba(0, 0, 0, 0%);border : 1}
+                QProgressBar::Chunk {background-color : rgba(207,48,74, 100%);border : 1}
+            """)
+            self.tableAsks.setCellWidget(i, 1, self.ask_items[i][1])
+        
+            anim = QPropertyAnimation(self.ask_items[i][1], b"value")
+            anim.setDuration(100)
+            self.asksAnim.append(anim)
+    def setTrade(self, trade):
+        self.trade = trade
+
+    def setAsksprice(self):
+        askprice = self.tableAsks.item(self.tableAsks.currentIndex().row(), 0).text()
+        self.trade.set_current_price(float(askprice.replace(',','')))
+       
+    def setBidsprice(self):
+        bidprice = self.tableBids.item(self.tableBids.currentIndex().row(), 0).text()
+        self.trade.set_current_price(float(bidprice.replace(',','')))
+        
+
     def updateData(self, coin):
-        data = coin.get_orderbook_units()
+        try:
+            data = coin.get_orderbook_units()[0:10]
+            asks_size = sum([x['as'] for x in data])
+            bids_size = sum([x['bs'] for x in data])
+            current_price = coin.get_trade_price()
+            for i in range(len(data)):
+                # 00afef
+                self.bid_items[i][0].setText(
+                    f"{(lambda x: x if x < 100 else int(x))(data[i]['bp']):,}")
+                # self.bid_items[i][0].setForeground(
+                #     (lambda x: self.color_yellow if x == current_price else self.color_white)(data[i]['bp']))
 
-        #15개의 데이터를 10개로 자름
-        data = data[0:10]
-        asks_size = coin.get_total_ask_size() * 0.01
-        bids_size = coin.get_total_bid_size() * 0.01
+                self.bid_items[i][0].setSelected(
+                    (lambda x: True if x == current_price else False)(data[i]['bp']))
+                
+                self.bid_items[i][1].setRange(0, 100)
+                self.bid_items[i][1].setFormat(f"{data[i]['bs']:,.3f}")
 
-        # asks테이블 값 설정
-        for i, v in enumerate(data[::-1]):
-            item_0 = self.tableAsks.item(i, 0)
-            item_0.setText(f"{round(v['ap'],3):,}")
+                self.ask_items[i][0].setText(
+                    f"{(lambda x: x if x < 100 else int(x))(data[9-i]['ap']):,}")
+                # self.ask_items[i][0].setForeground(
+                #     (lambda x: self.color_yellow if x == current_price else self.color_white)(data[9-i]['ap']))
+                self.ask_items[i][0].setSelected(
+                    (lambda x: True if x == current_price else False)(data[9-i]['ap']))
 
-            item_1 = self.tableAsks.cellWidget(i, 1)
-            # 범위가 int형으로 들어가기 때문에(값이 낮아서 전부 0으로 되는 문제)
-            # 소수 3째자리 까지 표현하므로 범위값에 1000을 곱해서 범위를 지정해줌
-            item_1.setRange(0, 100)
-            item_1.setFormat(f"{round(v['as'],3):,}")
-            self.asksAnim[i].setStartValue(v['as']/asks_size)
-            self.asksAnim[i].setEndValue(v['as']/asks_size)
-            self.asksAnim[i].start()
+                self.ask_items[i][1].setRange(0, 100)
+                self.ask_items[i][1].setFormat(f"{data[9-i]['as']:,.3f}")
 
-        # bids테이블 값 설정
-        for i, v in enumerate(data):
-            item_0 = self.tableBids.item(i, 0)
-            item_0.setText(f"{round(v['bp'],3):,}")
-
-            item_1 = self.tableBids.cellWidget(i, 1)
-            item_1.setRange(0, 100)
-            item_1.setFormat(f"{round(v['bs'],3):,}")
-            self.bidsAnim[i].setStartValue(v['bs']/bids_size)
-            self.bidsAnim[i].setEndValue(v['bs']/bids_size)
-            self.bidsAnim[i].start()
+                self.bidsAnim[i].setStartValue(self.bid_items[i][2])
+                self.asksAnim[i].setStartValue(self.ask_items[i][2])
+                self.bid_items[i][2] = (data[i]['bs'] / bids_size) * 100
+                self.ask_items[i][2] = (data[9-i]['as'] / asks_size * 100)
+                self.bidsAnim[i].setEndValue(self.bid_items[i][2])
+                self.asksAnim[i].setEndValue(self.ask_items[i][2])
+                self.bidsAnim[i].start()
+                self.asksAnim[i].start()
+        except ValueError:
+            return
 
     def closeEvent(self, event):
         self.ow.close()
@@ -125,18 +158,22 @@ class OrderbookWidget(QWidget):
 
 if __name__ == "__main__":
     import sys
-    # NOTE Windows 운영체제 환경에서 Python 3.7+부터 발생하는 EventLoop RuntimeError 관련 처리
-    py_ver = int(f"{sys.version_info.major}{sys.version_info.minor}")
-    if py_ver > 37 and sys.platform.startswith('win'):
-	    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-    static.chart = component.RealtimeManager()
+    import aiopyupbit
+    import config
+    import utils
+
+    utils.set_windows_selector_event_loop_global()
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    codes = loop.run_until_complete(
+        aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
+
+    static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
 
     app = QApplication(sys.argv)
     ow = OrderbookWidget()
     ow.show()
-
-    #cw = test_chart_list.ChartlistWidget()
-    #cw.show()
     exit(app.exec_())

@@ -1,6 +1,9 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import asyncio
+import multiprocessing
+import time
+from PyQt5.QtCore import QSize, QThread, pyqtSignal
 
 from PyQt5.QtWidgets import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -11,7 +14,48 @@ from mplfinance.original_flavor import candlestick2_ohlc
 import aiopyupbit
 
 import utils
+from static import log
 
+class CandleWorker(QThread):
+    def __init__(self, canvas, code, count):
+        super().__init__()
+        self.alive = False
+        self.canvas = canvas
+        self.code = code
+        self.count = count
+        
+    def run(self) -> None:
+        self.alive = True
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self.__loop())
+    
+    def close(self) -> None:
+        self.alive = False
+        return super().terminate()
+    
+    async def __loop(self):
+        while self.alive:
+            try:
+                await asyncio.sleep(0.5)
+                df = await aiopyupbit.get_ohlcv(ticker=self.code, 
+                                                interval="minutes1", 
+                                                count=self.count)
+                # clear chart
+                self.canvas.axes.clear()
+                # set chart
+                candlestick2_ohlc(self.canvas.axes, 
+                            df['open'], 
+                            df['high'],
+                            df['low'], 
+                            df['close'], 
+                            width=0.5, 
+                            colorup='#02C076', 
+                            colordown='#CF304A')
+                # draw chart
+                self.canvas.draw_idle()
+            except Exception as e:
+                log.error(e)
 
 class MyMplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=12, height=8, dpi=100):
@@ -19,12 +63,10 @@ class MyMplCanvas(FigureCanvas):
         plt.rcParams['axes.edgecolor'] = 'ffffff'
         plt.rcParams['xtick.color'] = 'ffffff'
         plt.rcParams['ytick.color'] = 'ffffff'
-
         self.fig = Figure(figsize=(width, height))
         self.fig.set_facecolor('#31363b')
         self.fig.set_edgecolor('#ffffff')
         self.axes = self.fig.add_subplot(111)
-
         FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
 
@@ -33,48 +75,48 @@ class CandleChartWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.idx = 0
-        vbox = QVBoxLayout()
-        self.canvas = MyMplCanvas(self, width=6, height=3, dpi=100)
-        self.count = 15
-        self.coin = 'KRW-BTC'
-        vbox.addWidget(self.canvas)
-        hbox = QHBoxLayout()
+        # Button Initialize
         self.expansion_button = QPushButton("+", self)
         self.reduction_button = QPushButton("-", self)
         self.expansion_button.clicked.connect(self.on_expansion)
         self.reduction_button.clicked.connect(self.on_reduction)
+
+        # Canvas Initialize
+        self.canvas = MyMplCanvas(self, width=5, height=3, dpi=100)
+        self.cw = CandleWorker(self.canvas, 'KRW-BTC', 15)
+        self.cw.start()
+
+        # Assign Element Location
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.canvas)
+        hbox = QHBoxLayout()
         hbox.addWidget(self.expansion_button)
         hbox.addWidget(self.reduction_button)
         vbox.addLayout(hbox)
         self.setLayout(vbox)
-
-        self.ani = animation.FuncAnimation(
-            self.canvas.fig, self.animate, interval=500)
-
-    # animation function
-    def animate(self, t):
-        self.canvas.axes.clear()
-        asyncio.run(self.get_chart())
-
-    # chart update
-
-    async def get_chart(self):
-        df = await aiopyupbit.get_ohlcv(ticker=self.coin, interval="minutes1", count=self.count, to=None)
-        candlestick2_ohlc(self.canvas.axes, df['open'], df['high'],
-                          df['low'], df['close'], width=0.5, colorup='r', colordown='g')
-
+    
+    # expansion button clicked
     def on_expansion(self):
-        if self.count < 200:
-            self.count += 5
+        if self.cw.count < 200:
+            self.cw.count += 5
 
+    # reduction button clicked
     def on_reduction(self):
-        if self.count > 15:
-            self.count -= 5
-
+        if self.cw.count > 15:
+            self.cw.count -= 5  
+    
+    # changed Coin
+    def set_coin(self, code):
+        self.cw.code = code
+    
+    # close thread
+    def closeEvent(self, event):
+        self.cw.close()
 
 if __name__ == "__main__":
     import sys
 
+    multiprocessing.freeze_support()
     utils.set_windows_selector_event_loop_global()
 
     qApp = QApplication(sys.argv)

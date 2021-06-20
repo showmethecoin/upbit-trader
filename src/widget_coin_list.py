@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import time
 import asyncio
-
 from PyQt5 import uic
-from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem, QWidget, QApplication
+from PyQt5 import QtGui
+from PyQt5.QtWidgets import QAbstractItemDelegate, QHeaderView, QTableWidgetItem, QWidget, QApplication
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
@@ -14,35 +14,22 @@ import component
 from widget_orderbook import OrderbookWorker
 
 
-class ChartWorker(QThread):
-    dataSent = pyqtSignal(list)
+class CoinListWorker(QThread):
+    dataSent = pyqtSignal(object)
 
-    def __init__(self, coinlist):
+    def __init__(self):
         super().__init__()
-        self.coinlist = coinlist
-        self.alive = True
+        self.alive = False
 
     def run(self):
+        self.alive = True
         while self.alive:
-            data = []
-            cointradeprice = []
-            coinchangerate = []
-            for coin in static.chart.coins.values():
-                #foramt(값, ",") 이거 1000단위로 , 찍어줌
-                cointradeprice.append(
-                    format(round(coin.get_trade_price(), 3), ","))
-                coinchangerate.append(
-                    round(coin.get_signed_change_rate() * 100, 2))
-            data.append(self.coinlist)
-            data.append(cointradeprice)
-            data.append(coinchangerate)
-            time.sleep(0.1)
-
-            if data != None:
-                self.dataSent.emit(data)
+            time.sleep(0.25)
+            self.dataSent.emit(static.chart.coins.values())
 
     def close(self):
         self.alive = False
+        super().terminate()
 
 
 class CoinlistWidget(QWidget):
@@ -54,24 +41,12 @@ class CoinlistWidget(QWidget):
         #사용 가능한 공간을 채우기 위해 섹션의 크기를 자동으로 조정
         #참고 QHeaderView Class
         self.coin_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.coin_list.horizontalHeader().sectionClicked.connect(self.chkTopClicked)
+        # self.coin_list.horizontalHeader(0).setToolTip()
+        # self.coin_list.setSortingEnabled(True)
         self.coin_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.coin_list.horizontalHeader().setFixedHeight(40)
-        self.coinlist = static.chart.codes
-
-        for i in range(len(self.coinlist)):
-            item_0 = QTableWidgetItem(str(""))
-            item_0.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-            self.coin_list.setItem(i, 0, item_0)
-
-            item_1 = QTableWidgetItem(str(""))
-            item_1.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.coin_list.setItem(i, 1, item_1)
-
-            item_2 = QTableWidgetItem(str(""))
-            item_2.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.coin_list.setItem(i, 2, item_2)
-
-        self.cw = ChartWorker(self.coinlist)
+        
+        self.cw = CoinListWorker()
         self.cw.dataSent.connect(self.updataData)
         self.cw.start()
 
@@ -79,23 +54,52 @@ class CoinlistWidget(QWidget):
         self.order = None
         self.chart = None
 
-    def updataData(self, data):
-        for i in range(len(data[0])):
-            item_0 = self.coin_list.item(i, 0)
-            item_0.setText(str(data[0][i]))
-            item_1 = self.coin_list.item(i, 1)
-            item_1.setText(str(data[1][i]))
-            item_2 = self.coin_list.item(i, 2)
-            item_2.setText(str(data[2][i]))
-            if data[2][i] < 0:
-                item_1.setForeground(QBrush(QColor(21, 125, 25)))
-                item_2.setForeground(QBrush(QColor(21, 125, 25)))
-            elif data[2][i] > 0:
-                item_1.setForeground(QBrush(QColor(241, 3, 3)))
-                item_2.setForeground(QBrush(QColor(241, 3, 3)))
+        self.color_red = QBrush(QColor(207, 48, 74))  # CF304A
+        self.color_green = QBrush(QColor(2, 192, 118))  # 02C076
+        self.color_white = QBrush(QColor(255, 255, 255))
 
-    def closeEvent(self, event):
-        self.cw.close()
+    def updataData(self, data):
+        # 테이블 설정
+        # 테이블을 처음 설정할 경우 또는 설정된 table row갯수와 set해야되는 data갯수가 다를 경우
+        if self.coin_list.rowCount() == 0 or self.coin_list.rowCount() != len(static.chart.codes):
+            self.coin_list.clearContents() # 테이블 지우고
+            self.items = []
+            # 동적으로 row관리
+            count_codes = len(static.chart.codes)
+            self.coin_list.setRowCount(count_codes)
+            font = QFont()
+            font.setBold(True)
+
+            for i in range(count_codes):
+                self.items.append([QTableWidgetItem(), QTableWidgetItem(), QTableWidgetItem()])
+                self.items[i][0].setFont(font)
+                self.items[i][0].setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+                self.items[i][1].setFont(font)
+                self.items[i][1].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                self.items[i][2].setFont(font)
+                self.items[i][2].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)  
+                self.coin_list.setItem(i, 0, self.items[i][0])       
+                self.coin_list.setItem(i, 1, self.items[i][1])
+                self.coin_list.setItem(i, 2, self.items[i][2])
+
+        for i, coin in enumerate(data):
+            change_rate = coin.get_signed_change_rate()
+            self.items[i][0].setText(f'{coin.korean_name}({coin.code[4:]})')
+            self.items[i][1].setText(f'{(lambda x: x if x < 100 else int(x))(coin.get_trade_price()):,}')
+            self.items[i][2].setText(f'{change_rate * 100:.2f} %')
+            if change_rate < 0:
+                self.items[i][1].setForeground(self.color_red)
+                self.items[i][2].setForeground(self.color_red)
+            elif change_rate > 0:
+                self.items[i][1].setForeground(self.color_green)
+                self.items[i][2].setForeground(self.color_green)
+            else:
+                self.items[i][1].setForeground(self.color_white)
+                self.items[i][2].setForeground(self.color_white)
+                
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.dw.close()
+        return super().closeEvent(a0)
 
     def setOrder(self, order):
         self.order = order
@@ -107,16 +111,27 @@ class CoinlistWidget(QWidget):
         self.trade = trade
 
     def chkItemClicked(self):
-        if len(self.coin_list.selectedItems()) == 0:
+        select_item = self.coin_list.selectedItems()
+        if len(select_item) == 0:
             return
-        coin = self.coin_list.selectedItems()[0].text()
+        code = f"KRW-{select_item[0].text().split('(')[1][:-1]}"
         self.order.ow.close()
         self.order.ow.wait()
-        self.order.ow = OrderbookWorker(coin)
+        self.order.ow = OrderbookWorker(code)
         self.order.ow.dataSent.connect(self.order.updateData)
         self.order.ow.start()
-        self.chart.coin = coin
-        self.trade.set_price(coin)
+        self.chart.set_coin(code)
+        self.trade.set_price(code)
+
+    def chkTopClicked(self, topIndex):
+        # 정렬 누르면 선택된 것이있으면 없애고 정렬
+        self.coin_list.clearSelection()
+        if topIndex == 0:
+            static.chart.sort(target='code')
+        elif topIndex == 1:
+            static.chart.sort(target='value')
+        else:
+            static.chart.sort(target='change')
 
 
 if __name__ == "__main__":

@@ -188,42 +188,29 @@ def print_holding_list() -> None:
     """
     while True:
         try:
-            total_purchase = 0
-            total_evaluate = 0
-
             print_program_title()
             print('\t│ Code  Count                 Avg Buy         Purchase        Evaluate        Loss            Yield')
-            for item in asyncio.run(static.upbit.get_balances()):
-                currency = item["currency"]
-                balance = float(item["balance"])
-                if currency == 'XYM':
-                    continue
-
-                if currency == 'KRW':
-                    print(f'\t│ {currency:<5} {math.floor(balance):<21}')
-                    total_purchase += balance
-                    total_evaluate += balance
-                else:
-                    purchase = round(balance * float(item["avg_buy_price"]), 0)
-                    evaluate = round(balance * static.chart.get_coin("%s-%s" %
-                                                                     (static.FIAT, currency)).get_trade_price(), 0)
-                    loss = evaluate - purchase
-                    total_purchase += purchase
-                    total_evaluate += evaluate
-                    print(
-                        f'\t│ {currency:<5} {balance:<21} {item["avg_buy_price"]:<15} {purchase:<15.0f} {evaluate:<15.0f} {loss:<15.0f} {((evaluate / purchase) - 1) * 100:<7.2f}%')
-            print(f'\t│\n\t│ Total Purchase: {total_purchase:.0f}')
-            print(f'\t│ Total Evaluate: {total_evaluate:.0f}')
-            print(f'\t│ Total Loss    : {total_evaluate - total_purchase:.0f}')
-            print(
-                f'\t│ Total Yield   : {((total_evaluate / total_purchase) - 1) * 100:.2f} %')
-
+            print(f'\t│ KRW   {int(static.account.get_total_cash()):<21,}')
+            for code, data in static.account.coins.items():
+                balance = data['balance']
+                locked = data['locked']
+                avg_buy_price = data['avg_buy_price']
+                purchase = data['purchase']
+                evaluate = data['evaluate']
+                loss = data['loss']
+                coin_yield = data['yield']
+                print(f'\t| {code:<5} {balance + locked:<21,} {(lambda x: x if x < 100 else int(x))(avg_buy_price):<15,} {int(purchase):<15,} {int(evaluate):<15,} {int(loss):<15,} {coin_yield:<7.2f}%')
+            print(f'\t│\n\t│ Total Purchase: {static.account.get_buy_price():.0f}')
+            print(f'\t│ Total Evaluate: {static.account.get_evaluate_price():.0f}')
+            print(f'\t│ Total Loss    : {static.account.get_total_loss():.0f}')
+            print(f'\t│ Total Yield   : {static.account.get_total_yield():.2f} %')
             print('\t[CTRL + C] Exit to menu')
-            time.sleep(5)
-        except KeyboardInterrupt:
+            time.sleep(1)
+        #except KeyboardInterrupt:
+            #break
+        except Exception as e:
+            print(e)
             break
-        # except Exception as e:
-        #     break
 
 
 def prompt_main() -> None:
@@ -295,6 +282,8 @@ if __name__ == '__main__':
     static.chart = component.RealtimeManager(codes=codes)
     static.chart.start()
     
-    static.upbit = aiopyupbit.Upbit(static.config.upbit_access_key, static.config.upbit_secret_key)
+    # Upbit account
+    static.account = component.Account(static.config.upbit_access_key, static.config.upbit_secret_key)
+    static.account.sync_start()
 
     prompt_main()
