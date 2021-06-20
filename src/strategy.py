@@ -1,4 +1,4 @@
-from types import TracebackType
+from types import DynamicClassAttribute, TracebackType
 import numpy as np
 import pandas as pd
 import time
@@ -39,7 +39,7 @@ def send_buy_signal(coin,buy_price):
     buy_signal.append({'ticker':coin,'req_price':buy_price})
 
 def send_sell_signal(coin,sell_price):
-    buy_signal.append({'ticker':coin,'req_price':sell_price})
+    sell_signal.append({'ticker':coin,'req_price':sell_price})
 
 async def get_best_k(coin):
     """백테스팅을 통해 최적의 k를 찾는 함수
@@ -49,7 +49,8 @@ async def get_best_k(coin):
         백테스팅을 통해 찾은 최적의 k
     """
     time.sleep(0.1)
-    df = await aiopyupbit.get_ohlcv(coin,interval='minute60',count=20)
+    df = await aiopyupbit.get_ohlcv(coin,interval='minute60',count=21)
+    df = df.iloc[:-1]
     df['noise']= 1 - abs(df['open']-df['close']) / (df['high']-df['low'])
     return df['noise'].mean()
 
@@ -437,12 +438,14 @@ async def various_indicator_strategy(coin_list,period):
     coin_list = [x for x in static.chart.coins.values() if x.code in coin_list]
 
     #구매 기록 df 초기화 (구매 정보를 저장)
-    buy_data = {x.code : {'buy_price' : -1, 'buy_rsi' : -1} for x in coin_list}
-    print('------------------------------------------')
-    print('초기 buy_data')
-    for x in buy_data.items():
-        print(x[0],x[1])
-
+    buy_data = {x.code : {'buy_time' : -1,'buy_price' : -1, 'buy_rsi' : -1} for x in coin_list}
+    # print('------------------------------------------')
+    # print('초기 buy_data')
+    # for x in buy_data.items():
+    #     print(x[0],x[1])
+    ct = 0
+    plus = 0
+    minus = 0
     while True:
         for coin in coin_list:
             time.sleep(0.1)
@@ -457,33 +460,47 @@ async def various_indicator_strategy(coin_list,period):
             rsi = get_rsi_data(df, period)
             rsi = rsi[-1]
 
-            print(datetime.datetime.now(),'\t',int(rsi),'\t',coin.code)
+            # print(datetime.datetime.now(),'\t',int(rsi),'\t',coin.code)
 
             #매수 signal
             avg_volume = get_avg(df,5,'volume')[0]
             if rsi <= 35 and df.loc[0]['volume'] < avg_volume:
-                print(coin.code,': 매수 신호, rsi : ',rsi,' 현재 거래량 : ',df.loc[0]['volume'],' 5분 평균 거래량 : ',avg_volume)
+                # print(coin.code,': 매수 신호, rsi : ',rsi,' 현재 거래량 : ',df.loc[0]['volume'],' 5분 평균 거래량 : ',avg_volume)
                 
                 if buy_data[coin.code]['buy_price'] != -1:
-                    print('이미 매수')
                     continue
                 is_changed = True
                 #매수 진행
-                print('#################매수 진행#################')
+                # print('#################매수 진행#################')
                 send_buy_signal(coin.code,cur_price)
+                buy_data[coin.code]['buy_time'] = datetime.datetime.now()
                 buy_data[coin.code]['buy_price'] = cur_price
                 buy_data[coin.code]['buy_rsi'] = rsi
                 print('------------------------------------------')
                 print('매수 후 buy_data')
-                for x in buy_data.items():
-                    print(x[0],x[1])
+                print(buy_data[coin.code])
+                # for x in buy_data[coin.code]:
+                #     print(x[0],x[1])
                 print('------------------------------------------')
             
             #매도 검사
             if buy_data[coin.code]['buy_price'] > 0:
                 profit_ratio = ((cur_price/buy_data[coin.code]['buy_price'])-1)*100
                 if profit_ratio >= 1 or profit_ratio <= -1:
+                    # print('#################매도 진행#################')
                     is_changed = True
+                    ct += 1
+                    if profit_ratio >= 1:
+                        plus += 1
+                    else:
+                        minus += 1
+                    print('=======================')
+                    print('투자 횟수 : ',ct)
+                    print('익절 횟수 : ',plus)
+                    print('손절 횟수 : ',minus)
+                    print('승률 : ',plus/ct*100,'%')
+                    print('=======================')
+                    print('')
                     #매도 signal
                     send_sell_signal(coin.code,cur_price)
 
@@ -498,6 +515,8 @@ async def various_indicator_strategy(coin_list,period):
                     res_dict['sell price'] = cur_price
                     res_dict['buy RSI'] = buy_data[coin.code]['buy_rsi']
                     res_dict['profit ratio'] = profit_ratio
+                    res_dict['time diff'] = buy_data[coin.code]['buy_time'] - datetime.datetime.now()
+
                     await static.db.insert_item_one(data=res_dict,
                                                     db_name='strategy_various_indicator',
                                                     collection_name=coin.code)
@@ -510,14 +529,18 @@ async def various_indicator_strategy(coin_list,period):
                     #구매기록 초기화
                     buy_data[coin.code]['buy_price'] = -1
                     buy_data[coin.code]['buy_rsi'] = -1
-
+                    buy_data[coin.code]['buy_time'] = -1
+                    
             if is_changed == True:
-                print('*********매수 시그널 리스트*********')
-                for x in buy_signal:
-                    print(x)
-                print('*********매도 시그널 리스트*********')
-                for x in sell_signal:
-                    print(x)
+                print('------------------------------------------')
+                print('매수 시그널 리스트 길이: ',len(buy_signal))
+                # for x in buy_signal:
+                #     print(x)
+                print('매도 시그널 리스트 길이: ',len(sell_signal))
+                # for x in sell_signal:
+                #     print(x)
+                print('------------------------------------------')
+                print('')
             # #매도 신호
             # elif rsi >= 70:
             #     print(coin.code,': 매도 신호, rsi : ',rsi)
