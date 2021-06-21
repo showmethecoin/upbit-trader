@@ -2739,7 +2739,7 @@ QPushButton:pressed {
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="cancel_button">
              <property name="text">
               <string>거래취소</string>
              </property>
