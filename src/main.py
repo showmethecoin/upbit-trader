@@ -59,8 +59,8 @@ def main() -> None:
     # widget_login.gui_main()
 
     # CLI
-    static.upbit = aiopyupbit.Upbit(static.config.upbit_access_key,
-                                    static.config.upbit_secret_key)
+    static.account = component.Account(access_key=static.config.upbit_access_key,
+                                       secret_key=static.config.upbit_secret_key)
     prompt.prompt_main()
 
 
