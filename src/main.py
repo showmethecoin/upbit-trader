@@ -54,11 +54,13 @@ def main() -> None:
     """
     static.chart.start()
     static.signal_manager.start()
-        
+
     # GUI
     # widget_login.gui_main()
 
     # CLI
+    static.upbit = aiopyupbit.Upbit(static.config.upbit_access_key,
+                                    static.config.upbit_secret_key)
     prompt.prompt_main()
 
 

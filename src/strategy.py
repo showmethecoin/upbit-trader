@@ -4,6 +4,7 @@ import time
 import datetime
 import asyncio
 import multiprocessing
+import threading
 
 import numpy as np
 import aiopyupbit
@@ -84,18 +85,19 @@ class SignalManager(multiprocessing.Process):
                 log.error(e)
 
 
-class Strategy(multiprocessing.Process):
+class Strategy(threading.Thread):
     def __init__(self, queue: multiprocessing.Queue) -> None:
+        super().__init__()
         # Public
         self.alive = False
+        self.daemon = False
         # Private
         self.__queue = queue
-        super().__init__()
 
     def run(self) -> None:
         """Strategy 모니터링 시작
         """
-        log.info('Start strategy process')
+        log.info('Start strategy thread')
         self.alive = True
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -104,7 +106,7 @@ class Strategy(multiprocessing.Process):
     def terminate(self) -> None:
         """Strategy 모니터링 종료
         """
-        log.info('Stop strategy process')
+        log.info('Stop strategy thread')
         self.alive = False
         return super().terminate()
 
@@ -130,31 +132,21 @@ class Strategy(multiprocessing.Process):
         """
         return df[column].rolling(unit).mean()
 
-    def get_rsi(self, df: DataFrame, period: int = 14):
-        """rsi 값을 얻는 함수
-        Args:
-            df (DataFrame): 캔들봉 정보가 담긴 DataFrame
-            period (int): rsi값을 구할 기간
-        Returns:
-            (DataFrame): rsi 데이터가 있는 DataFrame
-        """
-        return talib.RSI(np.asarray(df['close']), period)
-
     async def __loop(self) -> None:
         raise NotImplementedError
 
 
-class Volatility_Breakout_Strategy(Strategy):
-    def __init__(self, coin_list: list, queue: multiprocessing.Queue, duration: str = 'day') -> None:
+class VolatilityBreakoutStrategy(Strategy):
+    def __init__(self, coin_list: list, queue: multiprocessing.Queue, period: str = 'day') -> None:
         super().__init__(queue=queue)
         # 투자 대상 Coin 인스턴스 목록
         self.coin_list = coin_list
-        self.duration = duration
+        self.period = period
 
     def run(self) -> None:
         """Strategy 모니터링 시작
         """
-        log.info('Start volatility breakout strategy process')
+        log.info('Start volatility breakout strategy thread')
         self.alive = True
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -163,7 +155,7 @@ class Volatility_Breakout_Strategy(Strategy):
     def terminate(self) -> None:
         """Strategy 모니터링 종료
         """
-        log.info('Stop volatility breakout strategy process')
+        log.info('Stop volatility breakout strategy thread')
         self.alive = False
         return super().terminate()
 
@@ -175,7 +167,7 @@ class Volatility_Breakout_Strategy(Strategy):
             백테스팅을 통해 찾은 최적의 k
         """
         # TODO 요청개수 초과 예외처리 필요함
-        df = await aiopyupbit.get_ohlcv(code, interval=self.duration, count=21)
+        df = await aiopyupbit.get_ohlcv(code, interval=self.period, count=21)
         time.sleep(0.5)
         log.info(code)
         df = df.iloc[:-1]
@@ -190,7 +182,7 @@ class Volatility_Breakout_Strategy(Strategy):
         Returns:
             target (float): 목표가
         """
-        df = await aiopyupbit.get_ohlcv(ticker=coin, interval=self.duration, count=2)
+        df = await aiopyupbit.get_ohlcv(ticker=coin, interval=self.period, count=2)
         previous_candle = df.iloc[-2]
         return previous_candle['close'] + (previous_candle['high'] - previous_candle['low']) * k
 
@@ -199,7 +191,8 @@ class Volatility_Breakout_Strategy(Strategy):
 
     async def __loop(self):
         while self.alive:
-            k_dict = {x.code: await self.get_best_k(x.code) for x in self.coin_list}
+            # k_dict = {x.code: await self.get_best_k(x.code) for x in self.coin_list}
+            k_dict = {x.code: 0.000000000001 for x in self.coin_list}
             target_price = {x.code: await self.get_target_price(x.code, k_dict[x.code]) for x in self.coin_list}
             log.info(f'k: {k_dict}\n'
                      f'target_price: {target_price}')
@@ -227,44 +220,45 @@ class Volatility_Breakout_Strategy(Strategy):
                                  type='market', price=-1)
 
     async def __is_reached(self, coin: component.Coin, target_price: float):
+        log.info(f'code: {coin.code}, target_price: {target_price}, current_price: {coin.get_trade_price()}')
         return coin.code if coin.get_trade_price() >= target_price else None
 
 
+# class VariousIndicatorStrategy(Strategy):
+#     def __init__(self, coin_list: list, queue: multiprocessing.Queue, period: int = 14) -> None:
+#         super().__init__(queue=queue)
+#         # 투자 대상 Coin 인스턴스 목록
+#         self.coin_list = coin_list
+#         self.period = period
+
+#     def run(self) -> None:
+#         """Strategy 모니터링 시작
+#         """
+#         log.info('Start volatility breakout strategy process')
+#         self.alive = True
+#         loop = asyncio.new_event_loop()
+#         asyncio.set_event_loop(loop)
+#         loop.run_until_complete(self.__loop())
+
+#     def terminate(self) -> None:
+#         """Strategy 모니터링 종료
+#         """
+#         log.info('Stop volatility breakout strategy process')
+#         self.alive = False
+#         return super().terminate()
+    
+#     def get_rsi(self, df: DataFrame):
+#         """rsi 값을 얻는 함수
+#         Args:
+#             df (DataFrame): 캔들봉 정보가 담긴 DataFrame
+#         Returns:
+#             (DataFrame): rsi 데이터가 있는 DataFrame
+#         """
+#         return talib.RSI(np.asarray(df['close']), self.period)
+
+
 # async def various_indicator_strategy(coin_list, period):
-#     """rsi, 거래량 기반 투자 전략
-#     Args:
-#         coin_list (list): ['KRW-BTC', 'KRW-XRP', 'KRW-BTT', ..]
-#         period (int): rsi 기간 설정 값
-#     """
-#     # if static.upbit == None:
-#     #     return
-#     static.upbit = aiopyupbit.Upbit(
-#         static.config.upbit_access_key, static.config.upbit_secret_key)
 
-#     #DB 설정
-#     if static.db == None:
-#         static.db = db.DBHandler(ip=static.config.mongo_ip,
-#                                  port=static.config.mongo_port,
-#                                  id=static.config.mongo_id,
-#                                  password=static.config.mongo_password)
-
-#     #투자할 종목들의 coin 객체를 저장
-#     coin_list = await aiopyupbit.get_tickers(fiat='KRW')
-#     coin_list = [x for x in static.chart.coins.values() if x.code in coin_list]
-
-#     #구매 기록 df 초기화 (구매 정보를 저장)
-#     buy_data = {x.code: {'buy_time': -1, 'buy_price': -1, 'buy_rsi': -1}
-#                 for x in coin_list}
-#     # print('------------------------------------------')
-#     # print('초기 buy_data')
-#     # for x in buy_data.items():
-#     #     print(x[0],x[1])
-#     ct = 0
-#     plus = 0
-#     minus = 0
-#     time_sell = 0
-
-#     cumul_profit = 1
 #     while True:
 #         for coin in coin_list:
 #             time.sleep(0.1)

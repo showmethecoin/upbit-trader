@@ -242,14 +242,13 @@ def prompt_main() -> None:
         elif int(select) == 4:
             coin_list = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-VET','KRW-LINK','KRW-ENJ','KRW-ETC','KRW-PCI','KRW-DOGE']
             instance_list = [x for x in static.chart.coins.values() if x.code in coin_list]
-            static.strategy = strategy.Volatility_Breakout_Strategy(queue=static.signal_queue, coin_list=instance_list)
+            static.strategy = strategy.VolatilityBreakoutStrategy(queue=static.signal_queue, coin_list=instance_list)
             static.strategy.start()
         elif int(select) == 5:
             coin_list = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-VET','KRW-LINK','KRW-ENJ','KRW-ETC','KRW-PCI','KRW-DOGE']
-            loop = asyncio.get_event_loop()
-            # loop.run_until_complete(strategy.test())
-            loop.run_until_complete(strategy.various_indicator_strategy(coin_list,14))
-            loop.close()
+            instance_list = [x for x in static.chart.coins.values() if x.code in coin_list]
+            static.strategy = strategy.VariousIndicatorStrategy(queue=static.signal_queue, coin_list=instance_list)
+            static.strategy.start()
         elif int(select) == 8:
             if not static.chart.alive:
                 static.chart.start()
