@@ -37,12 +37,14 @@ class SaveManager(multiprocessing.Process):
         super().__init__()
 
     def run(self) -> None:
+        log.info('Start save manager process')
         self.alive = True
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self.__save_loop())
 
     def terminate(self) -> None:
+        log.info('Stop save manager process')
         self.alive = False
         return super().terminate()
 
@@ -78,12 +80,14 @@ class RequestManager(multiprocessing.Process):
         super().__init__()
 
     def run(self) -> None:
+        log.info('Start request manager process')
         self.alive = True
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self.__request_loop())
 
     def terminate(self) -> None:
+        log.info('Stop request manager process')
         self.alive = False
         return super().terminate()
 

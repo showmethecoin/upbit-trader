@@ -10,7 +10,7 @@ import multiprocessing
 def get_logger(print_format: str = '[%(asctime)s.%(msecs)03d: %(levelname).1s %(filename)s:%(lineno)s] %(message)s',
                date_format: str = '%Y-%m-%d %H:%M:%S',
                print: bool = True,
-               save: bool = False,
+               save: bool = True,
                save_path: str = 'upbit-trader.log'):
     ''' Logger Configuration'''
     log = logging.getLogger()
@@ -25,7 +25,7 @@ def get_logger(print_format: str = '[%(asctime)s.%(msecs)03d: %(levelname).1s %(
         log.addHandler(stream_handler)
     if save:
         if save_path == 'upbit-trader.log' and not sys.platform.startswith('win'):
-            file_handler = logging.FileHandler('~/.upbit-trader.log')
+            file_handler = logging.FileHandler('upbit-trader.log')
         else:
             file_handler = logging.FileHandler(save_path)
         file_handler.setFormatter(formatter)

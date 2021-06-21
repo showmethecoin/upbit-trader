@@ -1,5 +1,6 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
+import multiprocessing
 import os
 import time
 import math
@@ -11,6 +12,7 @@ import aiopyupbit
 import utils
 import config
 import static
+from static import log
 import component
 import strategy
 
@@ -238,12 +240,10 @@ def prompt_main() -> None:
         elif int(select) == 3:
             print_holding_list()
         elif int(select) == 4:
-            print('전략함수 테스트 시작')
-            k_input = {}#{'KRW-BTC':0.6,'KRW-XRP':0.3,'KRW-ETH':0.9,'KRW-NEO':0.4,'KRW-BTT':0.7,'KRW-CVC':0.9,'KRW-DMT':0.1,'KRW-RFR':0.2}
             coin_list = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-VET','KRW-LINK','KRW-ENJ','KRW-ETC','KRW-PCI','KRW-DOGE']
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(strategy.volatility_breakout_strategy(k_input,coin_list))
-            loop.close()
+            instance_list = [x for x in static.chart.coins.values() if x.code in coin_list]
+            static.strategy = strategy.Volatility_Breakout_Strategy(queue=static.signal_queue, coin_list=instance_list)
+            static.strategy.start()
         elif int(select) == 5:
             coin_list = ['KRW-BTC','KRW-XRP','KRW-ETH','KRW-LAMB','KRW-VET','KRW-LINK','KRW-ENJ','KRW-ETC','KRW-PCI','KRW-DOGE']
             loop = asyncio.get_event_loop()

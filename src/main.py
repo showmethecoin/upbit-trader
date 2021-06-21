@@ -2,15 +2,18 @@
 # -*- coding: utf-8 -*-
 import asyncio
 
+import multiprocessing
 import aiopyupbit
 
 import utils
-import config
 import static
 from static import log
 import component
+import db
+import strategy
 import widget_login
 import prompt
+
 
 def init() -> bool:
     """초기화
@@ -18,38 +21,47 @@ def init() -> bool:
     Returns:
         bool: 성공 여부
     """
+    try:
+        # Asyncio initialization
+        utils.set_windows_selector_event_loop_global()
 
-    log.info('Initializing...')
-    
-    utils.set_windows_selector_event_loop_global()
-    utils.set_multiprocessing_context()
-    
-    static.config = config.Config()
-    static.config.load()
-    
-    # Upbit coin chart
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    codes = loop.run_until_complete(
-        aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
-    static.chart = component.RealtimeManager(codes=codes)
-    static.chart.start()
+        # Multiprocessing initialization
+        utils.set_multiprocessing_context()
+        multiprocessing.freeze_support()
 
-    # Prompt window size setting
-    # os.system(f"mode con: lines={config.PROGRAM['HEIGHT']} cols={config.PROGRAM['WIDTH']}")
+        # SignalManager initialization
+        static.signal_queue = multiprocessing.Queue()
+        static.signal_manager = strategy.SignalManager(
+            queue=static.signal_queue)
 
-    return True
+        # RealtimeManager initialization
+        codes = asyncio.run(aiopyupbit.get_tickers(
+            fiat=static.FIAT, contain_name=True))
+        static.chart = component.RealtimeManager(codes=codes)
+
+        # DBHandler initialization
+        static.db = db.DBHandler(ip=static.config.mongo_ip, port=static.config.mongo_port,
+                                 id=static.config.mongo_id, password=static.config.mongo_password)
+
+        log.info('Initialization complete')
+        return True
+    except:
+        return False
 
 
 def main() -> None:
     """프로그램 메인
     """
+    static.chart.start()
+    static.signal_manager.start()
+        
+    # GUI
+    # widget_login.gui_main()
 
-    #widget_login.gui_main()
+    # CLI
     prompt.prompt_main()
 
 
 if __name__ == '__main__':
-
     init()
     main()
