@@ -390,7 +390,8 @@ QPushButton:pressed {
         <item>
          <widget class="QRadioButton" name="RSI">
           <property name="styleSheet">
-           <string notr="true">color: rgb(255, 255, 255);</string>
+           <string notr="true">color: rgb(255, 255, 255);
+background-color: #31363b;</string>
           </property>
           <property name="text">
            <string>RSI and Volume</string>
@@ -403,7 +404,8 @@ QPushButton:pressed {
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="styleSheet">
-           <string notr="true">color: rgb(255, 255, 255);</string>
+           <string notr="true">color: rgb(255, 255, 255);
+background-color: #31363b;</string>
           </property>
           <property name="text">
            <string>Volatility</string>

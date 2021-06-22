@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
                             self.ui.detailholdinglist_widget.dw,
                             self.ui.userinfo_widget.uw]
 
-        self.signal_worker = []
+        self.signal_worker = [self.ui.signal_list_widget.sw]
         self.thread_start(self.home_worker)
         self.setWindowFlag(Qt.FramelessWindowHint)
 
@@ -68,6 +68,8 @@ class MainWindow(QMainWindow):
         self.close()
         if static.chart != None:
             static.chart.stop()
+        if static.signal_manager != None:
+            static.signal_manager.terminate()
 
     def home_btn_click(self):
         self.ui.home_btn.setStyleSheet(self.clicked_style)

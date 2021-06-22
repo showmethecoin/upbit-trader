@@ -13,7 +13,8 @@ import static
 class SettingsWidget(QWidget):
     def __init__(self, parent=None,):
         super().__init__(parent)
-        uic.loadUi(get_file_path('styles/ui/settings.ui'), self)
+        uic.loadUi(utils.get_file_path('styles/ui/settings.ui'), self)
+        self.status = 0
         self.close_btn.clicked.connect(self.close_btn_click)
         self.minimize_btn.clicked.connect(lambda: self.showMinimized())
         self.start.clicked.connect(self.clicked_start)

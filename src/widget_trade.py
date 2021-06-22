@@ -260,6 +260,7 @@ class TradeWidget(QWidget):
             if tab_number == 1:
                 sell_price = self.sell_price_1.value()
                 sell_volume = self.sell_volume_1.value()
+                log.info(f'{sell_price} {sell_volume}')
                 ret = aio.run(static.account.upbit.sell_limit_order(ticker=ticker,
                                                                         price=sell_price,
                                                                         volume=sell_volume))
@@ -268,7 +269,7 @@ class TradeWidget(QWidget):
                 sell_volume = self.sell_total_price_2.value()
                 # TODO 개수 바꿔야함
                 ret = aio.run(static.account.upbit.sell_market_order(ticker=ticker,
-                                                                         volume=sell_volume))
+                                                                     volume=sell_volume))
             # TODO Reservation order
             else:
                 self.show_messagebox(False, '미구현입니다')
@@ -279,7 +280,7 @@ class TradeWidget(QWidget):
             log.info(f'{ret}')
             self.show_messagebox(True, '매도주문이 정상완료되었습니다.')
         except Exception as e:
-            self.show_messagebox(False, e.__str__())
+            self.show_messagebox(False, e)
     
     def clicked_info_radio(self, index):
         self.info_stack.setCurrentIndex(index)

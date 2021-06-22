@@ -48,17 +48,12 @@
      </attribute>
      <column>
       <property name="text">
-       <string>김</string>
+       <string>signal_uuid</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>의</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>현</string>
+       <string>uuid</string>
       </property>
      </column>
     </widget>
