@@ -34,7 +34,7 @@ class SignalManager(Process):
         self.__db_id = db_id
         self.__db_password = db_password
         self.__max_individual_trade_price = self.__config.max_individual_trade_price
-        
+
         self.__coin_list = []
 
         super().__init__()
@@ -63,24 +63,25 @@ class SignalManager(Process):
         for x in ticker:
             if x['currency'] != 'KRW':
                 own_ticker.append(x)
-                
+
         for x in own_ticker:
             try:
                 ticker = f'{static.FIAT}-{x["currency"]}'
-                
+
                 # 미체결 전량 취소
                 order_list = aio.run(self.__upbit.get_order(ticker))
                 for y in order_list:
                     aio.run(self.__upbit.get_order(y['uuid']))
-                    
+
                 # 보유중 전량 매도
                 current_price = aio.run(aiopyupbit.get_current_price(ticker))
                 volume = x["balance"]
-                aio.run(self.__upbit.sell_limit_order(ticker, current_price, volume))
-                
+                aio.run(self.__upbit.sell_limit_order(
+                    ticker, current_price, volume))
+
             except Exception as e:
                 log.error(e)
-        
+
         for x in self.__coin_list:
             try:
                 order_list = aio.run(self.__upbit.get_order(x))
@@ -88,7 +89,7 @@ class SignalManager(Process):
                     aio.run(self.__upbit.get_order(y['uuid']))
             except Exception as e:
                 log.error(e)
-                
+
         return super().terminate()
 
     async def __loop(self, db: DBHandler) -> None:
@@ -98,7 +99,7 @@ class SignalManager(Process):
                 if not message['code'] and not message['type'] and not message['position'] and not message['price']:
                     self.__coin_list.clear()
                     continue
-                
+
                 now = datetime.datetime.now()
                 message['_id'] = f'{uuid.uuid4()}'
                 message['time'] = now.strftime(static.BASE_TIME_FORMAT)
@@ -111,7 +112,7 @@ class SignalManager(Process):
                          f'price: {message["price"]}')
                 await db.insert_item_one(data=message, db_name='signal_history',
                                          collection_name=datetime.datetime.today().strftime("%Y-%m-%d"))
-                
+
                 code = message['code'].split('-')[1]
                 order_list = await self.__upbit.get_order(message['code'])
                 own_dict = {x['currency']: x for x in await self.__upbit.get_balances()}
@@ -167,7 +168,8 @@ class SignalManager(Process):
                     self.__coin_list.append(message['code'])
                 response_uuid_list = [x['uuid'] for x in response]
                 trade_list = [{'uuid': x for x in response_uuid_list}]
-                trade_list = [x.update({'signal_id': message['_id']}) for x in trade_list]
+                trade_list = [x.update({'signal_id': message['_id']})
+                              for x in trade_list]
                 await db.insert_item_many(data=message, db_name='signal_trade_history',
                                           collection_name=datetime.datetime.today().strftime("%Y-%m-%d"))
 
@@ -412,8 +414,8 @@ class VariousIndicatorStrategy(Strategy):
                 status = {}
 
                 # 보유 검사
-                status['own'] = True if coin.code in static.account.coins.keys(
-                ) else False
+                status['own'] = True if coin.code.split(
+                    '-')[1] in static.account.coins.keys() else False
 
                 # 보유중일 경우
                 if status['own']:
