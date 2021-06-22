@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtCore import Qt
 from PyQt5 import uic
 
-from strategy import VariousIndicatorStrategy, VolatilityBreakoutStrategy
+from strategy import SignalManager, VariousIndicatorStrategy, VolatilityBreakoutStrategy
 from utils import get_file_path
 import static
 
@@ -13,7 +13,7 @@ import static
 class SettingsWidget(QWidget):
     def __init__(self, parent=None,):
         super().__init__(parent)
-        uic.loadUi(utils.get_file_path('styles/ui/settings.ui'), self)
+        uic.loadUi(get_file_path('styles/ui/settings.ui'), self)
         self.status = 0
         self.close_btn.clicked.connect(self.close_btn_click)
         self.minimize_btn.clicked.connect(lambda: self.showMinimized())
@@ -76,15 +76,24 @@ class SettingsWidget(QWidget):
         self.close()
 
     def clicked_start(self):
+        static.signal_manager = SignalManager(config=static.config,
+                                              db_ip=static.config.mongo_ip,
+                                              db_port=static.config.mongo_port,
+                                              db_id=static.config.mongo_id,
+                                              db_password=static.config.mongo_password,
+                                              queue=static.signal_queue)
+        
         if self.RSI.isChecked():
             static.config.strategy_type = 'VariousIndicator'
             static.strategy = VariousIndicatorStrategy(queue=static.signal_queue)
         else:
             static.config.strategy_type = 'VolatilityBreakout'
             static.strategy = VolatilityBreakoutStrategy(queue=static.signal_queue)
+        
         static.config.settings_auto_trading = True
         static.settings_start = False
         static.config.save()
+        static.signal_manager.start()
         static.strategy.start()
         self.close()
     
@@ -92,8 +101,13 @@ class SettingsWidget(QWidget):
         static.config.settings_auto_trading = False
         static.settings_start = False
         static.config.save()
-        static.strategy.terminate()
-        static.signal_manager.terminate()
+        try:
+            if static.strategy:
+                static.strategy.terminate()
+            if static.signal_manager:
+                static.signal_manager.terminate()
+        except:
+            pass
         self.close()
 if __name__ == "__main__":
 

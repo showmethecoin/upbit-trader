@@ -30,12 +30,6 @@ def init() -> bool:
 
         # SignalManager initialization
         static.signal_queue = Queue()
-        static.signal_manager = SignalManager(config=static.config,
-                                              db_ip=static.config.mongo_ip,
-                                              db_port=static.config.mongo_port,
-                                              db_id=static.config.mongo_id,
-                                              db_password=static.config.mongo_password,
-                                              queue=static.signal_queue)
 
         # RealtimeManager initialization
         codes = aio.run(aiopyupbit.get_tickers(fiat=static.FIAT,
@@ -54,13 +48,19 @@ def main(gui: bool = True) -> None:
     """프로그램 메인
     """
 
-    static.signal_manager.start()
     static.chart.start()
     if gui:
         # GUI
         gui_main()
     else:
          # Account initialization
+        static.signal_manager = SignalManager(config=static.config,
+                                              db_ip=static.config.mongo_ip,
+                                              db_port=static.config.mongo_port,
+                                              db_id=static.config.mongo_id,
+                                              db_password=static.config.mongo_password,
+                                              queue=static.signal_queue)
+        static.signal_manager.start()
         static.account = Account(access_key=static.config.upbit_access_key,
                                  secret_key=static.config.upbit_secret_key)
         static.account.start()
