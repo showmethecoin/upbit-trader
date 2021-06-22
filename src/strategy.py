@@ -56,6 +56,10 @@ class SignalManager(Process):
         """
         log.info('Stop signal manager process')
         self.alive = False
+        order_list = aio.run(self.__upbit.get_order())
+        uuid_list = [x['uuid'] for x in order_list]
+        for x in uuid_list:
+            aio.run(self.__upbit.cancel_order(x))
         return super().terminate()
 
     async def __loop(self, db: DBHandler) -> None:
