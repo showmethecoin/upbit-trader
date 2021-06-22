@@ -56,10 +56,29 @@ class SignalManager(Process):
         """
         log.info('Stop signal manager process')
         self.alive = False
-        order_list = aio.run(self.__upbit.get_order())
-        uuid_list = [x['uuid'] for x in order_list]
-        for x in uuid_list:
-            aio.run(self.__upbit.cancel_order(x))
+        ticker = aio.run(self.__upbit.get_balances())
+        own_ticker = []
+        for x in ticker:
+            if x['currency'] != 'KRW':
+                own_ticker.append(x)
+                
+        for x in own_ticker:
+            try:
+                ticker = f'{static.FIAT}-{x["currency"]}'
+                
+                # 미체결 전량 취소
+                order_list = aio.run(self.__upbit.get_order(ticker))
+                for y in order_list:
+                    aio.run(self.__upbit.get_order(y['uuid']))
+                    
+                # 보유중 전량 매도
+                current_price = aio.run(aiopyupbit.get_current_price(ticker))
+                volume = x["balance"]
+                aio.run(self.__upbit.sell_limit_order(ticker, current_price, volume))
+                
+            except Exception as e:
+                log.error(e)
+                
         return super().terminate()
 
     async def __loop(self, db: DBHandler) -> None:
@@ -163,7 +182,6 @@ class Strategy(Thread):
         """
         log.info('Stop strategy thread')
         self.alive = False
-        return super().terminate()
 
     def send_signal(self, code: str, position: str, type: str, price: float) -> None:
         """Ask/Bid signal sender function
@@ -211,7 +229,6 @@ class VolatilityBreakoutStrategy(Strategy):
         """
         log.info('Stop volatility breakout strategy thread')
         self.alive = False
-        return super().terminate()
 
     async def get_best_coin_list(self):
         log.info('Find best target coins, it will spend 60 sec...')
@@ -320,7 +337,6 @@ class VariousIndicatorStrategy(Strategy):
         """
         log.info('Stop various indicator strategy thread')
         self.alive = False
-        return super().terminate()
 
     async def get_best_coin_list(self):
         log.info('Find best target coins, it will spend 60 sec...')

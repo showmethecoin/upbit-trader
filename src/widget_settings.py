@@ -41,12 +41,12 @@ class SettingsWidget(QWidget):
             self.Volatility.setEnabled(False)
             self.start.setEnabled(False)
         
-        if static.config.strategy_type == 'VolatilityBreakout':
+        if static.config.strategy_type == 'VariousIndicator':
             self.RSI.setChecked(True)
-            static.config.strategy_type = 'VolatilityBreakout'
+            static.config.strategy_type = 'VariousIndicator'
         else:
             self.Volatility.setChecked(True)
-            static.config.strategy_type = 'VariousIndicator'
+            static.config.strategy_type = 'VolatilityBreakout'
 
         # MouseLeftClick Event Listener
         def mousePressEvent(event):
@@ -76,11 +76,11 @@ class SettingsWidget(QWidget):
 
     def clicked_start(self):
         if self.RSI.isChecked():
-            static.config.strategy_type = 'VolatilityBreakout'
-            static.strategy = VolatilityBreakoutStrategy(queue=static.signal_queue)
-        else:
             static.config.strategy_type = 'VariousIndicator'
             static.strategy = VariousIndicatorStrategy(queue=static.signal_queue)
+        else:
+            static.config.strategy_type = 'VolatilityBreakout'
+            static.strategy = VolatilityBreakoutStrategy(queue=static.signal_queue)
         static.config.settings_auto_trading = True
         static.settings_start = False
         static.config.save()
@@ -91,7 +91,8 @@ class SettingsWidget(QWidget):
         static.config.settings_auto_trading = False
         static.settings_start = False
         static.config.save()
-        static.strategy.stop()
+        static.strategy.terminate()
+        static.signal_manager.terminate()
         self.close()
 if __name__ == "__main__":
 
