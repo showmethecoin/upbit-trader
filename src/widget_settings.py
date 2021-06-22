@@ -43,8 +43,10 @@ class SettingsWidget(QWidget):
         
         if static.config.strategy_type == 'VolatilityBreakout':
             self.RSI.setChecked(True)
+            static.config.strategy_type = 'VolatilityBreakout'
         else:
             self.Volatility.setChecked(True)
+            static.config.strategy_type = 'VariousIndicator'
 
         # MouseLeftClick Event Listener
         def mousePressEvent(event):
