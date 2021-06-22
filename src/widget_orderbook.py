@@ -1,19 +1,19 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import time
-import asyncio
+import asyncio as aio
 
 from PyQt5 import QtGui, uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QPropertyAnimation, Qt, QThread, pyqtSignal
 
-import utils
 import static
-import component
+from utils import get_file_path
+from component import Coin
 
 
 class OrderbookWorker(QThread):
-    dataSent = pyqtSignal(component.Coin)
+    dataSent = pyqtSignal(Coin)
 
     def __init__(self, ticker):
         super().__init__()
@@ -34,7 +34,7 @@ class OrderbookWorker(QThread):
 class OrderbookWidget(QWidget):
     def __init__(self, parent=None, ticker="KRW-BTC"):
         super().__init__(parent)
-        uic.loadUi(utils.get_file_path("styles/ui/orderbook.ui"), self)
+        uic.loadUi(get_file_path("styles/ui/orderbook.ui"), self)
 
         #화면 수직,수평으로 늘릴 경우 칸에 맞게 변경됨
         #사용 가능한 공간을 채우기 위해 섹션의 크기를 자동으로 조정
@@ -158,19 +158,18 @@ class OrderbookWidget(QWidget):
 
 if __name__ == "__main__":
     import sys
-
+    from component import RealtimeManager
     import aiopyupbit
-    import config
-    import utils
+    from utils import set_windows_selector_event_loop_global
 
-    utils.set_windows_selector_event_loop_global()
+    set_windows_selector_event_loop_global()
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    loop = aio.new_event_loop()
+    aio.set_event_loop(loop)
     codes = loop.run_until_complete(
         aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
 
-    static.chart = component.RealtimeManager(codes=codes)
+    static.chart = RealtimeManager(codes=codes)
     static.chart.start()
 
     app = QApplication(sys.argv)

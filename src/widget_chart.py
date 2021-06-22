@@ -1,19 +1,15 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import asyncio
-import multiprocessing
-import time
-from PyQt5.QtCore import QSize, QThread, pyqtSignal
+import asyncio as aio
 
+from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from mplfinance.original_flavor import candlestick2_ohlc
 import aiopyupbit
 
-import utils
 from static import log
 
 class CandleWorker(QThread):
@@ -26,8 +22,8 @@ class CandleWorker(QThread):
         
     def run(self) -> None:
         self.alive = True
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        loop = aio.new_event_loop()
+        aio.set_event_loop(loop)
         loop.run_until_complete(self.__loop())
     
     def close(self) -> None:
@@ -37,7 +33,7 @@ class CandleWorker(QThread):
     async def __loop(self):
         while self.alive:
             try:
-                await asyncio.sleep(0.5)
+                await aio.sleep(0.5)
                 df = await aiopyupbit.get_ohlcv(ticker=self.code, 
                                                 interval="minutes1", 
                                                 count=self.count)
@@ -58,7 +54,7 @@ class CandleWorker(QThread):
                 log.error(e)
 
 class MyMplCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=12, height=8, dpi=100):
+    def __init__(self, parent=None, width=12, height=8):
         plt.rcParams['axes.facecolor'] = '31363b'
         plt.rcParams['axes.edgecolor'] = 'ffffff'
         plt.rcParams['xtick.color'] = 'ffffff'
@@ -115,9 +111,12 @@ class CandleChartWidget(QWidget):
 
 if __name__ == "__main__":
     import sys
+    from multiprocessing import freeze_support
+    from utils import set_windows_selector_event_loop_global
 
-    multiprocessing.freeze_support()
-    utils.set_windows_selector_event_loop_global()
+
+    freeze_support()
+    set_windows_selector_event_loop_global()
 
     qApp = QApplication(sys.argv)
     aw = CandleChartWidget()

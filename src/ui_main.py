@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import utils
+from utils import get_file_path
 from widget_trade import TradeWidget
 from widget_chart import CandleChartWidget
 from widget_orderbook import OrderbookWidget
@@ -1882,7 +1882,7 @@ class Ui_MainWindow(object):
         self.pushButton.setMaximumSize(QtCore.QSize(30, 30))
         self.pushButton.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(utils.get_file_path("styles/icons/20x20/cil-chart-line.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(get_file_path("styles/icons/20x20/cil-chart-line.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton.setIcon(icon)
         self.pushButton.setFlat(True)
         self.pushButton.setObjectName("pushButton")
@@ -1938,7 +1938,7 @@ class Ui_MainWindow(object):
 "}")
         self.minimize_btn.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(utils.get_file_path("styles/icons/20x20/cil-window-minimize.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap(get_file_path("styles/icons/20x20/cil-window-minimize.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.minimize_btn.setIcon(icon1)
         self.minimize_btn.setObjectName("minimize_btn")
         self.frame_btn.addWidget(self.minimize_btn)
@@ -1961,7 +1961,7 @@ class Ui_MainWindow(object):
 "}")
         self.maximize_btn.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(utils.get_file_path("styles/icons/20x20/cil-window-maximize.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap(get_file_path("styles/icons/20x20/cil-window-maximize.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.maximize_btn.setIcon(icon2)
         self.maximize_btn.setObjectName("maximize_btn")
         self.frame_btn.addWidget(self.maximize_btn)
@@ -1989,7 +1989,7 @@ class Ui_MainWindow(object):
 "}")
         self.close_btn.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(utils.get_file_path("styles/icons/20x20/cil-x.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(QtGui.QPixmap(get_file_path("styles/icons/20x20/cil-x.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.close_btn.setIcon(icon3)
         self.close_btn.setIconSize(QtCore.QSize(20, 20))
         self.close_btn.setObjectName("close_btn")
@@ -2038,7 +2038,7 @@ class Ui_MainWindow(object):
 "}")
         self.home_btn.setText("")
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(utils.get_file_path("styles/icons/20x20/cil-home.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon4.addPixmap(QtGui.QPixmap(get_file_path("styles/icons/20x20/cil-home.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.home_btn.setIcon(icon4)
         self.home_btn.setObjectName("home_btn")
         self.verticalLayout_2.addWidget(self.home_btn)
@@ -2057,7 +2057,7 @@ class Ui_MainWindow(object):
 "}")
         self.user_btn.setText("")
         icon5 = QtGui.QIcon()
-        icon5.addPixmap(QtGui.QPixmap(utils.get_file_path("styles/icons/20x20/cil-user.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon5.addPixmap(QtGui.QPixmap(get_file_path("styles/icons/20x20/cil-user.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.user_btn.setIcon(icon5)
         self.user_btn.setIconSize(QtCore.QSize(40, 40))
         self.user_btn.setObjectName("user_btn")
@@ -2077,7 +2077,7 @@ class Ui_MainWindow(object):
 "}")
         self.signal_btn.setText("")
         icon6 = QtGui.QIcon()
-        icon6.addPixmap(QtGui.QPixmap(utils.get_file_path("styles/icons/20x20/cil-rss.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon6.addPixmap(QtGui.QPixmap(get_file_path("styles/icons/20x20/cil-rss.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.signal_btn.setIcon(icon6)
         self.signal_btn.setObjectName("signal_btn")
         self.verticalLayout_2.addWidget(self.signal_btn)
@@ -2106,7 +2106,7 @@ class Ui_MainWindow(object):
 "}")
         self.btn_settings.setText("")
         icon7 = QtGui.QIcon()
-        icon7.addPixmap(QtGui.QPixmap(utils.get_file_path("styles/icons/20x20/cil-settings.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon7.addPixmap(QtGui.QPixmap(get_file_path("styles/icons/20x20/cil-settings.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_settings.setIcon(icon7)
         self.btn_settings.setIconSize(QtCore.QSize(30, 30))
         self.btn_settings.setObjectName("btn_settings")

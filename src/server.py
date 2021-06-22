@@ -1,8 +1,8 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import time
-import asyncio
-import multiprocessing
+import asyncio as aio
+import multiprocessing as mp
 import datetime
 import traceback
 
@@ -18,13 +18,13 @@ from static import log
 from db import DBHandler
 
 
-class SaveManager(multiprocessing.Process):
+class SaveManager(mp.Process):
     def __init__(self,
                  db_ip: str,
                  db_port: int,
                  db_id: str,
                  db_password: str,
-                 save_queue: multiprocessing.Queue):
+                 save_queue: mp.Queue):
         # Public
         self.alive = False
         self.db_ip = db_ip
@@ -39,8 +39,8 @@ class SaveManager(multiprocessing.Process):
     def run(self) -> None:
         log.info('Start save manager process')
         self.alive = True
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        loop = aio.new_event_loop()
+        aio.set_event_loop(loop)
         loop.run_until_complete(self.__save_loop())
 
     def terminate(self) -> None:
@@ -65,11 +65,11 @@ class SaveManager(multiprocessing.Process):
                 pass
 
 
-class RequestManager(multiprocessing.Process):
+class RequestManager(mp.Process):
     def __init__(self,
-                 in_queue: multiprocessing.Queue,
-                 out_queue: multiprocessing.Queue,
-                 save_queue: multiprocessing.Queue):
+                 in_queue: mp.Queue,
+                 out_queue: mp.Queue,
+                 save_queue: mp.Queue):
         # Public
         self.alive = False
         # Private
@@ -82,8 +82,8 @@ class RequestManager(multiprocessing.Process):
     def run(self) -> None:
         log.info('Start request manager process')
         self.alive = True
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        loop = aio.new_event_loop()
+        aio.set_event_loop(loop)
         loop.run_until_complete(self.__request_loop())
 
     def terminate(self) -> None:
@@ -93,16 +93,16 @@ class RequestManager(multiprocessing.Process):
 
     async def __get_sync_list(self, codes: list, base_time: str):
         try:
-            return [asyncio.create_task(self.__request(code, base_time)) for code in codes]
+            return [aio.create_task(self.__request(code, base_time)) for code in codes]
         except:
             print(traceback.format_exc())
 
     async def __request_loop(self):
         while self.alive:
             data = self.__in_queue.get()
-            request_list = await self.__get_sync_list(codes=data['codes'], 
+            request_list = await self.__get_sync_list(codes=data['codes'],
                                                       base_time=data['base_time'])
-            request_result = list(filter(None, await asyncio.gather(*request_list)))
+            request_result = list(filter(None, await aio.gather(*request_list)))
             self.__out_queue.put(request_result)
 
     async def __request(self, code: str, base_time: str) -> None or str:
@@ -116,17 +116,17 @@ class RequestManager(multiprocessing.Process):
                 x, static.UPBIT_TIME_FORMAT).timetuple()) for x in candle_df['time']]
             candle_list = [candle_df.iloc[i].to_dict()
                            for i in range(len(candle_df))]
-            
+
             # TODO 만약 캔들데이터가 비정상적(캔들 부족)인 경우 재요청을 위한 처리 필요
             if datetime.datetime.strptime(candle_list[-1]['time'], static.UPBIT_TIME_FORMAT) < datetime.datetime.strptime(base_time, static.UPBIT_TIME_FORMAT) - datetime.timedelta(minutes=1):
-                log.warning(f'CandleTimeError\ncode    : {code}\nbase    : {base_time}\nresponse: {candle_list[-1]["time"]}')
+                log.warning(
+                    f'CandleTimeError\ncode    : {code}\nbase    : {base_time}\nresponse: {candle_list[-1]["time"]}')
                 return code
-            
-            data = {
-                'data': candle_list,
-                'db_name': 'candles',
-                'collection_name': f'{code}_minute_1',
-                'ordered': False}
+
+            data = {'data': candle_list,
+                    'db_name': 'candles',
+                    'collection_name': f'{code}_minute_1',
+                    'ordered': False}
             self.__save_queue.put(data)
             return
         except TypeError:
@@ -156,8 +156,8 @@ class DataManager:
         self.request_limit = request_limit
         self.alive = False
         # Private
-        self.__loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.__loop)
+        self.__loop = aio.new_event_loop()
+        aio.set_event_loop(self.__loop)
         self.__db = DBHandler(ip=self.db_ip,
                               port=self.db_port,
                               id=self.db_id,
@@ -166,9 +166,9 @@ class DataManager:
         self.__codes = self.__loop.run_until_complete(
             aiopyupbit.get_tickers(fiat=static.FIAT))
         self.__scheduler = BackgroundScheduler()
-        self.__request_in_queue = multiprocessing.Queue()
-        self.__request_out_queue = multiprocessing.Queue()
-        self.__save_queue = multiprocessing.Queue()
+        self.__request_in_queue = mp.Queue()
+        self.__request_out_queue = mp.Queue()
+        self.__save_queue = mp.Queue()
 
     def start(self) -> None:
         """스케줄러 시작
@@ -203,7 +203,8 @@ class DataManager:
         """
         log.info(f'One minute candles sync sequence start')
         try:
-            base_time = datetime.datetime.now().replace(second=0, microsecond=0).strftime(static.UPBIT_TIME_FORMAT)
+            base_time = datetime.datetime.now().replace(
+                second=0, microsecond=0).strftime(static.UPBIT_TIME_FORMAT)
             sync_list = self.__codes
             while sync_list:
                 overflow_requests = []
@@ -219,7 +220,7 @@ class DataManager:
                     if spend_time < 1:
                         time.sleep(1 - spend_time)
                     overflow_requests.extend(request_result)
-                    
+
                 log.info(
                     f'Limit overflow requests({len(overflow_requests)}): {overflow_requests}')
                 sync_list = overflow_requests

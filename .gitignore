@@ -146,3 +146,4 @@ cython_debug/
 *.sh
 *.bat
 *.xlsx
+.vscode

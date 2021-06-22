@@ -1,18 +1,17 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import asyncio
+import asyncio as aio
 
-import multiprocessing
+from multiprocessing import Queue, freeze_support
 import aiopyupbit
 
-import utils
 import static
 from static import log
-import component
-import db
-import strategy
-import widget_login
-import prompt
+from utils import set_windows_selector_event_loop_global, set_multiprocessing_context
+from component import RealtimeManager, Account
+from strategy import SignalManager
+from widget_login import gui_main
+from prompt import prompt_main
 
 
 def init() -> bool:
@@ -23,25 +22,28 @@ def init() -> bool:
     """
     try:
         # Asyncio initialization
-        utils.set_windows_selector_event_loop_global()
+        set_windows_selector_event_loop_global()
 
         # Multiprocessing initialization
-        utils.set_multiprocessing_context()
-        multiprocessing.freeze_support()
+        set_multiprocessing_context()
+        freeze_support()
 
         # SignalManager initialization
-        static.signal_queue = multiprocessing.Queue()
-        static.signal_manager = strategy.SignalManager(
-            queue=static.signal_queue)
+        static.signal_queue = Queue()
+        static.signal_manager = SignalManager(db_ip=static.config.mongo_ip,
+                                              db_port=static.config.mongo_port,
+                                              db_id=static.config.mongo_id,
+                                              db_password=static.config.mongo_password,
+                                              queue=static.signal_queue)
 
         # RealtimeManager initialization
-        codes = asyncio.run(aiopyupbit.get_tickers(
-            fiat=static.FIAT, contain_name=True))
-        static.chart = component.RealtimeManager(codes=codes)
+        codes = aio.run(aiopyupbit.get_tickers(fiat=static.FIAT,
+                                               contain_name=True))
+        static.chart = RealtimeManager(codes=codes)
 
-        # DBHandler initialization
-        static.db = db.DBHandler(ip=static.config.mongo_ip, port=static.config.mongo_port,
-                                 id=static.config.mongo_id, password=static.config.mongo_password)
+        # Account initialization
+        static.account = Account(access_key=static.config.upbit_access_key,
+                                 secret_key=static.config.upbit_secret_key)
 
         log.info('Initialization complete')
         return True
@@ -49,21 +51,21 @@ def init() -> bool:
         return False
 
 
-def main() -> None:
+def main(gui: bool = True) -> None:
     """프로그램 메인
     """
-    static.chart.start()
+
+    static.account.start()
     static.signal_manager.start()
-
-    # GUI
-    # widget_login.gui_main()
-
-    # CLI
-    static.account = component.Account(access_key=static.config.upbit_access_key,
-                                       secret_key=static.config.upbit_secret_key)
-    prompt.prompt_main()
+    static.chart.start()
+    if gui:
+        # GUI
+        gui_main()
+    else:
+        # CLI
+        prompt_main()
 
 
 if __name__ == '__main__':
-    init()
-    main()
+    if init():
+        main(gui=False)

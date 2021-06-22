@@ -1,11 +1,9 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import multiprocessing
 import os
 import time
-import math
 import platform
-import asyncio
+import asyncio as aio
 
 import aiopyupbit
 
@@ -47,7 +45,7 @@ def print_program_title() -> None:
             os.system('cls')
         else:
             os.system('clear')
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         pass
     print(f'\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓')
     print(
@@ -116,9 +114,9 @@ def print_individual_price() -> None:
         print('\n\t0. [CTRL + C] Exit to menu')
         try:
             select = input("\t> ")
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             break
-        except Exception as e:
+        except Exception:
             break
 
         try:
@@ -129,10 +127,10 @@ def print_individual_price() -> None:
             else:
                 print_trade_information(
                     static.chart.coins[codes[int(select) - 1]])
-        except IndexError as e:
+        except IndexError:
             print('\tOut of index, please enter to continue...')
             press_any_key()
-        except UnboundLocalError as e:
+        except UnboundLocalError:
             break
 
 
@@ -179,9 +177,9 @@ def print_trade_information(_coin: component.Coin) -> None:
             print(f'\t│ {round(_coin.get_total_ask_size(), 3):>30}               Total               {round(_coin.get_total_bid_size(), 3):<30}')
             print('\t[CTRL + C] Exit to menu')
             time.sleep(0.5)
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             break
-        except Exception as e:
+        except Exception:
             break
 
 
@@ -270,8 +268,8 @@ if __name__ == '__main__':
     static.config = config.Config()
     static.config.load()
     
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    loop = aio.new_event_loop()
+    aio.set_event_loop(loop)
     codes = loop.run_until_complete(
         aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
     static.chart = component.RealtimeManager(codes=codes)
@@ -279,6 +277,6 @@ if __name__ == '__main__':
     
     # Upbit account
     static.account = component.Account(static.config.upbit_access_key, static.config.upbit_secret_key)
-    static.account.sync_start()
+    static.account.start()
 
     prompt_main()

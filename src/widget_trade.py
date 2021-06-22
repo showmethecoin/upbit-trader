@@ -1,7 +1,7 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import math
-import asyncio
+import asyncio as aio
 import time
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import *
 from PyQt5 import uic
 import ui_styles
 import static
-import utils
+from utils import get_file_path
 from static import log
 
 class TradeWorker(QThread):
@@ -23,8 +23,8 @@ class TradeWorker(QThread):
         self.alive = True
         while self.alive:
             time.sleep(0.5)
-            wait = asyncio.run(static.account.upbit.get_order(ticker_or_uuid= self.code))
-            done = asyncio.run(static.account.upbit.get_order(ticker_or_uuid= self.code, state = 'done'))
+            wait = aio.run(static.account.upbit.get_order(ticker_or_uuid= self.code))
+            done = aio.run(static.account.upbit.get_order(ticker_or_uuid= self.code, state = 'done'))
             self.dataSent.emit(wait, 1)
             self.dataSent.emit(done, 2)
     
@@ -35,7 +35,7 @@ class TradeWorker(QThread):
 class TradeWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        uic.loadUi(utils.get_file_path("styles/ui/trade.ui"), self)
+        uic.loadUi(get_file_path("styles/ui/trade.ui"), self)
 
         self.coin = 'KRW-BTC'
         self.info_table_1.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -229,13 +229,13 @@ class TradeWidget(QWidget):
                 buy_price = self.buy_price_1.value()
                 buy_volume = self.buy_volume_1.value()
                 total_buy_price = self.buy_total_price_1.value()
-                ret = asyncio.run(static.account.upbit.buy_limit_order(ticker=ticker,
+                ret = aio.run(static.account.upbit.buy_limit_order(ticker=ticker,
                                                                        price=buy_price,
                                                                        volume=buy_volume))
             # Market order
             elif tab_number == 2:
                 total_buy_price = self.buy_total_price_2.value()
-                ret = asyncio.run(static.account.upbit.buy_market_order(ticker=ticker,
+                ret = aio.run(static.account.upbit.buy_market_order(ticker=ticker,
                                                                         price=total_buy_price))
             # TODO Reservation order
             else:
@@ -257,14 +257,14 @@ class TradeWidget(QWidget):
             if tab_number == 1:
                 sell_price = self.sell_price_1.value()
                 sell_volume = self.sell_volume_1.value()
-                ret = asyncio.run(static.account.upbit.sell_limit_order(ticker=ticker,
+                ret = aio.run(static.account.upbit.sell_limit_order(ticker=ticker,
                                                                         price=sell_price,
                                                                         volume=sell_volume))
             # Market order
             elif tab_number == 2:
                 sell_volume = self.sell_total_price_2.value()
                 # TODO 개수 바꿔야함
-                ret = asyncio.run(static.account.upbit.sell_market_order(ticker=ticker,
+                ret = aio.run(static.account.upbit.sell_market_order(ticker=ticker,
                                                                          volume=sell_volume))
             # TODO Reservation order
             else:

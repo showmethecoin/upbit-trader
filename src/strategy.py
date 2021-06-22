@@ -2,27 +2,36 @@
 # -*- coding: utf-8 -*-
 import time
 import datetime
-import asyncio
-import multiprocessing
-import threading
+import asyncio as aio
+from multiprocessing import Queue, Process
+from threading import Thread
 
 import numpy as np
 import aiopyupbit
 from pandas.core.frame import DataFrame
 import talib
 
-import component
-import db
+from component import Coin
+from db import DBHandler
 import static
 from static import log
 
 
-class SignalManager(multiprocessing.Process):
-    def __init__(self, queue: multiprocessing.Queue) -> None:
+class SignalManager(Process):
+    def __init__(self,
+                 db_ip: str,
+                 db_port: int,
+                 db_id: str,
+                 db_password: str,
+                 queue: Queue) -> None:
         # Public
         self.alive = False
         # Private
-        self.queue = queue
+        self.__queue = queue
+        self.__db_ip = db_ip
+        self.__db_port = db_port
+        self.__db_id = db_id
+        self.__db_password = db_password
 
         super().__init__()
 
@@ -31,9 +40,14 @@ class SignalManager(multiprocessing.Process):
         """
         log.info('Start signal manager process')
         self.alive = True
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(self.__loop())
+        loop = aio.new_event_loop()
+        aio.set_event_loop(loop)
+        db = DBHandler(ip=self.__db_ip,
+                       port=self.__db_port,
+                       id=self.__db_id,
+                       password=self.__db_password,
+                       loop=loop)
+        loop.run_until_complete(self.__loop(db))
 
     def terminate(self) -> None:
         """SignalManager 종료
@@ -42,51 +56,83 @@ class SignalManager(multiprocessing.Process):
         self.alive = False
         return super().terminate()
 
-    async def __loop(self) -> None:
+    async def __loop(self, db: DBHandler) -> None:
         price = 10000
         while self.alive:
             try:
-                message = self.queue.get()
+                message = self.__queue.get()
+                message['_id'] = datetime.datetime.now().timestamp()
                 log.info(f'Signal information:\n'
+                         f'date: {datetime.datetime.today().strftime("%Y-%m-%d")}\n'
+                         f'_id: {message["_id"]}\n'
                          f'code: {message["code"]}\n'
                          f'type: {message["type"]}\n'
                          f'position: {message["position"]}\n'
                          f'price: {message["price"]}')
+                await db.insert_item_one(data=message, db_name='signal',
+                                         collection_name=datetime.datetime.today().strftime("%Y-%m-%d"))
 
-                # if message['position'] == 'bid':
-                #     code = message['code'].split('-')[1]
-                #     order_list = static.upbit.get_order(message['code'])
-                #     if code in static.account.coins.keys():
-                #         log.warning(f'{code} is already bought')
-                #     elif order_list:
-                #         log.warning(f'order_list: {order_list}')
-                #         # TODO 취소하고 살건지, 그냥 살건지, 여러개있으면 어떡할지 ...
-                #     else:
-                #         if message['type'] == 'market':
-                #             static.upbit.buy_market_order(
-                #                 ticker=message['code'], price=price)
-                #         else:
-                #             static.upbit.buy_limit_order(
-                #                 ticker=message['code'], price=message['price'], volume=price/message['price'])
-                # else:
-                #     if not code in static.account.coins.keys():
-                #         log.warning(f'{code} is not bought')
-                #     elif order_list:
-                #         log.warning(f'order_list: {order_list}')
-                #         # TODO 취소하고 살건지, 그냥 살건지, 여러개있으면 어떡할지 ...
-                #     else:
-                #         if message['type'] == 'market':
-                #             static.upbit.sell_market_order(
-                #                 ticker=message['code'], price=static.account.coins[message.code]['balance'])
-                #         else:
-                #             static.upbit.sell_limit_order(
-                #                 ticker=message['code'], price=message['price'], volume=static.account.coins[message.code]['balance'])
+                code = message['code'].split('-')[1]
+                order_list = static.account.upbit.get_order(message['code'])
+
+                # Bid
+                if message['position'] == 'bid':
+
+                    # 보유중 확인
+                    if code in static.account.coins.keys():
+                        log.warning(f'{code} is already bought')
+                        continue
+                    # 주문 목록 확인
+                    elif order_list:
+                        log.warning(f'order_list: {order_list}')
+                        # 기존 주문 취소
+                        uuid_list = [x['uuid'] for x in order_list]
+                        for uuid in uuid_list:
+                            static.account.upbit.cancel_order(uuid)
+                    # 시장가 매수
+                    if message['type'] == 'market':
+                        pass
+                        # response = static.account.upbit.buy_market_order(ticker=message['code'],
+                        #                                                  price=price)
+                    # 지정가 매수
+                    else:
+                        pass
+                    #     volume = price / message['price']
+                    #     response = static.account.upbit.buy_limit_order(ticker=message['code'],
+                    #                                                     price=message['price'],
+                    #                                                     volume=volume)
+                # Ask
+                else:
+                    # 보유중 확인
+                    if not code in static.account.coins.keys():
+                        log.warning(f'{code} is not bought')
+                        continue
+                    # 주문 목록 확인
+                    elif order_list:
+                        log.warning(f'order_list: {order_list}')
+                        # 기존 주문 취소
+                        uuid_list = [x['uuid'] for x in order_list]
+                        for uuid in uuid_list:
+                            static.account.upbit.cancel_order(uuid)
+                    # 시장가 매도
+                    if message['type'] == 'market':
+                        pass
+                        # response = static.account.upbit.sell_market_order(ticker=message['code'],
+                        #                                        price=static.account.coins[message['code']]['balance'])
+                    # 지정가 매도
+                    else:
+                        pass
+                #         volume = static.account.coins[message['code']]['balance']
+                #         response = static.account.upbit.sell_limit_order(ticker=message['code'],
+                #                                                          price=message['price'],
+                #                                                          volume=volume)
+                # uuid_list = [x['uuid'] for x in response]
             except Exception as e:
                 log.error(e)
 
 
-class Strategy(threading.Thread):
-    def __init__(self, queue: multiprocessing.Queue) -> None:
+class Strategy(Thread):
+    def __init__(self, queue: Queue) -> None:
         super().__init__()
         # Public
         self.alive = False
@@ -99,8 +145,8 @@ class Strategy(threading.Thread):
         """
         log.info('Start strategy thread')
         self.alive = True
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        loop = aio.new_event_loop()
+        aio.set_event_loop(loop)
         loop.run_until_complete(self.__loop())
 
     def terminate(self) -> None:
@@ -137,7 +183,7 @@ class Strategy(threading.Thread):
 
 
 class VolatilityBreakoutStrategy(Strategy):
-    def __init__(self, queue: multiprocessing.Queue, period: str = 'day') -> None:
+    def __init__(self, queue: Queue, period: str = 'day') -> None:
         super().__init__(queue=queue)
         # 투자 대상 Coin 인스턴스 목록
         self.period = period
@@ -147,8 +193,8 @@ class VolatilityBreakoutStrategy(Strategy):
         """
         log.info('Start volatility breakout strategy thread')
         self.alive = True
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        loop = aio.new_event_loop()
+        aio.set_event_loop(loop)
         loop.run_until_complete(self.__loop())
 
     def terminate(self) -> None:
@@ -159,6 +205,7 @@ class VolatilityBreakoutStrategy(Strategy):
         return super().terminate()
 
     async def get_best_coin_list(self):
+        log.info('Find best target coins, it will spend 30 sec...')
         candidate_list = []
         for coin in static.chart.codes:
             df = await aiopyupbit.get_ohlcv(coin, interval=self.period, count=20)
@@ -166,11 +213,10 @@ class VolatilityBreakoutStrategy(Strategy):
             avg_10 = self.get_average(df, unit=10, column='close')[0]
             avg_20 = self.get_average(df, unit=20, column='close')[0]
 
-            # if (avg_5 > avg_10) and (avg_10 > avg_20):
             if (avg_5 > avg_10) and (avg_10 > avg_20):
                 candidate_list.append(coin)
             time.sleep(0.2)
-            
+
         return [x for x in static.chart.coins.values() if x.code in candidate_list]
 
     async def get_best_k(self, code: str):
@@ -201,12 +247,11 @@ class VolatilityBreakoutStrategy(Strategy):
         return previous_candle['close'] + (previous_candle['high'] - previous_candle['low']) * k
 
     async def __get_check_list(self, target_price: dict) -> list:
-        return [asyncio.create_task(self.__is_reached(x, target_price[x.code])) for x in self.coin_list]
+        return [aio.create_task(self.__is_reached(x, target_price[x.code])) for x in self.coin_list]
 
     async def __loop(self):
         while self.alive:
             self.coin_list = await self.get_best_coin_list()
-            log.info(f'best_coin_list: {self.coin_list}')
             k_dict = {x.code: await self.get_best_k(x.code) for x in self.coin_list}
             target_price = {x.code: await self.get_target_price(x.code, k_dict[x.code]) for x in self.coin_list}
             log.info(f'k: {k_dict}\n'
@@ -222,7 +267,7 @@ class VolatilityBreakoutStrategy(Strategy):
 
             while datetime.datetime.now() < end_time:
                 check_list = await self.__get_check_list(target_price=target_price)
-                check_result = list(filter(None, await asyncio.gather(*check_list)))
+                check_result = list(filter(None, await aio.gather(*check_list)))
                 log.info(f'check_result: {check_result}')
                 for code in check_result:
                     self.send_signal(code=code, position='bid',
@@ -234,16 +279,15 @@ class VolatilityBreakoutStrategy(Strategy):
                 self.send_signal(code=coin.code, position='ask',
                                  type='market', price=-1)
 
-    async def __is_reached(self, coin: component.Coin, target_price: float):
+    async def __is_reached(self, coin: Coin, target_price: float):
         log.info(
             f'code: {coin.code}, target_price: {target_price}, current_price: {coin.get_trade_price()}')
         return coin.code if coin.get_trade_price() >= target_price else None
 
 
 class VariousIndicatorStrategy(Strategy):
-    def __init__(self, queue: multiprocessing.Queue, period: int = 14, rsi: int = 35) -> None:
+    def __init__(self, queue: Queue, period: int = 14, rsi: int = 35) -> None:
         super().__init__(queue=queue)
-        # 투자 대상 Coin 인스턴스 목록
         self.period = period
         self.rsi = rsi
 
@@ -252,8 +296,8 @@ class VariousIndicatorStrategy(Strategy):
         """
         log.info('Start various indicator strategy thread')
         self.alive = True
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        loop = aio.new_event_loop()
+        aio.set_event_loop(loop)
         loop.run_until_complete(self.__loop())
 
     def terminate(self) -> None:
@@ -264,19 +308,26 @@ class VariousIndicatorStrategy(Strategy):
         return super().terminate()
 
     async def get_best_coin_list(self):
+        log.info('Find best target coins, it will spend 60 sec...')
         candidate_list = []
-        for coin in static.chart.codes:
-            df = await aiopyupbit.get_ohlcv(coin, interval='minute5', count=20)
-            avg_5 = self.get_average(df, unit=5, column='close')[0]
-            avg_10 = self.get_average(df, unit=10, column='close')[0]
-            avg_20 = self.get_average(df, unit=20, column='close')[0]
+        while True:
+            for coin in static.chart.codes:
+                df = await aiopyupbit.get_ohlcv(coin, interval='minute5', count=20)
+                avg_5 = self.get_average(df, unit=5, column='close')[0]
+                avg_10 = self.get_average(df, unit=10, column='close')[0]
+                avg_20 = self.get_average(df, unit=20, column='close')[0]
 
-            # if (avg_5 > avg_10) and (avg_10 > avg_20):
-            if (avg_5 > avg_10) and (avg_10 > avg_20):
-                candidate_list.append(coin)
-            time.sleep(0.2)
+                if (avg_5 > avg_10) and (avg_10 > avg_20):
+                    candidate_list.append(coin)
+                time.sleep(0.2)
+
+            if candidate_list:
+                break
+
+            log.info('Cannot find best target coins, it will re-working again...')
+
         return [x for x in static.chart.coins.values() if x.code in candidate_list]
-        
+
     def get_rsi(self, df: DataFrame):
         """rsi 값을 얻는 함수
         Args:
@@ -288,28 +339,34 @@ class VariousIndicatorStrategy(Strategy):
 
     async def __loop(self):
         time_history = {}
-        now = datetime.datetime.now()
         coin_list = await self.get_best_coin_list()
+        log.info(f'Coin list: {[x.code for x in coin_list]}')
+        end_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
+        log.info(f'Refresh at {end_time}')
         while self.alive:
-            if now - datetime.datetime.now() > datetime.timedelta(minutes=30):
-                # 다 팔고
+            # 30분 경과시 전량 매도
+            if datetime.datetime.now() >= end_time:
                 for coin in coin_list:
                     self.send_signal(code=coin.code, position='ask',
                                      type='market', price=-1)
-                # 갱신
+                # 코인 목록 갱신
                 coin_list = await self.get_best_coin_list()
-            log.info(f'coin_list: {coin_list}')
+                end_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
+                log.info(f'Coin list: {[x.code for x in coin_list]}')
+                log.info(f'Refresh at {end_time}')
+
             for coin in coin_list:
                 time.sleep(0.2)
-                # RSI calculate
                 candle = await aiopyupbit.get_ohlcv(coin.code, interval='minute1')
                 rsi = self.get_rsi(candle)[-1]
                 average_volume = self.get_average(candle, 5, 'volume')[1]
                 status = {}
-                # 1. 보유 검사
+
+                # 보유 검사
                 status['own'] = True if coin.code in static.account.coins.keys(
                 ) else False
 
+                # 보유중일 경우
                 if status['own']:
                     if not coin.code in time_history.keys():
                         time_history[coin.code] = datetime.datetime.now()
@@ -320,6 +377,7 @@ class VariousIndicatorStrategy(Strategy):
                     if profit >= 0.01 or profit <= -0.01:
                         self.send_signal(code=coin.code, position='ask',
                                          type='market', price=-1)
+                # 보유중이지 않을 경우
                 else:
                     if coin.code in time_history.keys():
                         del time_history[coin.code]

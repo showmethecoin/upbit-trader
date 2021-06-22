@@ -24,7 +24,6 @@ log = utils.get_logger(print_format=config.log_format,  # Logger
                        save=config.log_save,
                        save_path=config.log_path)
 upbit = None                                            # Upbit interface
-db = None                                               # MongoDB handler
 # Client
 chart = None                                            # Realtime manager
 account = None                                          # Account
