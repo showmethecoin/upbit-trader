@@ -30,7 +30,8 @@ def init() -> bool:
 
         # SignalManager initialization
         static.signal_queue = Queue()
-        static.signal_manager = SignalManager(db_ip=static.config.mongo_ip,
+        static.signal_manager = SignalManager(config=static.config,
+                                              db_ip=static.config.mongo_ip,
                                               db_port=static.config.mongo_port,
                                               db_id=static.config.mongo_id,
                                               db_password=static.config.mongo_password,

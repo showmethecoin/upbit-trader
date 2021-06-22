@@ -19,20 +19,21 @@ from config import Config
 
 
 class SignalManager(Process):
-    def __init__(self,
-                 db_ip: str,
-                 db_port: int,
-                 db_id: str,
-                 db_password: str,
-                 queue: Queue) -> None:
+    def __init__(self, config: Config, db_ip: str, db_port: int,
+                 db_id: str, db_password: str, queue: Queue, 
+                 max_price: int = static.MAX_TRADE_PRICE) -> None:
         # Public
         self.alive = False
         # Private
+        self.__config = config
+        self.__upbit = aiopyupbit.Upbit(access=self.__config.upbit_access_key,
+                                        secret=self.__config.upbit_secret_key)
         self.__queue = queue
         self.__db_ip = db_ip
         self.__db_port = db_port
         self.__db_id = db_id
         self.__db_password = db_password
+        self.__max_trade_price = max_price
 
         super().__init__()
 
@@ -58,7 +59,6 @@ class SignalManager(Process):
         return super().terminate()
 
     async def __loop(self, db: DBHandler) -> None:
-        price = 10000
         while self.alive:
             try:
                 message = self.__queue.get()
@@ -74,13 +74,14 @@ class SignalManager(Process):
                                          collection_name=datetime.datetime.today().strftime("%Y-%m-%d"))
 
                 code = message['code'].split('-')[1]
-                order_list = static.account.upbit.get_order(message['code'])
+                order_list = self.__upbit.get_order(message['code'])
+                own_dict = {x['currency']: x for x in self.__upbit.get_balances()}
 
                 # Bid
                 if message['position'] == 'bid':
 
                     # 보유중 확인
-                    if code in static.account.coins.keys():
+                    if code in own_dict.keys():
                         log.warning(f'{code} is already bought')
                         continue
                     # 주문 목록 확인
@@ -89,23 +90,23 @@ class SignalManager(Process):
                         # 기존 주문 취소
                         uuid_list = [x['uuid'] for x in order_list]
                         for uuid in uuid_list:
-                            static.account.upbit.cancel_order(uuid)
+                            self.__upbit.cancel_order(uuid)
                     # 시장가 매수
                     if message['type'] == 'market':
                         pass
-                        # response = static.account.upbit.buy_market_order(ticker=message['code'],
-                        #                                                  price=price)
+                        # response = self.__upbit.buy_market_order(ticker=message['code'],
+                        #                                          price=self.__max_trade_price)
                     # 지정가 매수
                     else:
                         pass
-                    #     volume = price / message['price']
-                    #     response = static.account.upbit.buy_limit_order(ticker=message['code'],
-                    #                                                     price=message['price'],
-                    #                                                     volume=volume)
+                    #     volume = self.__max_trade_price / message['price']
+                    #     response = self.__upbit.buy_limit_order(ticker=message['code'],
+                    #                                             price=message['price'],
+                    #                                             volume=volume)
                 # Ask
                 else:
                     # 보유중 확인
-                    if not code in static.account.coins.keys():
+                    if not code in own_dict.keys():
                         log.warning(f'{code} is not bought')
                         continue
                     # 주문 목록 확인
@@ -114,19 +115,18 @@ class SignalManager(Process):
                         # 기존 주문 취소
                         uuid_list = [x['uuid'] for x in order_list]
                         for uuid in uuid_list:
-                            static.account.upbit.cancel_order(uuid)
+                            self.__upbit.cancel_order(uuid)
                     # 시장가 매도
                     if message['type'] == 'market':
                         pass
-                        # response = static.account.upbit.sell_market_order(ticker=message['code'],
-                        #                                        price=static.account.coins[message['code']]['balance'])
+                        # response = self.__upbit.sell_market_order(ticker=message['code'],
+                        #                                           price=own_dict[code]['balance'])
                     # 지정가 매도
                     else:
                         pass
-                #         volume = static.account.coins[message['code']]['balance']
-                #         response = static.account.upbit.sell_limit_order(ticker=message['code'],
-                #                                                          price=message['price'],
-                #                                                          volume=volume)
+                #         response = self.__upbit.sell_limit_order(ticker=message['code'],
+                #                                                  price=message['price'],
+                #                                                  volume=own_dict[code]['balance'])
                 # uuid_list = [x['uuid'] for x in response]
             except Exception as e:
                 log.error(e)

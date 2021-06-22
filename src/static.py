@@ -4,6 +4,7 @@ import utils
 import config as cf
 
 ''' Constant '''
+MAX_TRADE_PRICE = 10000
 MIN_TRADE_PRICE = 5000
 FEES = 0.0005                           # Upbit official fees ratio
 FIAT = "KRW"                            # KRW/BRC/ETH/USDT
