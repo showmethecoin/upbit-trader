@@ -22,9 +22,11 @@
   </p>
 </p>
 
-Total price|Individual price
+CLI Total price|CLI Individual price
 :-------------------------:|:-------------------------:
-![total_price_screenshot](./assets/total_price.png)|![individual_price_screenshot](./assets/individual_price.png)
+![total_price_screenshot](./assets/cli_total.png)|![individual_price_screenshot](./assets/cli_individual.png)
+GUI Main|GUI Own list
+![main_screenshot](./assets/gui_main.png)|![own_screenshot](./assets/gui_own.png)
 
 # Index
 
@@ -73,21 +75,26 @@ cp config.yaml.example src/config.yaml
 
 ``` yaml
 # config.yaml.example 
-# Necessary edit
-UPBIT:
-  ACCESS_KEY: INPUT_YOUR_UPBIT_ACCESS_KEY
-  SECRET_KEY: INPUT_YOUR_UPBIT_SCEREY_KEY
-# Unnecessary edit
-MONGO: 
-  IP: MONOG_IP
-  PORT: MOGNO_PORT
-  ID: MONOG_ACCOUNT_ID
-  PASSWORD: MONOG_ACCOUNT_PASSWORD 
 # Unnecessary edit
 LOG:
-  PATH: LOG_SAVE_PATH
-  SAVE: WHETHER_TO_SAVE_BOOLEAN
-  PRINT: WHETHER_TO_PRINT_BOOLEAN
+  FORMAT: '[%(asctime)s.%(msecs)03d: %(levelname).1s %(filename)s:%(lineno)s] %(message)s'
+  PATH: upbit-trader.log
+  PRINT: BOOLEAN_PRINT_LOG # True/False
+  SAVE: BOOLEAN_SAVE_LOG # True/False
+# Necessary edit
+MONGO:
+  ID: MONGO_ACCOUNT_ID
+  IP: MONGO_IP
+  PASSWORD: MONGO_ACCOUNT_PASSWORD
+  PORT: MONGO_PORT
+UPBIT:
+  ACCESS_KEY: INPUT_YOUR_UPBIT_ACCESS_KEY
+  SECRET_KEY: INPUT_YOUR_UPBIT_SECRET_KEY
+STRATEGY:
+  TYPE: STRATEGY_TYPE # VolatilityBreakout/VariousIndicator
+  MAX_INDIVIDUAL_TRADE_PRICE: FIAT_WON # 5000<WON
+PROGRAM:
+  GUI: BOOLEAN_USE_GUI # True/False
 ```
 
 ### d. Install python module

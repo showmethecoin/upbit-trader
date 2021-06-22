@@ -18,7 +18,8 @@ class Config:
                  log_print: bool = True,
                  log_format: str = '[%(asctime)s.%(msecs)03d: %(levelname).1s %(filename)s:%(lineno)s] %(message)s',
                  strategy_type: str = 'VolatilityBreakout',
-                 max_individual_trade_price: int = 10000):
+                 max_individual_trade_price: int = 10000,
+                 gui:bool=True):
         # UPBIT
         self.upbit_access_key = upbit_access_key
         self.upbit_secret_key = upbit_secret_key
@@ -42,7 +43,9 @@ class Config:
         self.strategy_type = strategy_type
         self.max_individual_trade_price = max_individual_trade_price
 
-        self.program_version = 0.7
+        # PROGRAM
+        self.gui = gui
+        self.program_version = 1.0
 
     def to_dict(self) -> dict:
         config = {}
@@ -62,6 +65,8 @@ class Config:
         config['STRATEGY'] = {}
         config['STRATEGY']['TYPE'] = self.strategy_type
         config['STRATEGY']['MAX_INDIVIDUAL_TRADE_PRICE'] = self.max_individual_trade_price
+        config['PROGRAM'] = {}
+        config['PROGRAM']['GUI'] = self.gui
         return config
 
     def load(self) -> dict:
@@ -83,6 +88,8 @@ class Config:
                 if 'STRATEGY' in config:
                     self.strategy_type = config['STRATEGY']['TYPE']
                     self.max_individual_trade_price = config['STRATEGY']['MAX_INDIVIDUAL_TRADE_PRICE']
+                if 'PROGRAM' in config:
+                    self.gui = config['PROGRAM']['GUI']
         except FileNotFoundError:
             self.save(self.to_dict())
 
