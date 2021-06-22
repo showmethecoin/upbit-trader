@@ -46,7 +46,6 @@ class OrderbookWidget(QWidget):
 
         self.ow = OrderbookWorker(ticker)
         self.ow.dataSent.connect(self.updateData)
-        self.ow.start()
 
         self.asksAnim = []
         self.bidsAnim = []

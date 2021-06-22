@@ -67,8 +67,7 @@ class UserinfoWidget(QWidget):
         self.view = Ui_Form()
         self.view.setupUi(self)
         self.uw = UserinfoWorker(self.view)
-        self.uw.start()
-
+        
     # close thread
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.uw.close()

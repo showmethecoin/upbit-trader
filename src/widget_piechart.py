@@ -22,6 +22,7 @@ class PieWorker(QThread):
         while self.alive:
             time.sleep(1)
 
+        # Data Screening
             cash = int(static.account.cash + static.account.locked_cash)
             sum = cash
             datas = [[cash, 'KRW']]
@@ -55,6 +56,9 @@ class PieWorker(QThread):
 
             self.canvas.axes.clear()
             self.canvas.axes2.clear()
+        else:
+            labels.append("KRW : 100%")
+            frequency.append(100)
 
             # Donut Chart
             pie = self.canvas.axes.pie(frequency,  # 파이차트 출력
@@ -68,10 +72,10 @@ class PieWorker(QThread):
             # Pie Chart
             # pie = self.axes.pie(frequency, startangle=260, counterclock=False, explode=explode)
 
-            # Set Chart Percentage text
-            # for t in pie[2]:
-            #     t.set_color("white")
-            #     t.set_fontweight('bold')
+        # Set Chart Percentage text
+        # for t in pie[2]:
+        #     t.set_color("white")
+        #     t.set_fontweight('bold')
 
             # Set Legend
             self.canvas.axes2.legend(
