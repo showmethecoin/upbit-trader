@@ -63,7 +63,7 @@ class SignalManager(Process):
             try:
                 message = self.__queue.get()
                 now = datetime.datetime.now()
-                message['_id'] = uuid.uuid4()
+                message['_id'] = f'{uuid.uuid4()}'
                 message['time'] = now.strftime(static.BASE_TIME_FORMAT)
                 log.info(f'Signal information:\n'
                          f'_id: {message["_id"]}\n'

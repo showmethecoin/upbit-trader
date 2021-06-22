@@ -6,6 +6,6 @@ pymongo>=3.11.4
 motor>=2.4.0
 mplfinance>=0.12.7a17
 pyqt5>=5.15.4
-aiopyupbit>=0.1.6
+aiopyupbit>=0.2.4
 cx_freeze>=6.6
 ta-lib>=0.4.20
