@@ -44,7 +44,7 @@ class DetailholdinglistWidget(QWidget):
         self.color_white = QBrush(QColor(255, 255, 255))
 
         self.dw = DetailholdinglistWorker()
-        self.dw.dataSent.connect(self.updataData)
+        self.dw.dataSent.connect(self.updateData)
 
     def updateData(self, data):
         # data는 static.account.coins

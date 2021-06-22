@@ -46,7 +46,7 @@ class CoinlistWidget(QWidget):
         self.coin_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         
         self.cw = CoinListWorker()
-        self.cw.dataSent.connect(self.updataData)
+        self.cw.dataSent.connect(self.updateData)
 
         self.coin_list.cellClicked.connect(self.chkItemClicked)
         self.order = None

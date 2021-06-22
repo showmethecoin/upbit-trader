@@ -108,7 +108,7 @@ class PieChartWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         # Canvas Initialize
-        self.canvas = MyMplCanvas(self, width=7, height=3, dpi=1000)
+        self.canvas = MyMplCanvas(self, width=7, height=3)
         self.pw = PieWorker(self.canvas)
         self.pw.start()
 

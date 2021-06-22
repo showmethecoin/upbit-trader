@@ -40,7 +40,7 @@ class HoldingListWidget(QWidget):
         self.hold_list.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         self.hw = HoldingListWorker()
-        self.hw.dataSent.connect(self.updataData)
+        self.hw.dataSent.connect(self.updateData)
 
         self.color_red = QBrush(QColor(207, 48, 74))  # CF304A
         self.color_green = QBrush(QColor(2, 192, 118))  # 02C076

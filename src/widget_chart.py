@@ -78,7 +78,7 @@ class CandleChartWidget(QWidget):
         self.reduction_button.clicked.connect(self.on_reduction)
 
         # Canvas Initialize
-        self.canvas = MyMplCanvas(self, width=5, height=3, dpi=100)
+        self.canvas = MyMplCanvas(self, width=5, height=3)
         self.cw = CandleWorker(self.canvas, 'KRW-BTC', 15)
 
         # Assign Element Location

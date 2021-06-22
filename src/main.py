@@ -70,4 +70,4 @@ def main(gui: bool = True) -> None:
 
 if __name__ == '__main__':
     if init():
-        main(gui=False)
+        main(gui=True)
