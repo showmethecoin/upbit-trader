@@ -3,16 +3,13 @@
 import json
 import uuid
 import time
-import math
-import asyncio
-import threading
-import multiprocessing
+import asyncio as aio
+from threading import Thread
+from multiprocessing import Queue, Process
 
 import websockets
 import aiopyupbit
 
-import utils
-import config
 import static
 from static import log
 
@@ -380,15 +377,15 @@ class Coin:
         return self.orderbook['obu'][_index]
 
 
-class WebsocketManager(multiprocessing.Process):
-    def __init__(self, uri: str, request: dict, ping_interval: int, queue: multiprocessing.Queue) -> None:
+class WebsocketManager(Process):
+    def __init__(self, uri: str, request: dict, ping_interval: int, queue: Queue) -> None:
         """WebsocketManager 생성자
 
         Args:
             uri (str): Websocket 연결 주소
             request (dict): 요청 메세지 Body
             ping_interval (int): Ping-Pong 주기
-            queue (multiprocessing.Queue): 수신 메세지 대기열
+            queue (Queue): 수신 메세지 대기열
         """
         # Public
         self.uri = uri
@@ -406,8 +403,8 @@ class WebsocketManager(multiprocessing.Process):
         """
         log.info('Start websocket connection')
         self.alive = True
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        loop = aio.new_event_loop()
+        aio.set_event_loop(loop)
         loop.run_until_complete(self.__connect_socket())
 
     def terminate(self) -> None:
@@ -455,7 +452,7 @@ class RealtimeManager:
         self.alive = False
         # Private
         self.__origin_coins = self.coins
-        self.__queue = multiprocessing.Queue()
+        self.__queue = Queue()
 
     def get_coin(self, code: str) -> Coin:
         """코인 반환
@@ -521,9 +518,8 @@ class RealtimeManager:
             request=self.request,
             ping_interval=self.ping_interval,
             queue=self.__queue)
-        multiprocessing.freeze_support()
         self._websocket.start()
-        threading.Thread(target=self._sync_thread, daemon=True).start()
+        Thread(target=self._sync_thread, daemon=True).start()
 
     def stop(self) -> None:
         """RealtimeManager 동기화 종료
@@ -534,8 +530,8 @@ class RealtimeManager:
     def _sync_thread(self) -> None:
         """동기화 Thread 메인
         """
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        loop = aio.new_event_loop()
+        aio.set_event_loop(loop)
         loop.run_until_complete(self.__sync_loop())
 
     async def __sync_loop(self) -> None:
@@ -549,8 +545,14 @@ class RealtimeManager:
                 self.coins[message['cd']].orderbook = message
 
 
-class Account:
+class Account(Thread):
     def __init__(self, access_key:str, secret_key:str) -> None:
+        
+        super().__init__()
+        
+        # Public
+        self.alive = False
+        self.daemon = True
         self.access_key = access_key
         self.secret_key = secret_key
         self.upbit = aiopyupbit.Upbit(self.access_key, self.secret_key)
@@ -562,10 +564,21 @@ class Account:
         self.total_evaluate = 0
         self.total_loss = 0
         self.total_yield = 0.0
-        self.sync_status = False
-                
-    def _sync_thread(self) -> None:
-        while self.sync_status:
+
+    def run(self) -> None:
+        log.info('Start account thread')
+        self.alive = True
+        loop = aio.new_event_loop()
+        aio.set_event_loop(loop)
+        loop.run_until_complete(self.__loop())
+    
+    def terminate(self) -> None:
+        log.info('Stop account thread')
+        self.alive = False
+        return super().terminate()
+      
+    async def __loop(self) -> None:
+        while self.alive:
             try:
                 time.sleep(0.25)
                 coins = {}
@@ -576,7 +589,7 @@ class Account:
                 total_loss = 0
                 total_yield = 0
 
-                for item in asyncio.run(self.upbit.get_balances()):
+                for item in await self.upbit.get_balances():
                     currency = item['currency']
                     avg_buy_price = float(item['avg_buy_price'])
                     balance = float(item['balance'])
@@ -623,23 +636,6 @@ class Account:
                 print(traceback.format_exc())
                 print(e)
 
-    def sync_start(self) -> None:
-        """동기화 시작
-        """
-        self.sync_status = True
-        self.thread = threading.Thread(target=self._sync_thread, daemon=True)
-        self.thread.start()
-
-    def sync_stop(self) -> None:
-        """동기화 중지
-        """
-        self.sync_status = False
-
-    def get_sync_status(self) -> bool:
-        """동기화 동작 상태 반환
-        """
-        return self.sync_status
-
     def get_cash(self) -> float:
         """보유 현금
         """
@@ -681,24 +677,25 @@ class Account:
 
 if __name__ == '__main__':
     import time
+    from config import Config
+    from utils import set_windows_selector_event_loop_global
     
-    utils.set_windows_selector_event_loop_global()
+    set_windows_selector_event_loop_global()
 
-    static.config = config.Config()
+    static.config = Config()
     static.config.load()
     
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    loop = aio.new_event_loop()
+    aio.set_event_loop(loop)
     codes = loop.run_until_complete(
         aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
     static.chart = RealtimeManager(codes=codes)
     static.chart.start()
 
     # Upbit account
-    import time
-    time.sleep(3)
-    static.account = Account(static.config.upbit_access_key, static.config.upbit_secret_key)
-    static.account.sync_start()
+    static.account = Account(access_key=static.config.upbit_access_key,
+                             secret_key=static.config.upbit_secret_key)
+    static.account.start()
 
     while(True):
         time.sleep(1)

@@ -1,13 +1,20 @@
-# Upbit automatic trader config file 
+# Unnecessary edit
+LOG:
+  FORMAT: '[%(asctime)s.%(msecs)03d: %(levelname).1s %(filename)s:%(lineno)s] %(message)s'
+  PATH: upbit-trader.log
+  PRINT: BOOLEAN_PRINT_LOG # True/False
+  SAVE: BOOLEAN_SAVE_LOG # True/False
+# Necessary edit
+MONGO:
+  ID: MONGO_ACCOUNT_ID
+  IP: MONGO_IP
+  PASSWORD: MONGO_ACCOUNT_PASSWORD
+  PORT: MONGO_PORT
 UPBIT:
   ACCESS_KEY: INPUT_YOUR_UPBIT_ACCESS_KEY
-  SECRET_KEY: INPUT_YOUR_UPBIT_SCEREY_KEY
-MONGO: 
-  IP: 127.0.0.1
-  PORT: 27017
-  ID: root
-  PASSWORD: qwe123 
-LOG:
-  PATH: ./upbit-trader.log
-  SAVE: True
-  PRINT: True
+  SECRET_KEY: INPUT_YOUR_UPBIT_SECRET_KEY
+STRATEGY:
+  TYPE: STRATEGY_TYPE # VolatilityBreakout/VariousIndicator
+  MAX_INDIVIDUAL_TRADE_PRICE: FIAT_WON # 5000<WON
+PROGRAM:
+  GUI: BOOLEAN_USE_GUI # True/False

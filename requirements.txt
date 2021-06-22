@@ -8,3 +8,4 @@ mplfinance>=0.12.7a17
 pyqt5>=5.15.4
 aiopyupbit>=0.1.6
 cx_freeze>=6.6
+ta-lib>=0.4.20

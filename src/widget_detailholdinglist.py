@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 import math
-import asyncio
+import asyncio as aio
 
 from PyQt5 import QtGui
 from PyQt5.QtCore import *
@@ -11,8 +11,7 @@ from PyQt5.QtGui import *
 from PyQt5 import uic
 
 import static
-import utils
-import config
+from utils import get_file_path
 
 class DetailholdinglistWorker(QThread):
     dataSent = pyqtSignal(object)
@@ -34,7 +33,7 @@ class DetailholdinglistWorker(QThread):
 class DetailholdinglistWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        uic.loadUi(utils.get_file_path("styles/ui/detailholdinglist.ui"), self)
+        uic.loadUi(get_file_path("styles/ui/detailholdinglist.ui"), self)
 
         #참고 QHeaderView Class
         self.detailholdinglist.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -45,9 +44,9 @@ class DetailholdinglistWidget(QWidget):
         self.color_white = QBrush(QColor(255, 255, 255))
 
         self.dw = DetailholdinglistWorker()
-        self.dw.dataSent.connect(self.updataData)
+        self.dw.dataSent.connect(self.updateData)
 
-    def updataData(self, data):
+    def updateData(self, data):
         # data는 static.account.coins
         # 테이블 설정
         # 테이블을 처음 설정할 경우 또는 설정된 table row갯수와 set해야되는 data갯수가 다를 경우
@@ -104,24 +103,27 @@ class DetailholdinglistWidget(QWidget):
     
 if __name__ == "__main__":
     import sys
-    import component
+    from component import RealtimeManager, Account
     import aiopyupbit
+    from config import Config
+    from utils import set_windows_selector_event_loop_global
+    
+    set_windows_selector_event_loop_global()
 
-    utils.set_windows_selector_event_loop_global()
-
-    static.config = config.Config()
+    static.config = Config()
     static.config.load()
     
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    loop = aio.new_event_loop()
+    aio.set_event_loop(loop)
     codes = loop.run_until_complete(
         aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
-    static.chart = component.RealtimeManager(codes=codes)
+    static.chart = RealtimeManager(codes=codes)
     static.chart.start()
     
     # Upbit account
-    static.account = component.Account(static.config.upbit_access_key, static.config.upbit_secret_key)
-    static.account.sync_start()
+    static.account = Account(access_key=static.config.upbit_access_key,
+                             secret_key=static.config.upbit_secret_key)
+    static.account.start()
 
     app = QApplication(sys.argv)
     GUI = DetailholdinglistWidget()

@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-import math
 import platform
-import asyncio
+import asyncio as aio
 
 import aiopyupbit
 
-import utils
-import config
+from component import Coin
 import static
-import component
+import strategy
 
 
 def press_any_key() -> None:
@@ -45,7 +43,7 @@ def print_program_title() -> None:
             os.system('cls')
         else:
             os.system('clear')
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         pass
     print(f'\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓')
     print(
@@ -62,6 +60,8 @@ def print_menu() -> None:
     print("\t1. Total Price")
     print("\t2. Individual Price")
     print("\t3. Holding List")
+    print("\t4. Volatility breakout strategy test")
+    print("\t5. Various indicator strategy test")
     print("\t8. Websocket Sync Start")
     print("\t9. Websocket Sync Stop")
     print("\t0. Exit or CTRL + C")
@@ -112,9 +112,9 @@ def print_individual_price() -> None:
         print('\n\t0. [CTRL + C] Exit to menu')
         try:
             select = input("\t> ")
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             break
-        except Exception as e:
+        except Exception:
             break
 
         try:
@@ -125,14 +125,14 @@ def print_individual_price() -> None:
             else:
                 print_trade_information(
                     static.chart.coins[codes[int(select) - 1]])
-        except IndexError as e:
+        except IndexError:
             print('\tOut of index, please enter to continue...')
             press_any_key()
-        except UnboundLocalError as e:
+        except UnboundLocalError:
             break
 
 
-def print_trade_information(_coin: component.Coin) -> None:
+def print_trade_information(_coin: Coin) -> None:
     """코인 거래 상세 정보 출력
 
     Args:
@@ -175,9 +175,9 @@ def print_trade_information(_coin: component.Coin) -> None:
             print(f'\t│ {round(_coin.get_total_ask_size(), 3):>30}               Total               {round(_coin.get_total_bid_size(), 3):<30}')
             print('\t[CTRL + C] Exit to menu')
             time.sleep(0.5)
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             break
-        except Exception as e:
+        except Exception:
             break
 
 
@@ -198,10 +198,13 @@ def print_holding_list() -> None:
                 loss = data['loss']
                 coin_yield = data['yield']
                 print(f'\t| {code:<5} {balance + locked:<21,} {(lambda x: x if x < 100 else int(x))(avg_buy_price):<15,} {int(purchase):<15,} {int(evaluate):<15,} {int(loss):<15,} {coin_yield:<7.2f}%')
-            print(f'\t│\n\t│ Total Purchase: {static.account.get_buy_price():.0f}')
-            print(f'\t│ Total Evaluate: {static.account.get_evaluate_price():.0f}')
+            print(
+                f'\t│\n\t│ Total Purchase: {static.account.get_buy_price():.0f}')
+            print(
+                f'\t│ Total Evaluate: {static.account.get_evaluate_price():.0f}')
             print(f'\t│ Total Loss    : {static.account.get_total_loss():.0f}')
-            print(f'\t│ Total Yield   : {static.account.get_total_yield():.2f} %')
+            print(
+                f'\t│ Total Yield   : {static.account.get_total_yield():.2f} %')
             print('\t[CTRL + C] Exit to menu')
             time.sleep(1)
         #except KeyboardInterrupt:
@@ -235,6 +238,14 @@ def prompt_main() -> None:
             print_individual_price()
         elif int(select) == 3:
             print_holding_list()
+        elif int(select) == 4:
+            static.strategy = strategy.VolatilityBreakoutStrategy(
+                queue=static.signal_queue)
+            static.strategy.start()
+        elif int(select) == 5:
+            static.strategy = strategy.VariousIndicatorStrategy(
+                queue=static.signal_queue)
+            static.strategy.start()
         elif int(select) == 8:
             if not static.chart.alive:
                 static.chart.start()
@@ -253,22 +264,25 @@ def prompt_main() -> None:
 
 
 if __name__ == '__main__':
-    import component
+    from component import RealtimeManager, Account
+    from config import Config
+    from utils import set_windows_selector_event_loop_global
 
-    utils.set_windows_selector_event_loop_global()
+    set_windows_selector_event_loop_global()
 
-    static.config = config.Config()
+    static.config = Config()
     static.config.load()
-    
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+
+    loop = aio.new_event_loop()
+    aio.set_event_loop(loop)
     codes = loop.run_until_complete(
         aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
-    static.chart = component.RealtimeManager(codes=codes)
+    static.chart = RealtimeManager(codes=codes)
     static.chart.start()
-    
+
     # Upbit account
-    static.account = component.Account(static.config.upbit_access_key, static.config.upbit_secret_key)
-    static.account.sync_start()
+    static.account = Account(access_key=static.config.upbit_access_key,
+                             secret_key=static.config.upbit_secret_key)
+    static.account.start()
 
     prompt_main()
