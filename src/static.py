@@ -19,3 +19,4 @@ db = None
 data_manager = None
 account = None
 config = None
+settings_start = False

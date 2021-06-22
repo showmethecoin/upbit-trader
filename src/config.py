@@ -31,6 +31,9 @@ class Config:
         self.log_print = log_print
         self.log_format = log_format
 
+        self.settings_auto_trading = False
+        self.settings_strategy = 0
+
         self.program_version = 0.7
 
     def to_dict(self) -> dict:
@@ -48,6 +51,10 @@ class Config:
         config['LOG']['SAVE'] = self.log_save
         config['LOG']['PRINT'] = self.log_print
         config['LOG']['FORMAT'] = self.log_format
+        config['SETTINGS'] = {}
+        config['SETTINGS']['AUTO_TRADING'] = self.settings_auto_trading
+        config['SETTINGS']['STRATEGY'] = self.settings_strategy
+        
         return config
 
     def load(self) -> dict:
@@ -66,6 +73,10 @@ class Config:
                     self.log_path = config['LOG']['PATH']
                     self.log_save = config['LOG']['SAVE']
                     self.log_print = config['LOG']['PRINT']
+                if 'SETTINGS' in config:
+                    self.settings_auto_trading = config['SETTINGS']['AUTO_TRADING']
+                    self.settings_strategy = config['SETTINGS']['STRATEGY']
+    
         except FileNotFoundError:
             self.save(self.to_dict())
 

@@ -1,6 +1,7 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import asyncio
+from widget_settings import SettingsWidget
 
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import *
@@ -26,6 +27,7 @@ class MainWindow(QMainWindow):
         self.ui.home_btn.clicked.connect(self.home_btn_click)
         self.ui.user_btn.clicked.connect(self.user_btn_click)
         self.ui.signal_btn.clicked.connect(self.signal_btn_click)
+        self.ui.btn_settings.clicked.connect(self.settings_btn_click)
         
         self.home_worker = [
                             self.ui.orderbook_widget.ow, 
@@ -100,6 +102,12 @@ class MainWindow(QMainWindow):
             self.thread_stop(self.user_worker)
             self.ui.qStackedWidget.setCurrentIndex(2)
     
+    def settings_btn_click(self):
+        if static.settings_start == False:
+            static.settings_start = True
+            self.settings = SettingsWidget()
+            self.settings.show()
+
     def thread_start(self, widgets):
         for w in widgets:
             w.start()
