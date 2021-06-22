@@ -10,7 +10,6 @@ from PyQt5.QtCore import *
 
 from utils import get_file_path
 import static
-from widget_orderbook import OrderbookWorker
 
 
 class CoinListWorker(QThread):

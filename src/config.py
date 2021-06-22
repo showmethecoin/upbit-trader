@@ -7,8 +7,8 @@ from utils import get_file_path
 
 class Config:
     def __init__(self,
-                 upbit_access_key:str = '',
-                 upbit_secret_key:str = '',
+                 upbit_access_key: str = '',
+                 upbit_secret_key: str = '',
                  mongo_ip: str = '127.0.0.1',
                  mongo_port: int = 27017,
                  mongo_id: str = 'root',
@@ -37,7 +37,7 @@ class Config:
         self.log_save = log_save
         self.log_print = log_print
         self.log_format = log_format
-        
+
         # STRATEGY
         self.strategy_type = strategy_type
         self.max_individual_trade_price = max_individual_trade_price

@@ -295,7 +295,7 @@ class TradeWidget(QWidget):
         
         # 선택된 row의 datetime 저장
         dtime = table.item(idx, 0).text()
-        wait = asyncio.run(static.account.upbit.get_order(ticker_or_uuid= ticker))
+        wait = aio.run(static.account.upbit.get_order(ticker_or_uuid= ticker))
 
         for data in wait:
             date = data['created_at'].split('T')[0]
@@ -304,7 +304,7 @@ class TradeWidget(QWidget):
 
             # 미체결 내역중 datetime이 일치하는 내역을 찾은 경우
             if(date_time == dtime):
-                asyncio.run(static.account.upbit.cancel_order(uuid= data['uuid']))
+                aio.run(static.account.upbit.cancel_order(uuid= data['uuid']))
         
     def show_messagebox(self, condition, message):
         self.msg = QMessageBox()
