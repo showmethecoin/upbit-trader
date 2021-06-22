@@ -65,9 +65,7 @@ class Config:
         config['LOG']['PRINT'] = self.log_print
         config['LOG']['FORMAT'] = self.log_format
         config['SETTINGS'] = {}
-        config['SETTINGS']['AUTO_TRADING'] = self.settings_auto_trading
-        config['SETTINGS']['STRATEGY'] = self.settings_strategy
-        
+        config['SETTINGS']['AUTO_TRADING'] = self.settings_auto_trading        
         config['STRATEGY'] = {}
         config['STRATEGY']['TYPE'] = self.strategy_type
         config['STRATEGY']['MAX_INDIVIDUAL_TRADE_PRICE'] = self.max_individual_trade_price
@@ -98,7 +96,6 @@ class Config:
                     self.gui = config['PROGRAM']['GUI']
                 if 'SETTINGS' in config:
                     self.settings_auto_trading = config['SETTINGS']['AUTO_TRADING']
-                    self.settings_strategy = config['SETTINGS']['STRATEGY']
     
         except FileNotFoundError:
             self.save(self.to_dict())

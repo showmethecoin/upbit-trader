@@ -40,7 +40,7 @@ class SettingsWidget(QWidget):
             self.Volatility.setEnabled(False)
             self.start.setEnabled(False)
         
-        if static.config.settings_strategy == 0:
+        if static.config.strategy_type == 'VolatilityBreakout':
             self.RSI.setChecked(True)
         else:
             self.Volatility.setChecked(True)
@@ -73,9 +73,9 @@ class SettingsWidget(QWidget):
 
     def clicked_start(self):
         if self.RSI.isChecked():
-            static.config.settings_strategy = 0
+            static.config.strategy_type = 'VolatilityBreakout'
         else:
-            static.config.settings_strategy = 1
+            static.config.strategy_type = 'VariousIndicator'
         static.config.settings_auto_trading = True
         static.settings_start = False
         static.config.save()
