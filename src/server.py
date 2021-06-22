@@ -11,8 +11,6 @@ import pymongo
 import aiopyupbit
 import pandas as pd
 
-import utils
-import config
 import static
 from static import log
 from db import DBHandler
@@ -285,10 +283,12 @@ class DataManager:
 
 
 if __name__ == '__main__':
+    from config import Config
+    from utils import set_windows_selector_event_loop_global
 
-    utils.set_windows_selector_event_loop_global()
+    set_windows_selector_event_loop_global()
 
-    static.config = config.Config()
+    static.config = Config()
     static.config.load()
     static.data_manager = DataManager(db_ip=static.config.mongo_ip,
                                       db_port=static.config.mongo_port,

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import yaml
-import utils
+from utils import get_file_path
 
 
 class Config:
@@ -52,7 +52,7 @@ class Config:
 
     def load(self) -> dict:
         try:
-            with open(utils.get_file_path('config.yaml'), 'r') as file:
+            with open(get_file_path('config.yaml'), 'r') as file:
                 config = yaml.safe_load(file)
                 if 'UPBIT' in config:
                     self.upbit_access_key = config['UPBIT']['ACCESS_KEY']
@@ -70,7 +70,7 @@ class Config:
             self.save(self.to_dict())
 
     def save(self) -> bool:
-        with open(utils.get_file_path('config.yaml'), 'w') as file:
+        with open(get_file_path('config.yaml'), 'w') as file:
             return yaml.safe_dump(self.to_dict(), file)
 
 

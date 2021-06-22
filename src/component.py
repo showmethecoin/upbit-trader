@@ -10,8 +10,6 @@ from multiprocessing import Queue, Process
 import websockets
 import aiopyupbit
 
-import utils
-import config
 import static
 from static import log
 
@@ -679,10 +677,12 @@ class Account(Thread):
 
 if __name__ == '__main__':
     import time
+    from config import Config
+    from utils import set_windows_selector_event_loop_global
     
-    utils.set_windows_selector_event_loop_global()
+    set_windows_selector_event_loop_global()
 
-    static.config = config.Config()
+    static.config = Config()
     static.config.load()
     
     loop = aio.new_event_loop()
@@ -693,9 +693,8 @@ if __name__ == '__main__':
     static.chart.start()
 
     # Upbit account
-    import time
-    time.sleep(3)
-    static.account = Account(static.config.upbit_access_key, static.config.upbit_secret_key)
+    static.account = Account(access_key=static.config.upbit_access_key,
+                             secret_key=static.config.upbit_secret_key)
     static.account.start()
 
     while(True):

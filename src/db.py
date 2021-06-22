@@ -119,9 +119,9 @@ async def main():
 if __name__ == '__main__':
     import asyncio
     import static
-    import config
+    from config import Config
     
-    static.config = config.Config()
+    static.config = Config()
     static.config.load()
     
     loop = asyncio.get_event_loop()

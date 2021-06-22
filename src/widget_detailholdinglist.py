@@ -122,7 +122,8 @@ if __name__ == "__main__":
     static.chart.start()
     
     # Upbit account
-    static.account = Account(static.config.upbit_access_key, static.config.upbit_secret_key)
+    static.account = Account(access_key=static.config.upbit_access_key,
+                             secret_key=static.config.upbit_secret_key)
     static.account.start()
 
     app = QApplication(sys.argv)

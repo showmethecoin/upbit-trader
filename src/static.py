@@ -1,7 +1,7 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import utils
-import config
+import config as cf
 
 ''' Constant '''
 MIN_TRADE_PRICE = 5000
@@ -17,7 +17,7 @@ PING_INTERVAL = 60
 
 ''' Variable '''
 # Common
-config = config.Config()                                # Config
+config = cf.Config()                                # Config
 config.load()
 log = utils.get_logger(print_format=config.log_format,  # Logger
                        print=config.log_print,

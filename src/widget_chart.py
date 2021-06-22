@@ -114,7 +114,6 @@ if __name__ == "__main__":
     from multiprocessing import freeze_support
     from utils import set_windows_selector_event_loop_global
 
-
     freeze_support()
     set_windows_selector_event_loop_global()
 

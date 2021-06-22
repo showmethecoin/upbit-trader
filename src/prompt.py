@@ -7,12 +7,10 @@ import asyncio as aio
 
 import aiopyupbit
 
-import utils
-import config
+from component import Coin
 import static
-from static import log
-import component
 import strategy
+
 
 def press_any_key() -> None:
     """프롬프트 아무키나 입력 기능
@@ -134,7 +132,7 @@ def print_individual_price() -> None:
             break
 
 
-def print_trade_information(_coin: component.Coin) -> None:
+def print_trade_information(_coin: Coin) -> None:
     """코인 거래 상세 정보 출력
 
     Args:
@@ -200,10 +198,13 @@ def print_holding_list() -> None:
                 loss = data['loss']
                 coin_yield = data['yield']
                 print(f'\t| {code:<5} {balance + locked:<21,} {(lambda x: x if x < 100 else int(x))(avg_buy_price):<15,} {int(purchase):<15,} {int(evaluate):<15,} {int(loss):<15,} {coin_yield:<7.2f}%')
-            print(f'\t│\n\t│ Total Purchase: {static.account.get_buy_price():.0f}')
-            print(f'\t│ Total Evaluate: {static.account.get_evaluate_price():.0f}')
+            print(
+                f'\t│\n\t│ Total Purchase: {static.account.get_buy_price():.0f}')
+            print(
+                f'\t│ Total Evaluate: {static.account.get_evaluate_price():.0f}')
             print(f'\t│ Total Loss    : {static.account.get_total_loss():.0f}')
-            print(f'\t│ Total Yield   : {static.account.get_total_yield():.2f} %')
+            print(
+                f'\t│ Total Yield   : {static.account.get_total_yield():.2f} %')
             print('\t[CTRL + C] Exit to menu')
             time.sleep(1)
         #except KeyboardInterrupt:
@@ -238,10 +239,12 @@ def prompt_main() -> None:
         elif int(select) == 3:
             print_holding_list()
         elif int(select) == 4:
-            static.strategy = strategy.VolatilityBreakoutStrategy(queue=static.signal_queue)
+            static.strategy = strategy.VolatilityBreakoutStrategy(
+                queue=static.signal_queue)
             static.strategy.start()
         elif int(select) == 5:
-            static.strategy = strategy.VariousIndicatorStrategy(queue=static.signal_queue)
+            static.strategy = strategy.VariousIndicatorStrategy(
+                queue=static.signal_queue)
             static.strategy.start()
         elif int(select) == 8:
             if not static.chart.alive:
@@ -261,22 +264,25 @@ def prompt_main() -> None:
 
 
 if __name__ == '__main__':
-    import component
+    from component import RealtimeManager, Account
+    from config import Config
+    from utils import set_windows_selector_event_loop_global
 
-    utils.set_windows_selector_event_loop_global()
+    set_windows_selector_event_loop_global()
 
-    static.config = config.Config()
+    static.config = Config()
     static.config.load()
-    
+
     loop = aio.new_event_loop()
     aio.set_event_loop(loop)
     codes = loop.run_until_complete(
         aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
-    static.chart = component.RealtimeManager(codes=codes)
+    static.chart = RealtimeManager(codes=codes)
     static.chart.start()
-    
+
     # Upbit account
-    static.account = component.Account(static.config.upbit_access_key, static.config.upbit_secret_key)
+    static.account = Account(access_key=static.config.upbit_access_key,
+                             secret_key=static.config.upbit_secret_key)
     static.account.start()
 
     prompt_main()

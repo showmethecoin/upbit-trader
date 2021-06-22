@@ -15,6 +15,7 @@ from component import Coin
 from db import DBHandler
 import static
 from static import log
+from config import Config
 
 
 class SignalManager(Process):
@@ -205,17 +206,23 @@ class VolatilityBreakoutStrategy(Strategy):
         return super().terminate()
 
     async def get_best_coin_list(self):
-        log.info('Find best target coins, it will spend 30 sec...')
-        candidate_list = []
-        for coin in static.chart.codes:
-            df = await aiopyupbit.get_ohlcv(coin, interval=self.period, count=20)
-            avg_5 = self.get_average(df, unit=5, column='close')[0]
-            avg_10 = self.get_average(df, unit=10, column='close')[0]
-            avg_20 = self.get_average(df, unit=20, column='close')[0]
+        log.info('Find best target coins, it will spend 60 sec...')
+        while True:
+            candidate_list = []
+            for coin in static.chart.codes:
+                df = await aiopyupbit.get_ohlcv(coin, interval=self.period, count=20)
+                avg_5 = self.get_average(df, unit=5, column='close')[0]
+                avg_10 = self.get_average(df, unit=10, column='close')[0]
+                avg_20 = self.get_average(df, unit=20, column='close')[0]
 
-            if (avg_5 > avg_10) and (avg_10 > avg_20):
-                candidate_list.append(coin)
-            time.sleep(0.2)
+                if (avg_5 > avg_10) and (avg_10 > avg_20):
+                    candidate_list.append(coin)
+                time.sleep(0.2)
+
+            if candidate_list:
+                break
+
+            log.info('Cannot find best target coins, it will re-working again...')
 
         return [x for x in static.chart.coins.values() if x.code in candidate_list]
 

@@ -41,13 +41,11 @@ def init() -> bool:
                                                contain_name=True))
         static.chart = RealtimeManager(codes=codes)
 
-        # Account initialization
-        static.account = Account(access_key=static.config.upbit_access_key,
-                                 secret_key=static.config.upbit_secret_key)
-
         log.info('Initialization complete')
         return True
     except:
+        import traceback
+        print(traceback.format_exc())
         return False
 
 
@@ -55,13 +53,16 @@ def main(gui: bool = True) -> None:
     """프로그램 메인
     """
 
-    static.account.start()
     static.signal_manager.start()
     static.chart.start()
     if gui:
         # GUI
         gui_main()
     else:
+         # Account initialization
+        static.account = Account(access_key=static.config.upbit_access_key,
+                                 secret_key=static.config.upbit_secret_key)
+        static.account.start()
         # CLI
         prompt_main()
 
