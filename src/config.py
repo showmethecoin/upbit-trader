@@ -7,6 +7,8 @@ from utils import get_file_path
 
 class Config:
     def __init__(self,
+                 upbit_access_key:str = '',
+                 upbit_secret_key:str = '',
                  mongo_ip: str = '127.0.0.1',
                  mongo_port: int = 27017,
                  mongo_id: str = 'root',
@@ -14,15 +16,20 @@ class Config:
                  log_path: str = 'upbit-trader.log',
                  log_save: bool = False,
                  log_print: bool = True,
-                 log_format: str = '[%(asctime)s.%(msecs)03d: %(levelname).1s %(filename)s:%(lineno)s] %(message)s'):
-        self.upbit_access_key = None
-        self.upbit_secret_key = None
+                 log_format: str = '[%(asctime)s.%(msecs)03d: %(levelname).1s %(filename)s:%(lineno)s] %(message)s',
+                 strategy_type: str = 'VolatilityBreakout',
+                 max_individual_trade_price: int = 10000):
+        # UPBIT
+        self.upbit_access_key = upbit_access_key
+        self.upbit_secret_key = upbit_secret_key
 
+        # MONGO
         self.mongo_ip = mongo_ip
         self.mongo_port = mongo_port
         self.mongo_id = mongo_id
         self.mongo_password = mongo_password
 
+        # LOG
         if log_path == 'upbit-trader.log' and not sys.platform.startswith('win'):
             self.log_path = '~/.upbit-trader.log'
         else:
@@ -30,6 +37,10 @@ class Config:
         self.log_save = log_save
         self.log_print = log_print
         self.log_format = log_format
+        
+        # STRATEGY
+        self.strategy_type = strategy_type
+        self.max_individual_trade_price = max_individual_trade_price
 
         self.program_version = 0.7
 
@@ -48,6 +59,9 @@ class Config:
         config['LOG']['SAVE'] = self.log_save
         config['LOG']['PRINT'] = self.log_print
         config['LOG']['FORMAT'] = self.log_format
+        config['STRATEGY'] = {}
+        config['STRATEGY']['TYPE'] = self.strategy_type
+        config['STRATEGY']['MAX_INDIVIDUAL_TRADE_PRICE'] = self.max_individual_trade_price
         return config
 
     def load(self) -> dict:
@@ -66,6 +80,9 @@ class Config:
                     self.log_path = config['LOG']['PATH']
                     self.log_save = config['LOG']['SAVE']
                     self.log_print = config['LOG']['PRINT']
+                if 'STRATEGY' in config:
+                    self.strategy_type = config['STRATEGY']['TYPE']
+                    self.max_individual_trade_price = config['STRATEGY']['MAX_INDIVIDUAL_TRADE_PRICE']
         except FileNotFoundError:
             self.save(self.to_dict())
 

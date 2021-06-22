@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 import datetime
+import uuid
 import asyncio as aio
 from multiprocessing import Queue, Process
 from threading import Thread
@@ -20,8 +21,7 @@ from config import Config
 
 class SignalManager(Process):
     def __init__(self, config: Config, db_ip: str, db_port: int,
-                 db_id: str, db_password: str, queue: Queue, 
-                 max_price: int = static.MAX_TRADE_PRICE) -> None:
+                 db_id: str, db_password: str, queue: Queue) -> None:
         # Public
         self.alive = False
         # Private
@@ -33,7 +33,7 @@ class SignalManager(Process):
         self.__db_port = db_port
         self.__db_id = db_id
         self.__db_password = db_password
-        self.__max_trade_price = max_price
+        self.__max_individual_trade_price = self.__config.max_individual_trade_price
 
         super().__init__()
 
@@ -62,20 +62,22 @@ class SignalManager(Process):
         while self.alive:
             try:
                 message = self.__queue.get()
-                message['_id'] = datetime.datetime.now().timestamp()
+                now = datetime.datetime.now()
+                message['_id'] = uuid.uuid4()
+                message['time'] = now.strftime(static.BASE_TIME_FORMAT)
                 log.info(f'Signal information:\n'
-                         f'date: {datetime.datetime.today().strftime("%Y-%m-%d")}\n'
                          f'_id: {message["_id"]}\n'
+                         f'time: {message["time"]}\n'
                          f'code: {message["code"]}\n'
                          f'type: {message["type"]}\n'
                          f'position: {message["position"]}\n'
                          f'price: {message["price"]}')
-                await db.insert_item_one(data=message, db_name='signal',
+                await db.insert_item_one(data=message, db_name='signal_history',
                                          collection_name=datetime.datetime.today().strftime("%Y-%m-%d"))
 
                 code = message['code'].split('-')[1]
-                order_list = self.__upbit.get_order(message['code'])
-                own_dict = {x['currency']: x for x in self.__upbit.get_balances()}
+                order_list = await self.__upbit.get_order(message['code'])
+                own_dict = {x['currency']: x for x in await self.__upbit.get_balances()}
 
                 # Bid
                 if message['position'] == 'bid':
@@ -89,20 +91,19 @@ class SignalManager(Process):
                         log.warning(f'order_list: {order_list}')
                         # 기존 주문 취소
                         uuid_list = [x['uuid'] for x in order_list]
-                        for uuid in uuid_list:
-                            self.__upbit.cancel_order(uuid)
+                        for x in uuid_list:
+                            await self.__upbit.cancel_order(x)
                     # 시장가 매수
                     if message['type'] == 'market':
-                        pass
-                        # response = self.__upbit.buy_market_order(ticker=message['code'],
-                        #                                          price=self.__max_trade_price)
+                        response = await self.__upbit.buy_market_order(ticker=message['code'],
+                                                                       price=self.__max_individual_trade_price)
                     # 지정가 매수
                     else:
-                        pass
-                    #     volume = self.__max_trade_price / message['price']
-                    #     response = self.__upbit.buy_limit_order(ticker=message['code'],
-                    #                                             price=message['price'],
-                    #                                             volume=volume)
+                        volume = self.__max_individual_trade_price / \
+                            message['price']
+                        response = await self.__upbit.buy_limit_order(ticker=message['code'],
+                                                                      price=message['price'],
+                                                                      volume=volume)
                 # Ask
                 else:
                     # 보유중 확인
@@ -114,20 +115,23 @@ class SignalManager(Process):
                         log.warning(f'order_list: {order_list}')
                         # 기존 주문 취소
                         uuid_list = [x['uuid'] for x in order_list]
-                        for uuid in uuid_list:
-                            self.__upbit.cancel_order(uuid)
+                        for x in uuid_list:
+                            await self.__upbit.cancel_order(x)
                     # 시장가 매도
                     if message['type'] == 'market':
-                        pass
-                        # response = self.__upbit.sell_market_order(ticker=message['code'],
-                        #                                           price=own_dict[code]['balance'])
+                        response = await self.__upbit.sell_market_order(ticker=message['code'],
+                                                                        price=own_dict[code]['balance'])
                     # 지정가 매도
                     else:
-                        pass
-                #         response = self.__upbit.sell_limit_order(ticker=message['code'],
-                #                                                  price=message['price'],
-                #                                                  volume=own_dict[code]['balance'])
-                # uuid_list = [x['uuid'] for x in response]
+                        response = await self.__upbit.sell_limit_order(ticker=message['code'],
+                                                                       price=message['price'],
+                                                                       volume=own_dict[code]['balance'])
+                response_uuid_list = [x['uuid'] for x in response]
+                trade_list = [{'uuid': x for x in response_uuid_list}]
+                trade_list = [x.update({'signal_id': message['_id']}) for x in trade_list]
+                await db.insert_item_many(data=message, db_name='signal_trade_history',
+                                          collection_name=datetime.datetime.today().strftime("%Y-%m-%d"))
+
             except Exception as e:
                 log.error(e)
 
@@ -364,7 +368,7 @@ class VariousIndicatorStrategy(Strategy):
 
             for coin in coin_list:
                 time.sleep(0.2)
-                candle = await aiopyupbit.get_ohlcv(coin.code, interval='minute1')
+                candle = await aiopyupbit.get_ohlcv(ticker=coin.code, interval='minute1')
                 rsi = self.get_rsi(candle)[-1]
                 average_volume = self.get_average(candle, 5, 'volume')[1]
                 status = {}
@@ -380,6 +384,7 @@ class VariousIndicatorStrategy(Strategy):
 
                     buy_history = static.account.coins[coin.code]
                     current_price = coin.get_trade_price()
+                    # 수익률 도달시 매매
                     profit = (current_price / buy_history['avg_buy_price']) - 1
                     if profit >= 0.01 or profit <= -0.01:
                         self.send_signal(code=coin.code, position='ask',

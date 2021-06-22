@@ -39,9 +39,8 @@ class DBHandler:
 
         result = await self.client[db_name][collection_name].insert_one(data)
         return result.inserted_id
-        #return True if await self.client[db_name][collection_name].insert_one(data).inserted_id else False
 
-    async def insert_item_many(self, data: list = None, db_name: str = None, collection_name: str = None, ordered: bool = False) -> list:
+    async def insert_item_many(self, data: list, db_name: str, collection_name: str, ordered: bool = False) -> list:
         """도큐먼트 N개 저장
 
         Args:
