@@ -389,7 +389,7 @@ class VariousIndicatorStrategy(Strategy):
 
     async def __loop(self):
         time_history = {}
-        coin_list = await self.get_best_coin_list()
+        coin_list = await self.get_best_coin_list() # KRW-XXX
         log.info(f'Coin list: {[x.code for x in coin_list]}')
         end_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
         log.info(f'Refresh at {end_time}')
@@ -422,7 +422,7 @@ class VariousIndicatorStrategy(Strategy):
                     if not coin.code in time_history.keys():
                         time_history[coin.code] = datetime.datetime.now()
 
-                    buy_history = static.account.coins[coin.code]
+                    buy_history = static.account.coins[coin.code.split('-')[1]]
                     current_price = coin.get_trade_price()
                     # 수익률 도달시 매매
                     profit = (current_price / buy_history['avg_buy_price']) - 1
