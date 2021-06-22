@@ -34,6 +34,8 @@ class SignalManager(Process):
         self.__db_id = db_id
         self.__db_password = db_password
         self.__max_individual_trade_price = self.__config.max_individual_trade_price
+        
+        self.__coin_list = []
 
         super().__init__()
 
@@ -78,6 +80,14 @@ class SignalManager(Process):
                 
             except Exception as e:
                 log.error(e)
+        
+        for x in self.__coin_list:
+            try:
+                order_list = aio.run(self.__upbit.get_order(x))
+                for y in order_list:
+                    aio.run(self.__upbit.get_order(y['uuid']))
+            except Exception as e:
+                log.error(e)
                 
         return super().terminate()
 
@@ -85,6 +95,10 @@ class SignalManager(Process):
         while self.alive:
             try:
                 message = self.__queue.get()
+                if not message['code'] and not message['type'] and not message['position'] and not message['price']:
+                    self.__coin_list.clear()
+                    continue
+                
                 now = datetime.datetime.now()
                 message['_id'] = f'{uuid.uuid4()}'
                 message['time'] = now.strftime(static.BASE_TIME_FORMAT)
@@ -97,7 +111,7 @@ class SignalManager(Process):
                          f'price: {message["price"]}')
                 await db.insert_item_one(data=message, db_name='signal_history',
                                          collection_name=datetime.datetime.today().strftime("%Y-%m-%d"))
-
+                
                 code = message['code'].split('-')[1]
                 order_list = await self.__upbit.get_order(message['code'])
                 own_dict = {x['currency']: x for x in await self.__upbit.get_balances()}
@@ -149,6 +163,8 @@ class SignalManager(Process):
                         response = await self.__upbit.sell_limit_order(ticker=message['code'],
                                                                        price=message['price'],
                                                                        volume=own_dict[code]['balance'])
+                if not message['code'] in self.__coin_list:
+                    self.__coin_list.append(message['code'])
                 response_uuid_list = [x['uuid'] for x in response]
                 trade_list = [{'uuid': x for x in response_uuid_list}]
                 trade_list = [x.update({'signal_id': message['_id']}) for x in trade_list]
@@ -310,6 +326,7 @@ class VolatilityBreakoutStrategy(Strategy):
             for coin in self.coin_list:
                 self.send_signal(code=coin.code, position='ask',
                                  type='market', price=-1)
+            self.send_signal(None, None, None, None)
 
     async def __is_reached(self, coin: Coin, target_price: float):
         log.info(
@@ -380,6 +397,7 @@ class VariousIndicatorStrategy(Strategy):
                 for coin in coin_list:
                     self.send_signal(code=coin.code, position='ask',
                                      type='market', price=-1)
+                self.send_signal(None, None, None, None)
                 # 코인 목록 갱신
                 coin_list = await self.get_best_coin_list()
                 end_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
