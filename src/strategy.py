@@ -389,7 +389,7 @@ class VariousIndicatorStrategy(Strategy):
 
     async def __loop(self):
         time_history = {}
-        coin_list = await self.get_best_coin_list() # KRW-XXX
+        coin_list = await self.get_best_coin_list()  # KRW-XXX
         log.info(f'Coin list: {[x.code for x in coin_list]}')
         end_time = datetime.datetime.now() + datetime.timedelta(minutes=30)
         log.info(f'Refresh at {end_time}')

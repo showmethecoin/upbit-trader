@@ -53,7 +53,7 @@ def main(gui: bool = True) -> None:
         # GUI
         gui_main()
     else:
-         # Account initialization
+        # Account initialization
         static.signal_manager = SignalManager(config=static.config,
                                               db_ip=static.config.mongo_ip,
                                               db_port=static.config.mongo_port,
