@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>682</width>
+    <width>685</width>
     <height>300</height>
    </rect>
   </property>
@@ -51,12 +51,32 @@
      </attribute>
      <column>
       <property name="text">
-       <string>Signal</string>
+       <string>코인</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>코 인</string>
+       <string>시간</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>매수/매도</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>매매형식</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>매매가격</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>uuid</string>
       </property>
      </column>
     </widget>

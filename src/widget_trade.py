@@ -1,7 +1,7 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import math
-import asyncio
+import asyncio as aio
 import time
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import *
 from PyQt5 import uic
 import ui_styles
 import static
-import utils
+from utils import get_file_path
 from static import log
 
 class TradeWorker(QThread):
@@ -23,9 +23,8 @@ class TradeWorker(QThread):
         self.alive = True
         while self.alive:
             time.sleep(0.5)
-            wait = asyncio.run(static.account.upbit.get_order(ticker_or_uuid= self.code))
-            done = asyncio.run(static.account.upbit.get_order(ticker_or_uuid= self.code, state = 'done'))
-
+            wait = aio.run(static.account.upbit.get_order(ticker_or_uuid= self.code))
+            done = aio.run(static.account.upbit.get_order(ticker_or_uuid= self.code, state = 'done'))
             self.dataSent.emit(wait, 1)
             self.dataSent.emit(done, 2)
     
@@ -36,7 +35,7 @@ class TradeWorker(QThread):
 class TradeWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        uic.loadUi(utils.get_file_path("styles/ui/trade.ui"), self)
+        uic.loadUi(get_file_path("styles/ui/trade.ui"), self)
 
         self.coin = 'KRW-BTC'
         self.items1 = []
@@ -233,13 +232,13 @@ class TradeWidget(QWidget):
                 buy_price = self.buy_price_1.value()
                 buy_volume = self.buy_volume_1.value()
                 total_buy_price = self.buy_total_price_1.value()
-                ret = asyncio.run(static.account.upbit.buy_limit_order(ticker=ticker,
+                ret = aio.run(static.account.upbit.buy_limit_order(ticker=ticker,
                                                                        price=buy_price,
                                                                        volume=buy_volume))
             # Market order
             elif tab_number == 2:
                 total_buy_price = self.buy_total_price_2.value()
-                ret = asyncio.run(static.account.upbit.buy_market_order(ticker=ticker,
+                ret = aio.run(static.account.upbit.buy_market_order(ticker=ticker,
                                                                         price=total_buy_price))
             # TODO Reservation order
             else:
@@ -261,15 +260,16 @@ class TradeWidget(QWidget):
             if tab_number == 1:
                 sell_price = self.sell_price_1.value()
                 sell_volume = self.sell_volume_1.value()
-                ret = asyncio.run(static.account.upbit.sell_limit_order(ticker=ticker,
+                log.info(f'{sell_price} {sell_volume}')
+                ret = aio.run(static.account.upbit.sell_limit_order(ticker=ticker,
                                                                         price=sell_price,
                                                                         volume=sell_volume))
             # Market order
             elif tab_number == 2:
                 sell_volume = self.sell_total_price_2.value()
                 # TODO 개수 바꿔야함
-                ret = asyncio.run(static.account.upbit.sell_market_order(ticker=ticker,
-                                                                         volume=sell_volume))
+                ret = aio.run(static.account.upbit.sell_market_order(ticker=ticker,
+                                                                     volume=sell_volume))
             # TODO Reservation order
             else:
                 self.show_messagebox(False, '미구현입니다')
@@ -280,7 +280,7 @@ class TradeWidget(QWidget):
             log.info(f'{ret}')
             self.show_messagebox(True, '매도주문이 정상완료되었습니다.')
         except Exception as e:
-            self.show_messagebox(False, e.__str__())
+            self.show_messagebox(False, e)
     
     def clicked_info_radio(self, index):
         self.info_stack.setCurrentIndex(index)
@@ -296,7 +296,7 @@ class TradeWidget(QWidget):
         
         # 선택된 row의 datetime 저장
         dtime = table.item(idx, 0).text()
-        wait = asyncio.run(static.account.upbit.get_order(ticker_or_uuid= ticker))
+        wait = aio.run(static.account.upbit.get_order(ticker_or_uuid= ticker))
 
         for data in wait:
             date = data['created_at'].split('T')[0]
@@ -305,7 +305,7 @@ class TradeWidget(QWidget):
 
             # 미체결 내역중 datetime이 일치하는 내역을 찾은 경우
             if(date_time == dtime):
-                asyncio.run(static.account.upbit.cancel_order(uuid= data['uuid']))
+                aio.run(static.account.upbit.cancel_order(uuid= data['uuid']))
         
     def show_messagebox(self, condition, message):
         self.msg = QMessageBox()

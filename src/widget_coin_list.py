@@ -1,17 +1,15 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
 import time
-import asyncio
+import asyncio as aio
 from PyQt5 import uic
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QAbstractItemDelegate, QHeaderView, QTableWidgetItem, QWidget, QApplication
+from PyQt5.QtWidgets import QHeaderView, QTableWidgetItem, QWidget, QApplication
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
-import utils
+from utils import get_file_path
 import static
-import component
-from widget_orderbook import OrderbookWorker
 
 
 class CoinListWorker(QThread):
@@ -35,7 +33,7 @@ class CoinListWorker(QThread):
 class CoinlistWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        uic.loadUi(utils.get_file_path("styles/ui/coin_list.ui"), self)
+        uic.loadUi(get_file_path("styles/ui/coin_list.ui"), self)
 
         #화면 수직,수평으로 늘릴 경우 칸에 맞게 변경됨
         #사용 가능한 공간을 채우기 위해 섹션의 크기를 자동으로 조정
@@ -47,7 +45,7 @@ class CoinlistWidget(QWidget):
         self.coin_list.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         
         self.cw = CoinListWorker()
-        self.cw.dataSent.connect(self.updataData)
+        self.cw.dataSent.connect(self.updateData)
 
         self.coin_list.cellClicked.connect(self.chkItemClicked)
         self.order = None
@@ -57,7 +55,7 @@ class CoinlistWidget(QWidget):
         self.color_green = QBrush(QColor(2, 192, 118))  # 02C076
         self.color_white = QBrush(QColor(255, 255, 255))
 
-    def updataData(self, data):
+    def updateData(self, data):
         # 테이블 설정
         # 테이블을 처음 설정할 경우 또는 설정된 table row갯수와 set해야되는 data갯수가 다를 경우
         if self.coin_list.rowCount() == 0 or self.coin_list.rowCount() != len(static.chart.codes):
@@ -132,15 +130,17 @@ class CoinlistWidget(QWidget):
 if __name__ == "__main__":
     import sys
     import aiopyupbit
-
-    utils.set_windows_selector_event_loop_global()
+    from component import RealtimeManager
+    from utils import set_windows_selector_event_loop_global
+    
+    set_windows_selector_event_loop_global()
 
     # Upbit coin chart
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    loop = aio.new_event_loop()
+    aio.set_event_loop(loop)
     codes = loop.run_until_complete(
         aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
-    static.chart = component.RealtimeManager(codes=codes)
+    static.chart = RealtimeManager(codes=codes)
     static.chart.start()
 
     app = QApplication(sys.argv)

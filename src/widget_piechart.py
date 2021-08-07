@@ -8,7 +8,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
-import utils
 import static
 
 class PieWorker(QThread):
@@ -31,7 +30,7 @@ class PieWorker(QThread):
             datas.append([int(static.account.coins[i]['evaluate']), i])
             sum += int(static.account.coins[i]['evaluate'])
         
-        # Sorrt Coin and KRW
+        # Sort Coin and KRW
         datas.sort(reverse=True)
         remain = [0,'Other Coins']
         
@@ -86,7 +85,7 @@ class PieWorker(QThread):
     
 
 class MyMplCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=12, height=8, dpi=100):
+    def __init__(self, parent=None, width=12, height=8):
         plt.rcParams['axes.facecolor'] = '31363b'
         plt.rcParams['axes.edgecolor'] = 'ffffff'
         plt.rcParams['xtick.color'] = 'ffffff'
@@ -105,7 +104,7 @@ class PieChartWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         # Canvas Initialize
-        self.canvas = MyMplCanvas(self, width=7, height=3, dpi=1000)
+        self.canvas = MyMplCanvas(self, width=7, height=3)
         self.pw = PieWorker(self.canvas)
         self.pw.draw_piechart()
     
@@ -115,11 +114,12 @@ class PieChartWidget(QWidget):
 
 if __name__ == "__main__":
     import sys
-
-    utils.set_windows_selector_event_loop_global()
+    from utils import set_windows_selector_event_loop_global
+    set_windows_selector_event_loop_global()
 
     qApp = QApplication(sys.argv)
     aw = PieChartWidget()
 
     aw.show()
     sys.exit(qApp.exec_())
+

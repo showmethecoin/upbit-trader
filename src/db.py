@@ -36,9 +36,11 @@ class DBHandler:
         Returns:
             bool: [description]
         """
-        return True if await self.client[db_name][collection_name].insert_one(data).inserted_id else False
 
-    async def insert_item_many(self, data: list = None, db_name: str = None, collection_name: str = None, ordered: bool = False) -> list:
+        result = await self.client[db_name][collection_name].insert_one(data)
+        return result.inserted_id
+
+    async def insert_item_many(self, data: list, db_name: str, collection_name: str, ordered: bool = False) -> list:
         """도큐먼트 N개 저장
 
         Args:
@@ -116,9 +118,9 @@ async def main():
 if __name__ == '__main__':
     import asyncio
     import static
-    import config
+    from config import Config
     
-    static.config = config.Config()
+    static.config = Config()
     static.config.load()
     
     loop = asyncio.get_event_loop()

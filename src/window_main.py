@@ -1,15 +1,14 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import asyncio
+import asyncio as aio
+from widget_settings import SettingsWidget
 
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import *
 
 import static
-import component
 from ui_main import Ui_MainWindow
-import utils
-import config
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -26,6 +25,7 @@ class MainWindow(QMainWindow):
         self.ui.home_btn.clicked.connect(self.home_btn_click)
         self.ui.user_btn.clicked.connect(self.user_btn_click)
         self.ui.signal_btn.clicked.connect(self.signal_btn_click)
+        self.ui.btn_settings.clicked.connect(self.settings_btn_click)
         
         self.home_worker = [
                             self.ui.orderbook_widget.ow, 
@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
                             self.ui.detailholdinglist_widget.dw,
                             self.ui.userinfo_widget.uw]
 
-        self.signal_worker = []
+        self.signal_worker = [self.ui.signal_list_widget.sw]
         self.thread_start(self.home_worker)
         self.setWindowFlag(Qt.FramelessWindowHint)
 
@@ -68,6 +68,8 @@ class MainWindow(QMainWindow):
         self.close()
         if static.chart != None:
             static.chart.stop()
+        if static.signal_manager != None:
+            static.signal_manager.terminate()
 
     def home_btn_click(self):
         self.ui.home_btn.setStyleSheet(self.clicked_style)
@@ -100,6 +102,12 @@ class MainWindow(QMainWindow):
             self.thread_stop(self.user_worker)
             self.ui.qStackedWidget.setCurrentIndex(2)
     
+    def settings_btn_click(self):
+        if static.settings_start == False:
+            static.settings_start = True
+            self.settings = SettingsWidget()
+            self.settings.show()
+
     def thread_start(self, widgets):
         for w in widgets:
             w.start()
@@ -107,26 +115,30 @@ class MainWindow(QMainWindow):
         for w in widgets:
             w.alive = False
 
+
 if __name__ == "__main__":
     import sys
-    import component
     import aiopyupbit
+    from config import Config
+    from utils import set_windows_selector_event_loop_global
+    from component import RealtimeManager, Account
 
-    utils.set_windows_selector_event_loop_global()
+    set_windows_selector_event_loop_global()
 
-    static.config = config.Config()
+    static.config = Config()
     static.config.load()
-    
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+
+    loop = aio.new_event_loop()
+    aio.set_event_loop(loop)
     codes = loop.run_until_complete(
         aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
-    static.chart = component.RealtimeManager(codes=codes)
+    static.chart = RealtimeManager(codes=codes)
     static.chart.start()
-    
+
     # Upbit account
-    static.account = component.Account(static.config.upbit_access_key, static.config.upbit_secret_key)
-    static.account.sync_start()
+    static.account = Account(access_key=static.config.upbit_access_key,
+                             secret_key=static.config.upbit_secret_key)
+    static.account.start()
 
     app = QApplication(sys.argv)
     window = MainWindow()

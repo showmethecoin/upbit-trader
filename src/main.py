@@ -1,18 +1,17 @@
 # !/usr/bin/python
 # -*- coding: utf-8 -*-
-import asyncio
+import asyncio as aio
 
+from multiprocessing import Queue, freeze_support
 import aiopyupbit
 
-import utils
-import config
 import static
 from static import log
-import component
-import widget_login
-import utils
-import aiopyupbit
-
+from utils import set_windows_selector_event_loop_global, set_multiprocessing_context
+from component import RealtimeManager, Account
+from strategy import SignalManager
+from widget_login import gui_main
+from prompt import prompt_main
 
 
 def init() -> bool:
@@ -21,38 +20,54 @@ def init() -> bool:
     Returns:
         bool: 성공 여부
     """
+    try:
+        # Asyncio initialization
+        set_windows_selector_event_loop_global()
 
-    log.info('Initializing...')
-    
-    utils.set_windows_selector_event_loop_global()
-    utils.set_multiprocessing_context()
-    
-    static.config = config.Config()
-    static.config.load()
-    
-    # Upbit coin chart
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    codes = loop.run_until_complete(
-        aiopyupbit.get_tickers(fiat=static.FIAT, contain_name=True))
-    static.chart = component.RealtimeManager(codes=codes)
-    static.chart.start()
+        # Multiprocessing initialization
+        set_multiprocessing_context()
+        freeze_support()
 
-    # Prompt window size setting
-    # os.system(f"mode con: lines={config.PROGRAM['HEIGHT']} cols={config.PROGRAM['WIDTH']}")
+        # SignalManager initialization
+        static.signal_queue = Queue()
 
-    return True
+        # RealtimeManager initialization
+        codes = aio.run(aiopyupbit.get_tickers(fiat=static.FIAT,
+                                               contain_name=True))
+        static.chart = RealtimeManager(codes=codes)
+
+        log.info('Initialization complete')
+        return True
+    except:
+        import traceback
+        print(traceback.format_exc())
+        return False
 
 
-def main() -> None:
+def main(gui: bool = True) -> None:
     """프로그램 메인
     """
 
-    widget_login.gui_main()
-    #prompt.prompt_main()
+    static.chart.start()
+    if gui:
+        # GUI
+        gui_main()
+    else:
+        # Account initialization
+        static.signal_manager = SignalManager(config=static.config,
+                                              db_ip=static.config.mongo_ip,
+                                              db_port=static.config.mongo_port,
+                                              db_id=static.config.mongo_id,
+                                              db_password=static.config.mongo_password,
+                                              queue=static.signal_queue)
+        static.signal_manager.start()
+        static.account = Account(access_key=static.config.upbit_access_key,
+                                 secret_key=static.config.upbit_secret_key)
+        static.account.start()
+        # CLI
+        prompt_main()
 
 
 if __name__ == '__main__':
-
-    init()
-    main()
+    if init():
+        main(gui=static.config.gui)
