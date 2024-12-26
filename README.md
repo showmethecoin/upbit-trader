@@ -1,5 +1,4 @@
 <p align="center">
- <img width="100px" src="./assets/upbit.svg" align="center" alt="Upbit Automatic Trader" />
  <h2 align="center">Upbit Automatic Trader</h2>
  <p align="center">Automatic trader program base on upbit openAPI wrapping by pyupbit package</p>
   <p align="center">
